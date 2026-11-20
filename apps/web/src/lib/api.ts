@@ -396,3 +396,72 @@ export async function getSnapshot(workspaceId: string, snapshotId: string): Prom
   if (!response.ok) throw new Error("Unable to retrieve research snapshot");
   return response.json();
 }
+
+// ─── Phase 4: Data Quality & DPDP Privacy ────────────────────────────────────
+
+export type DataFreshness = {
+  symbol: string;
+  exchange: string;
+  currency: string;
+  market_status: string;
+  quote_freshness: string;
+  filings_freshness: string;
+  staleness_score: number;
+  last_quote_time: string;
+  last_audit_time: string;
+  active_tier: string;
+  entitlements: string[];
+};
+
+export type DPDPDataExportResponse = {
+  workspace_id: string;
+  exported_at: string;
+  notes_count: number;
+  snapshots_count: number;
+  watchlists_count: number;
+  data: Record<string, any>;
+};
+
+export type DPDPPurgeResponse = {
+  status: string;
+  message: string;
+  workspace_id: string;
+  purged_at: string;
+  records_deleted: {
+    notes: number;
+    snapshots: number;
+    watchlists: number;
+    watchlist_items: number;
+  };
+};
+
+export async function getDataFreshness(symbol: string): Promise<DataFreshness> {
+  const response = await fetch(`${getApiBase()}/api/v1/instruments/${encodeURIComponent(symbol)}/freshness`, {
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Unable to retrieve data freshness");
+  return response.json();
+}
+
+export async function exportUserData(workspaceId: string): Promise<DPDPDataExportResponse> {
+  const response = await fetch(`${getApiBase()}/api/v1/compliance/dpdp/export`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ workspace_id: workspaceId }),
+  });
+  if (!response.ok) throw new Error("Unable to export user data");
+  return response.json();
+}
+
+export async function purgeUserData(workspaceId: string, confirmationPhrase: string): Promise<DPDPPurgeResponse> {
+  const response = await fetch(`${getApiBase()}/api/v1/compliance/dpdp/purge`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ workspace_id: workspaceId, confirmation_phrase: confirmationPhrase }),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.detail || "Unable to purge user data");
+  }
+  return response.json();
+}

@@ -240,3 +240,46 @@ class ResearchSnapshotResponse(BaseModel):
     created_at: datetime
     payload: dict[str, Any]
 
+
+# ─── Phase 4 Schemas: Freshness & DPDP Compliance ─────────────────────────────
+
+class DataFreshnessResponse(BaseModel):
+    symbol: str
+    exchange: str
+    currency: str
+    market_status: str
+    quote_freshness: str
+    filings_freshness: str
+    staleness_score: float
+    last_quote_time: datetime
+    last_audit_time: str
+    active_tier: str
+    entitlements: list[str]
+
+
+class DPDPDataExportRequest(BaseModel):
+    workspace_id: str
+
+
+class DPDPDataExportResponse(BaseModel):
+    workspace_id: str
+    exported_at: datetime
+    notes_count: int
+    snapshots_count: int
+    watchlists_count: int
+    data: dict[str, Any]
+
+
+class DPDPPurgeRequest(BaseModel):
+    workspace_id: str
+    confirmation_phrase: str = Field(description="Must equal 'PURGE_ALL_DATA'")
+
+
+class DPDPPurgeResponse(BaseModel):
+    status: str
+    message: str
+    workspace_id: str
+    purged_at: datetime
+    records_deleted: dict[str, int]
+
+

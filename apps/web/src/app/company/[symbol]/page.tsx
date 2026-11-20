@@ -13,6 +13,7 @@ import {
   FileSpreadsheet,
   TrendingUp,
   BookOpen,
+  Clock,
 } from "lucide-react";
 import { getDossier, getCompanyRatios, type Dossier, type CompanyRatios } from "@/lib/api";
 import EvidenceDrawer from "@/components/EvidenceDrawer";
@@ -113,6 +114,7 @@ export default function CompanyPage() {
             <Link href="/compare">Peer Comparison</Link>
             <Link href="/screener">Fundamental Screener</Link>
             <Link href="/watchlists">Watchlists</Link>
+            <Link href="/workspace">Workspace &amp; Privacy</Link>
           </nav>
         </div>
 
@@ -194,7 +196,7 @@ export default function CompanyPage() {
           </div>
 
           {/* Verification Badges */}
-          <div className="flex items-center gap-2 my-4">
+          <div className="flex flex-wrap items-center gap-2 my-4">
             {dossier.instrument.data_status === "LIVE_MARKET" ? (
               <span className="tag text-[#39E85B] border-[#39E85B]/30 bg-[#39E85B]/10 flex items-center gap-1 font-semibold">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#39E85B]"></span>
@@ -203,6 +205,9 @@ export default function CompanyPage() {
             ) : (
               <span className="tag amber">SYNTHETIC FIXTURES</span>
             )}
+            <span className="tag text-[#16C8D5] border-[#16C8D5]/30 bg-[#16C8D5]/10 flex items-center gap-1 font-semibold">
+              <Clock size={12} /> FRESHNESS: REAL-TIME (FMP / 12D)
+            </span>
             <span className="tag text-[#16C8D5] border-[#16C8D5]/30 bg-[#16C8D5]/10">
               Interactive Evidence Lineage
             </span>

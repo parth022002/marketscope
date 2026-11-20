@@ -66,6 +66,7 @@ export default function SearchPage() {
             <Link href="/compare">Peer Comparison</Link>
             <Link href="/screener">Fundamental Screener</Link>
             <Link href="/watchlists">Watchlists</Link>
+            <Link href="/workspace">Workspace &amp; Privacy</Link>
           </nav>
         </div>
 

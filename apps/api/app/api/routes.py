@@ -42,6 +42,11 @@ from app.domain.schemas import (
     WatchlistItemResponse,
     ResearchSnapshotCreate,
     ResearchSnapshotResponse,
+    DataFreshnessResponse,
+    DPDPDataExportRequest,
+    DPDPDataExportResponse,
+    DPDPPurgeRequest,
+    DPDPPurgeResponse,
 )
 from app.engine.calculations import (
     FINANCIAL_STATEMENTS_DATABASE,
@@ -985,6 +990,159 @@ def create_research_snapshot(
         is_valid=True,
         created_at=snapshot.created_at,
         payload=snapshot.payload,
+    )
+
+
+# ─── 11. Phase 4: Data Quality & Freshness Engine (MOD-15) ────────────────────
+
+@router.get("/instruments/{symbol}/freshness", response_model=DataFreshnessResponse)
+def get_data_freshness(symbol: str):
+    """
+    Returns real-time staleness monitoring, quote freshness, audit status,
+    and granted provider entitlements.
+    """
+    return provider.get_data_freshness(symbol)
+
+
+# ─── 12. Phase 4: DPDP Act Compliance & User Data Rights (MOD-19) ─────────────
+
+@router.post("/compliance/dpdp/export", response_model=DPDPDataExportResponse)
+def export_user_data(payload: DPDPDataExportRequest, db: Session = Depends(get_db)):
+    """
+    Exports all user data (research notes, snapshots, and watchlists) in accordance
+    with India Digital Personal Data Protection (DPDP) Act and GDPR portability rights.
+    """
+    try:
+        ws_uuid = uuid.UUID(payload.workspace_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid workspace UUID format")
+
+    notes = db.query(ResearchNote).filter(ResearchNote.workspace_id == ws_uuid).all()
+    snapshots = db.query(ResearchSnapshot).filter(ResearchSnapshot.workspace_id == ws_uuid).all()
+    watchlists = db.query(Watchlist).filter(Watchlist.workspace_id == ws_uuid).all()
+
+    export_payload = {
+        "workspace_id": str(ws_uuid),
+        "exported_at": datetime.now(timezone.utc).isoformat(),
+        "compliance_standard": "India DPDP Act 2023 / GDPR Article 20",
+        "notes": [
+            {
+                "id": str(n.id),
+                "title": n.title,
+                "thesis": n.thesis,
+                "counterpoints": n.counterpoints,
+                "created_at": n.created_at.isoformat() if n.created_at else None,
+            }
+            for n in notes
+        ],
+        "snapshots": [
+            {
+                "id": str(s.id),
+                "snapshot_label": s.snapshot_label,
+                "checksum": s.checksum,
+                "created_at": s.created_at.isoformat() if s.created_at else None,
+            }
+            for s in snapshots
+        ],
+        "watchlists": [
+            {
+                "id": str(w.id),
+                "name": w.name,
+                "items_count": len(w.items),
+                "items": [{"symbol": item.symbol} for item in w.items],
+            }
+            for w in watchlists
+        ],
+    }
+
+    return DPDPDataExportResponse(
+        workspace_id=str(ws_uuid),
+        exported_at=datetime.now(timezone.utc),
+        notes_count=len(notes),
+        snapshots_count=len(snapshots),
+        watchlists_count=len(watchlists),
+        data=export_payload,
+    )
+
+
+@router.post("/compliance/dpdp/purge", response_model=DPDPPurgeResponse)
+def purge_user_data(payload: DPDPPurgeRequest, db: Session = Depends(get_db)):
+    """
+    Executes complete, irreversible cascade deletion of user workspace records
+    under India DPDP Act 'Right to Erasure' compliance.
+    """
+    if payload.confirmation_phrase != "PURGE_ALL_DATA":
+        raise HTTPException(
+            status_code=400,
+            detail="Confirmation phrase mismatch. Must explicitly supply 'PURGE_ALL_DATA' to confirm permanent erasure.",
+        )
+
+    try:
+        ws_uuid = uuid.UUID(payload.workspace_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid workspace UUID format")
+
+    now = datetime.now(timezone.utc)
+
+    # 1. Cascade delete watchlist items & watchlists
+    watchlists = db.query(Watchlist).filter(Watchlist.workspace_id == ws_uuid).all()
+    watchlist_ids = [w.id for w in watchlists]
+    items_deleted = (
+        db.query(WatchlistItem)
+        .filter(WatchlistItem.watchlist_id.in_(watchlist_ids))
+        .delete(synchronize_session=False)
+        if watchlist_ids
+        else 0
+    )
+    watchlists_deleted = (
+        db.query(Watchlist)
+        .filter(Watchlist.workspace_id == ws_uuid)
+        .delete(synchronize_session=False)
+    )
+
+    # 2. Delete research notes
+    notes_deleted = (
+        db.query(ResearchNote)
+        .filter(ResearchNote.workspace_id == ws_uuid)
+        .delete(synchronize_session=False)
+    )
+
+    # 3. Delete snapshots
+    snapshots_deleted = (
+        db.query(ResearchSnapshot)
+        .filter(ResearchSnapshot.workspace_id == ws_uuid)
+        .delete(synchronize_session=False)
+    )
+
+    # 4. Record permanent DPDP compliance audit event (Zero PII preserved)
+    audit = AuditEvent(
+        workspace_id=ws_uuid,
+        action="DPDP_RIGHT_TO_ERASURE_PURGE",
+        resource_type="USER_WORKSPACE_DATA",
+        resource_id=str(ws_uuid),
+        item_metadata={
+            "notes_deleted": notes_deleted,
+            "snapshots_deleted": snapshots_deleted,
+            "watchlists_deleted": watchlists_deleted,
+            "watchlist_items_deleted": items_deleted,
+            "compliance_law": "Digital Personal Data Protection (DPDP) Act 2023",
+        },
+        occurred_at=now,
+    )
+    db.add(audit)
+    db.commit()
+
+    return DPDPPurgeResponse(
+        status="PURGED",
+        message="All workspace research notes, snapshots, and watchlists successfully and irreversibly erased.",
+        workspace_id=str(ws_uuid),
+        purged_at=now,
+        records_deleted={
+            "notes": notes_deleted,
+            "snapshots": snapshots_deleted,
+            "watchlists": watchlists_deleted,
+            "watchlist_items": items_deleted,
+        },
     )
 
 

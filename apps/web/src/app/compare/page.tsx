@@ -56,6 +56,7 @@ export default function ComparePage() {
             </Link>
             <Link href="/screener">Fundamental Screener</Link>
             <Link href="/watchlists">Watchlists</Link>
+            <Link href="/workspace">Workspace &amp; Privacy</Link>
           </nav>
         </div>
 

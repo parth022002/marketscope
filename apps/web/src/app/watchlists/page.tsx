@@ -105,6 +105,7 @@ export default function WatchlistsPage() {
             <Link className="active" href="/watchlists">
               Watchlists
             </Link>
+            <Link href="/workspace">Workspace &amp; Privacy</Link>
           </nav>
         </div>
 

@@ -119,6 +119,7 @@ export default function ScreenerPage() {
               Fundamental Screener
             </Link>
             <Link href="/watchlists">Watchlists</Link>
+            <Link href="/workspace">Workspace &amp; Privacy</Link>
           </nav>
         </div>
 
