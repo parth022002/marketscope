@@ -1,0 +1,83 @@
+name: MarketScope CI/CD Pipeline
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend-test:
+    name: Backend Test Suite (FastAPI & Pytest)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: apps/api
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio httpx
+
+      - name: Run Backend Test Suites (27 Tests)
+        env:
+          APP_ENV: "testing"
+          APP_DEBUG: "false"
+          SECRET_KEY: "ci_cd_test_secret_key_minimum_32_characters_123456"
+          SNAPSHOT_SIGNING_SALT: "ci_cd_test_snapshot_salt"
+          MOCK_AUTH_ENABLED: "true"
+          AI_ENABLED: "true"
+          DATABASE_URL: "postgresql+psycopg://test:test@localhost:5432/test"
+          REDIS_URL: "redis://localhost:6379/0"
+        run: |
+          pytest tests -v
+
+  frontend-build:
+    name: Frontend Build & Typecheck (Next.js 15)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: apps/web
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+
+      - name: TypeScript Validation
+        run: npm run typecheck
+
+      - name: Next.js Production Build
+        env:
+          NEXT_PUBLIC_APP_NAME: "MarketScope.io"
+          NEXT_PUBLIC_API_BASE_URL: "http://localhost:8000"
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "pk_test_c2luZ3VsYXItamVubmV0LTUwMzEuY2xlcmsuYWNjb3VudHMuZGV2JA"
+          CLERK_SECRET_KEY: "sk_test_Hbx0Vx46E7bXlCjV3yrPZat35RKY4fhJxp2oIFuKNT"
+          NEXT_PUBLIC_AI_ENABLED: "true"
+        run: npm run build

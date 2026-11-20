@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ArrowUpRight, Search, ShieldCheck, FileSearch, Bookmark, CheckCircle2 } from "lucide-react";
 import { SignInButton, SignUpButton, Show, UserButton } from "@clerk/nextjs";
+import Footer from "@/components/Footer";
 
 const featuredCompanies = [
   { symbol: "RELIANCE", name: "Reliance Industries Limited", sector: "Energy / Retail / Digital", status: "LIVE_MARKET", exchange: "NSE" },
@@ -162,16 +163,7 @@ export default function HomePage() {
             ))}
           </div>
 
-          <div className="notice" style={{ marginTop: 32 }}>
-            <strong>Regulatory &amp; Data Notice:</strong> MarketScope.io is a financial research and analytical decision-support workspace. It does not provide investment advice, execute stock transactions, or handle customer funds. The current environment displays synthetic fixtures for demonstration purposes.
-          </div>
-
-          <footer className="footer">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
-              <div>MarketScope.io — Financial Research &amp; Intelligence · Phase 1 Foundation Active</div>
-              <div style={{ color: "var(--text-muted)" }}>Clerk Authentication &amp; Neon Postgres Connected</div>
-            </div>
-          </footer>
+          <Footer />
         </div>
       </main>
     </div>
