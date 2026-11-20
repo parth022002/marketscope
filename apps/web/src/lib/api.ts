@@ -4,6 +4,8 @@ const getApiBase = () => (typeof window === "undefined" ? SERVER_API_BASE : API_
 
 export const DEFAULT_WORKSPACE_ID = "11111111-1111-1111-1111-111111111111";
 
+// ─── Types ───────────────────────────────────────────────────────────────────
+
 export type Instrument = {
   instrument_id: string;
   symbol: string;
@@ -95,6 +97,144 @@ export type ResearchNote = {
   updated_at: string;
 };
 
+export type StatementLineItem = {
+  line_item: string;
+  fy22?: number | null;
+  fy23?: number | null;
+  fy24?: number | null;
+  q1?: number | null;
+  q2?: number | null;
+  q3?: number | null;
+  q4?: number | null;
+  unit: string;
+};
+
+export type FinancialStatementsResponse = {
+  symbol: string;
+  company_name: string;
+  statement_type: string;
+  period_type: string;
+  reporting_basis: string;
+  periods: string[];
+  items: StatementLineItem[];
+  audit_status: string;
+};
+
+export type CompanyRatios = {
+  symbol: string;
+  company_name: string;
+  sector: string;
+  valuation: {
+    pe_ratio: number | null;
+    pb_ratio: number;
+    ev_ebitda: number | null;
+    market_cap: number;
+    enterprise_value: number;
+  };
+  profitability: {
+    roe: number;
+    roce: number;
+    operating_margin: number;
+    net_margin: number;
+  };
+  solvency: {
+    debt_to_equity: number;
+    interest_coverage: number;
+  };
+  cash_flow: {
+    fcf: number;
+    fcf_yield: number;
+    cfo_to_pat: number;
+  };
+};
+
+export type PeerItem = {
+  symbol: string;
+  company_name: string;
+  sector: string;
+  market_cap: number;
+  current_price: number;
+  pe_ratio: number | null;
+  pb_ratio: number;
+  roe: number;
+  roce: number;
+  debt_to_equity: number;
+  operating_margin: number;
+  fcf: number;
+};
+
+export type PeerComparisonResponse = {
+  target_symbol: string;
+  sector: string;
+  peers: PeerItem[];
+  alignment_warnings: string[];
+};
+
+export type ScreenerCriteria = {
+  sector?: string;
+  min_market_cap?: number;
+  min_roe?: number;
+  max_pe?: number;
+  max_debt_equity?: number;
+  min_opm?: number;
+};
+
+export type ScreenerResultItem = {
+  symbol: string;
+  company_name: string;
+  sector: string;
+  market_cap: number;
+  pe_ratio: number | null;
+  roe: number;
+  debt_to_equity: number;
+  operating_margin: number;
+};
+
+export type ScreenerResponse = {
+  count: number;
+  results: ScreenerResultItem[];
+  applied_criteria: ScreenerCriteria;
+};
+
+export type ScreenerPreset = {
+  id: string;
+  name: string;
+  description: string;
+  criteria: ScreenerCriteria;
+};
+
+export type WatchlistItem = {
+  id: string;
+  watchlist_id: string;
+  instrument_id: string;
+  symbol: string;
+  company_name: string;
+  added_at: string;
+};
+
+export type Watchlist = {
+  id: string;
+  workspace_id: string;
+  name: string;
+  description: string | null;
+  created_at: string;
+  items: WatchlistItem[];
+};
+
+export type ResearchSnapshot = {
+  id: string;
+  workspace_id: string;
+  instrument_id: string;
+  snapshot_label: string;
+  data_as_of: string;
+  checksum: string;
+  is_valid: boolean;
+  created_at: string;
+  payload: Record<string, unknown>;
+};
+
+// ─── API Functions ───────────────────────────────────────────────────────────
+
 export async function searchInstruments(query: string): Promise<Instrument[]> {
   const response = await fetch(
     `${getApiBase()}/api/v1/instruments/search?q=${encodeURIComponent(query)}`,
@@ -131,6 +271,51 @@ export async function getMetricEvidence(instrumentId: string, metricId: string):
   return response.json();
 }
 
+export async function getFinancialStatements(
+  symbol: string,
+  statementType = "income_statement",
+  periodType = "annual",
+  reportingBasis = "CONSOLIDATED"
+): Promise<FinancialStatementsResponse> {
+  const url = `${getApiBase()}/api/v1/instruments/${encodeURIComponent(symbol)}/statements?statement_type=${encodeURIComponent(statementType)}&period_type=${encodeURIComponent(periodType)}&reporting_basis=${encodeURIComponent(reportingBasis)}`;
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to load financial statements");
+  return response.json();
+}
+
+export async function getCompanyRatios(symbol: string): Promise<CompanyRatios> {
+  const response = await fetch(`${getApiBase()}/api/v1/instruments/${encodeURIComponent(symbol)}/ratios`, {
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Unable to load financial ratios");
+  return response.json();
+}
+
+export async function getPeerComparison(symbol: string): Promise<PeerComparisonResponse> {
+  const response = await fetch(`${getApiBase()}/api/v1/instruments/${encodeURIComponent(symbol)}/peers`, {
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Unable to load peer comparison");
+  return response.json();
+}
+
+export async function runScreener(criteria: ScreenerCriteria): Promise<ScreenerResponse> {
+  const response = await fetch(`${getApiBase()}/api/v1/screener/run`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(criteria),
+  });
+  if (!response.ok) throw new Error("Failed to execute fundamental screen");
+  return response.json();
+}
+
+export async function getScreenerPresets(): Promise<ScreenerPreset[]> {
+  const response = await fetch(`${getApiBase()}/api/v1/screener/presets`, { cache: "no-store" });
+  if (!response.ok) throw new Error("Failed to load screener presets");
+  const data = await response.json();
+  return data.presets;
+}
+
 export async function getWorkspaceNotes(workspaceId: string, instrumentId?: string): Promise<ResearchNote[]> {
   let url = `${getApiBase()}/api/v1/workspaces/${encodeURIComponent(workspaceId)}/notes`;
   if (instrumentId) url += `?instrument_id=${encodeURIComponent(instrumentId)}`;
@@ -157,4 +342,57 @@ export async function deleteWorkspaceNote(workspaceId: string, noteId: string): 
     method: "DELETE",
   });
   if (!response.ok) throw new Error("Unable to delete research note");
+}
+
+export async function getWatchlists(workspaceId: string): Promise<Watchlist[]> {
+  const response = await fetch(`${getApiBase()}/api/v1/workspaces/${encodeURIComponent(workspaceId)}/watchlists`, {
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Unable to fetch watchlists");
+  return response.json();
+}
+
+export async function createWatchlist(workspaceId: string, payload: { name: string; description?: string }): Promise<Watchlist> {
+  const response = await fetch(`${getApiBase()}/api/v1/workspaces/${encodeURIComponent(workspaceId)}/watchlists`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) throw new Error("Unable to create watchlist");
+  return response.json();
+}
+
+export async function addWatchlistItem(workspaceId: string, watchlistId: string, payload: { symbol: string; notes?: string }): Promise<WatchlistItem> {
+  const response = await fetch(`${getApiBase()}/api/v1/workspaces/${encodeURIComponent(workspaceId)}/watchlists/${encodeURIComponent(watchlistId)}/items`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) throw new Error("Unable to add ticker to watchlist");
+  return response.json();
+}
+
+export async function deleteWatchlistItem(workspaceId: string, watchlistId: string, itemId: string): Promise<void> {
+  const response = await fetch(`${getApiBase()}/api/v1/workspaces/${encodeURIComponent(workspaceId)}/watchlists/${encodeURIComponent(watchlistId)}/items/${encodeURIComponent(itemId)}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) throw new Error("Unable to delete watchlist item");
+}
+
+export async function createSnapshot(workspaceId: string, payload: { instrument_id: string; snapshot_label: string; thesis?: string }): Promise<ResearchSnapshot> {
+  const response = await fetch(`${getApiBase()}/api/v1/workspaces/${encodeURIComponent(workspaceId)}/snapshots`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) throw new Error("Unable to create research snapshot");
+  return response.json();
+}
+
+export async function getSnapshot(workspaceId: string, snapshotId: string): Promise<ResearchSnapshot> {
+  const response = await fetch(`${getApiBase()}/api/v1/workspaces/${encodeURIComponent(workspaceId)}/snapshots/${encodeURIComponent(snapshotId)}`, {
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Unable to retrieve research snapshot");
+  return response.json();
 }

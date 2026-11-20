@@ -26,10 +26,9 @@ export default function HomePage() {
           <nav className="nav">
             <Link className="active" href="/">Overview</Link>
             <Link href="/search">Company Search</Link>
-            <Link href="/search">Financial Statements</Link>
-            <Link href="/search">Peer Comparison</Link>
-            <Link href="/search">Watchlists</Link>
-            <Link href="/search">Research Notes</Link>
+            <Link href="/compare">Peer Comparison</Link>
+            <Link href="/screener">Fundamental Screener</Link>
+            <Link href="/watchlists">Watchlists</Link>
           </nav>
         </div>
 

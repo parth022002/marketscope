@@ -63,8 +63,9 @@ export default function SearchPage() {
             <Link className="active" href="/search">
               Discover Companies
             </Link>
-            <Link href="/search">Peer Comparison</Link>
-            <Link href="/search">Watchlists & Screens</Link>
+            <Link href="/compare">Peer Comparison</Link>
+            <Link href="/screener">Fundamental Screener</Link>
+            <Link href="/watchlists">Watchlists</Link>
           </nav>
         </div>
 

@@ -29,6 +29,8 @@ class Workspace(Base):
     memberships = relationship("WorkspaceMembership", back_populates="workspace", cascade="all, delete-orphan")
     notes = relationship("ResearchNote", back_populates="workspace", cascade="all, delete-orphan")
     snapshots = relationship("ResearchSnapshot", back_populates="workspace", cascade="all, delete-orphan")
+    watchlists = relationship("Watchlist", back_populates="workspace", cascade="all, delete-orphan")
+    saved_screens = relationship("SavedScreen", back_populates="workspace", cascade="all, delete-orphan")
 
 
 class User(Base):
@@ -220,3 +222,43 @@ class AuditEvent(Base):
     resource_id = Column(Text, nullable=True)
     item_metadata = Column("metadata", JSONB, nullable=False, default=dict)
     occurred_at = Column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+class Watchlist(Base):
+    __tablename__ = "watchlists"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    workspace_id = Column(UUID(as_uuid=True), ForeignKey("workspaces.id", ondelete="CASCADE"), nullable=False)
+    name = Column(Text, nullable=False)
+    description = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+    workspace = relationship("Workspace", back_populates="watchlists")
+    items = relationship("WatchlistItem", back_populates="watchlist", cascade="all, delete-orphan")
+
+
+class WatchlistItem(Base):
+    __tablename__ = "watchlist_items"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    watchlist_id = Column(UUID(as_uuid=True), ForeignKey("watchlists.id", ondelete="CASCADE"), nullable=False)
+    instrument_id = Column(UUID(as_uuid=True), ForeignKey("instruments.id", ondelete="CASCADE"), nullable=False)
+    notes = Column(Text, nullable=True)
+    added_at = Column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+    watchlist = relationship("Watchlist", back_populates="items")
+    instrument = relationship("Instrument")
+
+
+class SavedScreen(Base):
+    __tablename__ = "saved_screens"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    workspace_id = Column(UUID(as_uuid=True), ForeignKey("workspaces.id", ondelete="CASCADE"), nullable=False)
+    name = Column(Text, nullable=False)
+    description = Column(Text, nullable=True)
+    filter_criteria = Column(JSONB, nullable=False, default=dict)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=utcnow)
+    updated_at = Column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+    workspace = relationship("Workspace", back_populates="saved_screens")

@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 from pydantic import BaseModel, Field
 
 
@@ -109,3 +110,133 @@ class ResearchNoteResponse(BaseModel):
     open_questions: list[str] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
+
+
+# ─── Phase 2 & 3 Schemas ──────────────────────────────────────────────────────
+
+class StatementLineItem(BaseModel):
+    line_item: str
+    fy22: float | None = None
+    fy23: float | None = None
+    fy24: float | None = None
+    q1: float | None = None
+    q2: float | None = None
+    q3: float | None = None
+    q4: float | None = None
+    unit: str = "INR Cr"
+
+
+class FinancialStatementsResponse(BaseModel):
+    symbol: str
+    company_name: str
+    statement_type: str  # "income_statement" | "balance_sheet" | "cash_flow"
+    period_type: str     # "annual" | "quarterly"
+    reporting_basis: str # "CONSOLIDATED" | "STANDALONE"
+    periods: list[str]
+    items: list[StatementLineItem]
+    audit_status: str = "AUDITED_IND_AS"
+
+
+class CompanyRatiosResponse(BaseModel):
+    symbol: str
+    company_name: str
+    sector: str
+    valuation: dict[str, float | None]
+    profitability: dict[str, float | None]
+    solvency: dict[str, float | None]
+    cash_flow: dict[str, float | None]
+
+
+class PeerComparisonItem(BaseModel):
+    symbol: str
+    company_name: str
+    sector: str
+    market_cap: float
+    current_price: float
+    pe_ratio: float | None
+    pb_ratio: float
+    roe: float
+    roce: float
+    debt_to_equity: float
+    operating_margin: float
+    fcf: float
+
+
+class PeerComparisonResponse(BaseModel):
+    target_symbol: str
+    sector: str
+    peers: list[PeerComparisonItem]
+    alignment_warnings: list[str] = Field(default_factory=list)
+
+
+class ScreenerCriteria(BaseModel):
+    sector: str | None = None
+    min_market_cap: float | None = None
+    min_roe: float | None = None
+    max_pe: float | None = None
+    max_debt_equity: float | None = None
+    min_opm: float | None = None
+
+
+class ScreenerResultItem(BaseModel):
+    symbol: str
+    company_name: str
+    sector: str
+    market_cap: float
+    pe_ratio: float | None
+    roe: float
+    debt_to_equity: float
+    operating_margin: float
+
+
+class ScreenerResponse(BaseModel):
+    count: int
+    results: list[ScreenerResultItem]
+    applied_criteria: ScreenerCriteria
+
+
+class WatchlistItemResponse(BaseModel):
+    id: str
+    watchlist_id: str
+    instrument_id: str
+    symbol: str
+    company_name: str
+    added_at: datetime
+
+
+class WatchlistCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=100)
+    description: str = Field(default="", max_length=500)
+
+
+class WatchlistResponse(BaseModel):
+    id: str
+    workspace_id: str
+    name: str
+    description: str | None = None
+    created_at: datetime
+    items: list[WatchlistItemResponse] = Field(default_factory=list)
+
+
+class WatchlistItemCreate(BaseModel):
+    symbol: str
+    notes: str = ""
+
+
+class ResearchSnapshotCreate(BaseModel):
+    instrument_id: str
+    snapshot_label: str = Field(min_length=1, max_length=150)
+    thesis: str = ""
+
+
+class ResearchSnapshotResponse(BaseModel):
+    id: str
+    workspace_id: str
+    instrument_id: str
+    snapshot_label: str
+    data_as_of: datetime
+    checksum: str
+    is_valid: bool
+    created_at: datetime
+    payload: dict[str, Any]
+

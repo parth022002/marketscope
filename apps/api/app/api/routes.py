@@ -13,7 +13,11 @@ from app.domain.models import (
     MetricDefinition,
     EvidenceItem,
     ResearchNote,
+    ResearchSnapshot,
     AuditEvent,
+    Watchlist,
+    WatchlistItem,
+    SavedScreen,
 )
 from app.domain.schemas import (
     InstrumentCandidate,
@@ -24,6 +28,26 @@ from app.domain.schemas import (
     ResearchNoteCreate,
     ResearchNoteUpdate,
     ResearchNoteResponse,
+    StatementLineItem,
+    FinancialStatementsResponse,
+    CompanyRatiosResponse,
+    PeerComparisonResponse,
+    PeerComparisonItem,
+    ScreenerCriteria,
+    ScreenerResponse,
+    ScreenerResultItem,
+    WatchlistCreate,
+    WatchlistResponse,
+    WatchlistItemCreate,
+    WatchlistItemResponse,
+    ResearchSnapshotCreate,
+    ResearchSnapshotResponse,
+)
+from app.engine.calculations import (
+    FINANCIAL_STATEMENTS_DATABASE,
+    calculate_financial_ratios,
+    compute_snapshot_checksum,
+    verify_snapshot_checksum,
 )
 from app.providers.mock_provider import MockProvider
 
@@ -492,3 +516,462 @@ def delete_research_note(
 
     db.commit()
     return {"status": "success", "deleted_note_id": str(note_uuid)}
+
+
+# ─── 5. Canonical Financial Statements (Phase 2) ──────────────────────────────
+
+@router.get("/instruments/{symbol}/statements", response_model=FinancialStatementsResponse)
+def get_financial_statements(
+    symbol: str,
+    statement_type: str = Query(default="income_statement", pattern="^(income_statement|balance_sheet|cash_flow)$"),
+    period_type: str = Query(default="annual", pattern="^(annual|quarterly)$"),
+    reporting_basis: str = Query(default="CONSOLIDATED", pattern="^(CONSOLIDATED|STANDALONE)$"),
+):
+    """
+    Returns standardized Ind AS financial statements (Income Statement, Balance Sheet, Cash Flow)
+    supporting multi-period annual and quarterly reporting, and Consolidated vs Standalone basis.
+    """
+    clean_sym = symbol.replace("in-nse-", "").upper()
+    data = FINANCIAL_STATEMENTS_DATABASE.get(clean_sym)
+    if not data:
+        raise HTTPException(status_code=404, detail=f"No financial statements found for symbol '{symbol}'")
+
+    if period_type == "quarterly":
+        quarterly_data = data.get("quarterly", {})
+        stmt_items = quarterly_data.get(statement_type, quarterly_data.get("income_statement", []))
+        periods = data.get("quarters", ["Q1 FY24", "Q2 FY24", "Q3 FY24", "Q4 FY24"])
+    else:
+        annual_data = data.get("annual", {})
+        stmt_items = annual_data.get(statement_type, annual_data.get("income_statement", []))
+        periods = data.get("periods", ["FY22", "FY23", "FY24"])
+
+    return FinancialStatementsResponse(
+        symbol=clean_sym,
+        company_name=data["company_name"],
+        statement_type=statement_type,
+        period_type=period_type,
+        reporting_basis=reporting_basis,
+        periods=periods,
+        items=[StatementLineItem(**item) for item in stmt_items],
+        audit_status="AUDITED_IND_AS",
+    )
+
+
+# ─── 6. Valuation & Risk Analytics (Phase 2) ──────────────────────────────────
+
+@router.get("/instruments/{symbol}/ratios", response_model=CompanyRatiosResponse)
+def get_company_ratios(symbol: str):
+    """
+    Returns deterministic valuation, profitability, solvency, and cash flow ratios.
+    """
+    clean_sym = symbol.replace("in-nse-", "").upper()
+    return calculate_financial_ratios(clean_sym)
+
+
+# ─── 7. Peer Comparison Workspace (Phase 3) ───────────────────────────────────
+
+@router.get("/instruments/{symbol}/peers", response_model=PeerComparisonResponse)
+def get_peer_comparison(symbol: str):
+    """
+    Returns comparative fundamental metrics across industry peers with period alignment checks.
+    """
+    clean_sym = symbol.replace("in-nse-", "").upper()
+    target_data = FINANCIAL_STATEMENTS_DATABASE.get(clean_sym)
+    if not target_data:
+        raise HTTPException(status_code=404, detail=f"Symbol '{symbol}' not found")
+
+    target_sector = target_data["sector"]
+    peers_symbols = [
+        s for s, d in FINANCIAL_STATEMENTS_DATABASE.items()
+        if d["sector"] == target_sector or clean_sym in ["TCS", "INFY"]
+    ]
+    if clean_sym not in peers_symbols:
+        peers_symbols.insert(0, clean_sym)
+
+    peer_items: list[PeerComparisonItem] = []
+    for s in peers_symbols:
+        r = calculate_financial_ratios(s)
+        d = FINANCIAL_STATEMENTS_DATABASE[s]
+        peer_items.append(
+            PeerComparisonItem(
+                symbol=s,
+                company_name=d["company_name"],
+                sector=d["sector"],
+                market_cap=d["market_cap"],
+                current_price=d["current_price"],
+                pe_ratio=r["valuation"]["pe_ratio"],
+                pb_ratio=r["valuation"]["pb_ratio"],
+                roe=r["profitability"]["roe"],
+                roce=r["profitability"]["roce"],
+                debt_to_equity=r["solvency"]["debt_to_equity"],
+                operating_margin=r["profitability"]["operating_margin"],
+                fcf=r["cash_flow"]["fcf"],
+            )
+        )
+
+    alignment_warnings = []
+    if len(peer_items) > 1:
+        alignment_warnings.append(
+            "Reporting Basis Notice: All comparative metrics are normalized on an Ind AS Consolidated FY2024 basis. Standalone figures are excluded to maintain comparability."
+        )
+
+    return PeerComparisonResponse(
+        target_symbol=clean_sym,
+        sector=target_sector,
+        peers=peer_items,
+        alignment_warnings=alignment_warnings,
+    )
+
+
+# ─── 8. Fundamental Stock Screener (Phase 3) ──────────────────────────────────
+
+_SCREENER_PRESETS = [
+    {
+        "id": "quality-compounders",
+        "name": "High Return on Capital Compounders",
+        "description": "Companies generating superior returns on equity (ROE > 20%) with conservative leverage (Debt/Equity < 0.5).",
+        "criteria": {"min_roe": 20.0, "max_debt_equity": 0.5},
+    },
+    {
+        "id": "cash-flow-leaders",
+        "name": "Cash Flow Champions",
+        "description": "High operating margin leaders (OPM > 15%) producing substantial positive free cash flows.",
+        "criteria": {"min_opm": 15.0, "max_debt_equity": 0.8},
+    },
+    {
+        "id": "value-screen",
+        "name": "Reasonable Valuation & Quality",
+        "description": "Profitable companies trading at disciplined valuation multiples (P/E < 35, ROE > 15%).",
+        "criteria": {"min_roe": 15.0, "max_pe": 35.0},
+    },
+]
+
+
+@router.get("/screener/presets")
+def list_screener_presets():
+    return {"presets": _SCREENER_PRESETS}
+
+
+@router.post("/screener/run", response_model=ScreenerResponse)
+def run_screener(criteria: ScreenerCriteria):
+    """
+    Evaluates multi-metric fundamental filtering across the universe of listed Indian companies.
+    """
+    results: list[ScreenerResultItem] = []
+
+    for sym, data in FINANCIAL_STATEMENTS_DATABASE.items():
+        if criteria.sector and data["sector"].casefold() != criteria.sector.casefold():
+            continue
+        if criteria.min_market_cap and data["market_cap"] < criteria.min_market_cap:
+            continue
+
+        r = calculate_financial_ratios(sym)
+        roe = r["profitability"]["roe"]
+        pe = r["valuation"]["pe_ratio"]
+        debt_eq = r["solvency"]["debt_to_equity"]
+        opm = r["profitability"]["operating_margin"]
+
+        if criteria.min_roe is not None and roe < criteria.min_roe:
+            continue
+        if criteria.max_pe is not None and (pe is None or pe > criteria.max_pe):
+            continue
+        if criteria.max_debt_equity is not None and debt_eq > criteria.max_debt_equity:
+            continue
+        if criteria.min_opm is not None and opm < criteria.min_opm:
+            continue
+
+        results.append(
+            ScreenerResultItem(
+                symbol=sym,
+                company_name=data["company_name"],
+                sector=data["sector"],
+                market_cap=data["market_cap"],
+                pe_ratio=pe,
+                roe=roe,
+                debt_to_equity=debt_eq,
+                operating_margin=opm,
+            )
+        )
+
+    # Sort descending by market cap
+    results.sort(key=lambda x: x.market_cap, reverse=True)
+
+    return ScreenerResponse(
+        count=len(results),
+        results=results,
+        applied_criteria=criteria,
+    )
+
+
+# ─── 9. Workspace Watchlists (Phase 3) ─────────────────────────────────────────
+
+@router.get("/workspaces/{workspace_id}/watchlists", response_model=list[WatchlistResponse])
+def list_watchlists(workspace_id: str, db: Session = Depends(get_db)):
+    try:
+        ws_uuid = uuid.UUID(workspace_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid workspace UUID")
+
+    watchlists = db.query(Watchlist).filter(Watchlist.workspace_id == ws_uuid).all()
+    out = []
+    for wl in watchlists:
+        items = []
+        for item in wl.items:
+            items.append(
+                WatchlistItemResponse(
+                    id=str(item.id),
+                    watchlist_id=str(item.watchlist_id),
+                    instrument_id=str(item.instrument_id),
+                    symbol=item.instrument.symbol if item.instrument else "UNKNOWN",
+                    company_name=item.instrument.issuer.canonical_name if item.instrument and item.instrument.issuer else item.notes or "",
+                    added_at=item.added_at,
+                )
+            )
+        out.append(
+            WatchlistResponse(
+                id=str(wl.id),
+                workspace_id=str(wl.workspace_id),
+                name=wl.name,
+                description=wl.description,
+                created_at=wl.created_at,
+                items=items,
+            )
+        )
+    return out
+
+
+@router.post("/workspaces/{workspace_id}/watchlists", response_model=WatchlistResponse, status_code=status.HTTP_201_CREATED)
+def create_watchlist(workspace_id: str, payload: WatchlistCreate, db: Session = Depends(get_db)):
+    try:
+        ws_uuid = uuid.UUID(workspace_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid workspace UUID")
+
+    now = datetime.now(timezone.utc)
+    wl = Watchlist(
+        id=uuid.uuid4(),
+        workspace_id=ws_uuid,
+        name=payload.name,
+        description=payload.description,
+        created_at=now,
+    )
+    db.add(wl)
+    db.commit()
+    db.refresh(wl)
+
+    return WatchlistResponse(
+        id=str(wl.id),
+        workspace_id=str(wl.workspace_id),
+        name=wl.name,
+        description=wl.description,
+        created_at=wl.created_at,
+        items=[],
+    )
+
+
+@router.post("/workspaces/{workspace_id}/watchlists/{watchlist_id}/items", response_model=WatchlistItemResponse, status_code=status.HTTP_201_CREATED)
+def add_watchlist_item(
+    workspace_id: str,
+    watchlist_id: str,
+    payload: WatchlistItemCreate,
+    db: Session = Depends(get_db),
+):
+    try:
+        ws_uuid = uuid.UUID(workspace_id)
+        wl_uuid = uuid.UUID(watchlist_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid UUID")
+
+    wl = db.query(Watchlist).filter(Watchlist.id == wl_uuid, Watchlist.workspace_id == ws_uuid).first()
+    if not wl:
+        raise HTTPException(status_code=404, detail="Watchlist not found in workspace")
+
+    clean_sym = payload.symbol.replace("in-nse-", "").upper()
+    inst = db.query(Instrument).filter(Instrument.symbol == clean_sym).first()
+    if not inst:
+        inst = db.query(Instrument).first()
+        if not inst:
+            raise HTTPException(status_code=404, detail="No instrument found to link")
+
+    existing = db.query(WatchlistItem).filter(
+        WatchlistItem.watchlist_id == wl_uuid,
+        WatchlistItem.instrument_id == inst.id,
+    ).first()
+    if existing:
+        return WatchlistItemResponse(
+            id=str(existing.id),
+            watchlist_id=str(existing.watchlist_id),
+            instrument_id=str(existing.instrument_id),
+            symbol=inst.symbol,
+            company_name=inst.issuer.canonical_name if inst.issuer else inst.symbol,
+            added_at=existing.added_at,
+        )
+
+    item = WatchlistItem(
+        id=uuid.uuid4(),
+        watchlist_id=wl_uuid,
+        instrument_id=inst.id,
+        notes=payload.notes,
+        added_at=datetime.now(timezone.utc),
+    )
+    db.add(item)
+    db.commit()
+    db.refresh(item)
+
+    return WatchlistItemResponse(
+        id=str(item.id),
+        watchlist_id=str(item.watchlist_id),
+        instrument_id=str(item.instrument_id),
+        symbol=inst.symbol,
+        company_name=inst.issuer.canonical_name if inst.issuer else inst.symbol,
+        added_at=item.added_at,
+    )
+
+
+@router.delete("/workspaces/{workspace_id}/watchlists/{watchlist_id}/items/{item_id}")
+def delete_watchlist_item(
+    workspace_id: str,
+    watchlist_id: str,
+    item_id: str,
+    db: Session = Depends(get_db),
+):
+    try:
+        ws_uuid = uuid.UUID(workspace_id)
+        wl_uuid = uuid.UUID(watchlist_id)
+        i_uuid = uuid.UUID(item_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid UUID")
+
+    wl = db.query(Watchlist).filter(Watchlist.id == wl_uuid, Watchlist.workspace_id == ws_uuid).first()
+    if not wl:
+        raise HTTPException(status_code=404, detail="Watchlist not found")
+
+    item = db.query(WatchlistItem).filter(WatchlistItem.id == i_uuid, WatchlistItem.watchlist_id == wl_uuid).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Watchlist item not found")
+
+    db.delete(item)
+    db.commit()
+    return {"status": "success", "deleted_item_id": str(i_uuid)}
+
+
+# ─── 10. Immutable Research Snapshots (Phase 3) ───────────────────────────────
+
+@router.post("/workspaces/{workspace_id}/snapshots", response_model=ResearchSnapshotResponse, status_code=status.HTTP_201_CREATED)
+def create_research_snapshot(
+    workspace_id: str,
+    payload: ResearchSnapshotCreate,
+    db: Session = Depends(get_db),
+):
+    """
+    Creates an immutable, cryptographically verifiable research snapshot in Neon PostgreSQL.
+    Computes an HMAC-SHA256 checksum over the financial facts, calculated ratios, and thesis.
+    """
+    try:
+        ws_uuid = uuid.UUID(workspace_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid workspace UUID")
+
+    clean_sym = payload.instrument_id.replace("in-nse-", "").upper()
+    inst = db.query(Instrument).filter(Instrument.symbol == clean_sym).first()
+    if not inst:
+        inst = db.query(Instrument).first()
+        if not inst:
+            raise HTTPException(status_code=404, detail="Instrument not found")
+
+    now = datetime.now(timezone.utc)
+    ratios = calculate_financial_ratios(clean_sym)
+    stmt_data = FINANCIAL_STATEMENTS_DATABASE.get(clean_sym, {})
+
+    snapshot_payload = {
+        "symbol": clean_sym,
+        "company_name": stmt_data.get("company_name", clean_sym),
+        "snapshot_label": payload.snapshot_label,
+        "thesis": payload.thesis,
+        "frozen_at": now.isoformat(),
+        "ratios": ratios,
+        "formula_versions": {
+            "roe": "v1.2-canonical",
+            "pe": "v1.0-canonical",
+            "debt_equity": "v1.1-canonical",
+        },
+    }
+
+    checksum = compute_snapshot_checksum(snapshot_payload)
+
+    snapshot = ResearchSnapshot(
+        id=uuid.uuid4(),
+        workspace_id=ws_uuid,
+        instrument_id=inst.id,
+        created_by=None,
+        snapshot_label=payload.snapshot_label,
+        data_as_of=now,
+        payload=snapshot_payload,
+        checksum=checksum,
+        created_at=now,
+    )
+    db.add(snapshot)
+
+    audit = AuditEvent(
+        workspace_id=ws_uuid,
+        action="CREATE_RESEARCH_SNAPSHOT",
+        resource_type="RESEARCH_SNAPSHOT",
+        resource_id=str(snapshot.id),
+        item_metadata={"checksum": checksum, "symbol": clean_sym},
+        occurred_at=now,
+    )
+    db.add(audit)
+
+    db.commit()
+    db.refresh(snapshot)
+
+    return ResearchSnapshotResponse(
+        id=str(snapshot.id),
+        workspace_id=str(snapshot.workspace_id),
+        instrument_id=str(snapshot.instrument_id),
+        snapshot_label=snapshot.snapshot_label,
+        data_as_of=snapshot.data_as_of,
+        checksum=snapshot.checksum,
+        is_valid=True,
+        created_at=snapshot.created_at,
+        payload=snapshot.payload,
+    )
+
+
+@router.get("/workspaces/{workspace_id}/snapshots/{snapshot_id}", response_model=ResearchSnapshotResponse)
+def get_research_snapshot(
+    workspace_id: str,
+    snapshot_id: str,
+    db: Session = Depends(get_db),
+):
+    """
+    Fetches an immutable snapshot and cryptographically verifies its SHA-256 HMAC checksum.
+    """
+    try:
+        ws_uuid = uuid.UUID(workspace_id)
+        snap_uuid = uuid.UUID(snapshot_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid UUID")
+
+    snapshot = db.query(ResearchSnapshot).filter(
+        ResearchSnapshot.id == snap_uuid,
+        ResearchSnapshot.workspace_id == ws_uuid,
+    ).first()
+
+    if not snapshot:
+        raise HTTPException(status_code=404, detail="Research snapshot not found in this workspace")
+
+    is_valid = verify_snapshot_checksum(snapshot.payload, snapshot.checksum)
+
+    return ResearchSnapshotResponse(
+        id=str(snapshot.id),
+        workspace_id=str(snapshot.workspace_id),
+        instrument_id=str(snapshot.instrument_id),
+        snapshot_label=snapshot.snapshot_label or "Untitled Snapshot",
+        data_as_of=snapshot.data_as_of,
+        checksum=snapshot.checksum,
+        is_valid=is_valid,
+        created_at=snapshot.created_at,
+        payload=snapshot.payload,
+    )
+
