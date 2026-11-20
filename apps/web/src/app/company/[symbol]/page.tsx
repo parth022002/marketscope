@@ -14,6 +14,8 @@ import {
   TrendingUp,
   BookOpen,
   Clock,
+  BrainCircuit,
+  Sparkles,
 } from "lucide-react";
 import { getDossier, getCompanyRatios, type Dossier, type CompanyRatios } from "@/lib/api";
 import EvidenceDrawer from "@/components/EvidenceDrawer";
@@ -21,6 +23,7 @@ import ResearchNotesPanel from "@/components/ResearchNotesPanel";
 import FinancialStatementsExplorer from "@/components/FinancialStatementsExplorer";
 import SnapshotModal from "@/components/SnapshotModal";
 import AddToWatchlistModal from "@/components/AddToWatchlistModal";
+import AISynthesisPanel from "@/components/AISynthesisPanel";
 
 const IDS_MAP: Record<string, string> = {
   reliance: "in-nse-reliance",
@@ -42,7 +45,7 @@ export default function CompanyPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<"overview" | "statements" | "valuation" | "notes">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "statements" | "valuation" | "notes" | "ai_synthesis">("overview");
 
   // Modals & Drawers
   const [selectedMetricId, setSelectedMetricId] = useState<string | null>(null);
@@ -258,6 +261,19 @@ export default function CompanyPage() {
             >
               <BookOpen size={13} /> Research Notes
             </button>
+            <button
+              onClick={() => setActiveTab("ai_synthesis")}
+              className={`text-xs px-4 py-2 rounded-lg font-bold transition flex items-center gap-1.5 ${
+                activeTab === "ai_synthesis"
+                  ? "bg-gradient-to-r from-[#087BEE] to-[#16C8D5] text-white shadow-md"
+                  : "text-[#16C8D5] hover:text-white hover:bg-[#132B4F]/40"
+              }`}
+            >
+              <BrainCircuit size={13} /> AI Research Synthesis
+              <span className="text-[9px] px-1.5 py-0.2 bg-[#39E85B]/20 text-[#39E85B] font-extrabold rounded ml-0.5">
+                GATED
+              </span>
+            </button>
           </div>
 
           {/* Tab 1: Overview */}
@@ -453,6 +469,14 @@ export default function CompanyPage() {
           {activeTab === "notes" && (
             <ResearchNotesPanel
               instrumentId={instrumentId}
+              companyName={dossier.instrument.company_name}
+            />
+          )}
+
+          {/* Tab 5: Gated AI Research Synthesis (MOD-17) */}
+          {activeTab === "ai_synthesis" && (
+            <AISynthesisPanel
+              symbol={symbol}
               companyName={dossier.instrument.company_name}
             />
           )}

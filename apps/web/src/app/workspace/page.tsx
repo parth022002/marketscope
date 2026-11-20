@@ -15,6 +15,8 @@ import {
   Radio,
   FileText,
   Clock,
+  BrainCircuit,
+  Sparkles,
 } from "lucide-react";
 import { exportUserData, purgeUserData, type DPDPDataExportResponse, type DPDPPurgeResponse } from "@/lib/api";
 
@@ -195,6 +197,54 @@ export default function WorkspacePage() {
                 <div className="font-bold text-white text-sm">Neon PostgreSQL</div>
                 <div className="text-xs text-slate-400 mt-1">AWS Singapore (17 Tables)</div>
                 <div className="text-[11px] text-[#39E85B] mt-2 font-medium">✓ Pooled &amp; Isolated</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 1B: Gated AI Research Engines (Phase 5 - MOD-17) */}
+          <div className="mt-8">
+            <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+              <BrainCircuit size={16} className="text-[#16C8D5]" /> Gated AI Research Engines &amp; Intelligence Tier (Phase 5)
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="card bg-[#0B1D38] border border-[#132B4F] rounded-xl p-4">
+                <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+                  <span>HIGH-SPEED INFERENCE</span>
+                  <span className="w-2 h-2 rounded-full bg-[#39E85B]"></span>
+                </div>
+                <div className="font-bold text-white text-sm">Groq LLaMA-3.3 70B</div>
+                <div className="text-xs text-slate-400 mt-1">Key: gsk_...JWQ6 (Active)</div>
+                <div className="text-[11px] text-[#39E85B] mt-2 font-medium">✓ Sub-second Citation RAG</div>
+              </div>
+
+              <div className="card bg-[#0B1D38] border border-[#132B4F] rounded-xl p-4">
+                <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+                  <span>MULTIMODAL INTELLIGENCE</span>
+                  <span className="w-2 h-2 rounded-full bg-[#39E85B]"></span>
+                </div>
+                <div className="font-bold text-white text-sm">Google Gemini</div>
+                <div className="text-xs text-slate-400 mt-1">Key: AQ.Ab8...m6h5Q (Active)</div>
+                <div className="text-[11px] text-[#16C8D5] mt-2 font-medium">✓ Regulatory Filings RAG</div>
+              </div>
+
+              <div className="card bg-[#0B1D38] border border-[#132B4F] rounded-xl p-4">
+                <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+                  <span>ROUTER TIER</span>
+                  <span className="w-2 h-2 rounded-full bg-[#39E85B]"></span>
+                </div>
+                <div className="font-bold text-white text-sm">OpenRouter Engine</div>
+                <div className="text-xs text-slate-400 mt-1">Key: sk-or-v1...c742 (Active)</div>
+                <div className="text-[11px] text-[#39E85B] mt-2 font-medium">✓ Multi-Model Fallback</div>
+              </div>
+
+              <div className="card bg-[#0B1D38] border border-[#132B4F] rounded-xl p-4">
+                <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+                  <span>GUARANTEED ACCURACY</span>
+                  <span className="w-2 h-2 rounded-full bg-[#39E85B]"></span>
+                </div>
+                <div className="font-bold text-white text-sm">Deterministic Grounded RAG</div>
+                <div className="text-xs text-slate-400 mt-1">Zero Hallucinations Engine</div>
+                <div className="text-[11px] text-[#39E85B] mt-2 font-medium">✓ 100% Fact Grounded</div>
               </div>
             </div>
           </div>

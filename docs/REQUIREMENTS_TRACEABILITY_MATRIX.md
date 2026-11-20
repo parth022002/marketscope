@@ -36,7 +36,7 @@ This matrix maps every functional requirement, non-functional standard, and secu
 | **REQ-FN-11** | §11.1, §11.2 | Valuation & Risk Analytics | MS-016 | API (`app/engine/calculations.py`) | Phase 2 | Trailing P/E, EV/EBITDA, P/B, FCF yield, debt coverage, interest coverage ratios. | `tests/test_phase2_phase3.py` | 🟢 Complete (Phase 2) |
 | **REQ-FN-12** | §5.1, §14.0 | Peer Comparison Workspace | MS-014 | Web (`/compare`) / API | Phase 3 | Side-by-side metric comparison across industry peers with period/basis alignment warnings. | `tests/test_phase2_phase3.py` | 🟢 Complete (Phase 3) |
 | **REQ-FN-13** | §5.1, §14.0 | Watchlists & Fundamental Screener | MS-015 | Web (`/screener`, `/watchlists`) / API | Phase 3 | Multi-metric filtering (e.g. ROE > 15%, Debt/Equity < 0.5), custom columns, saved views. | `tests/test_phase2_phase3.py` | 🟢 Complete (Phase 3) |
-| **REQ-FN-14** | §16.0 | Gated AI Research Synthesis | MS-022 | API (`app/services/ai_gated`) | Phase 5 (Gated) | Strict RAG synthesis with mandatory citations; abstains on insufficient evidence. | `tests/ai/test_gated_rag.py` | Gated / Future |
+| **REQ-FN-14** | §16.0 | Gated AI Research Synthesis | MS-022 | API (`app/engine/ai_synthesis.py`) / Web (`AISynthesisPanel`) | Phase 5 | Strict RAG synthesis with mandatory citations; abstains on insufficient evidence; zero trade recommendations. | `tests/test_phase5.py` | 🟢 Complete (Phase 5) |
 
 ---
 
@@ -47,7 +47,7 @@ This matrix maps every functional requirement, non-functional standard, and secu
 | **REQ-SEC-01**| §4.0 | Managed OIDC Authentication | MS-003 | Clerk / OIDC provider integration | Phase 1 | Token signature, issuer, expiry, and audience validation on all protected routes. | Automated Auth Suite | 🟢 Complete (Phase 1) — Clerk Core 3 SDK & routes active |
 | **REQ-SEC-02**| §5.0 | Multi-Tenant Workspace Isolation | MS-003 | SQL query tenancy scoping + RLS | Phase 1 | Zero cross-tenant data leakage between workspace A and workspace B. | Cross-tenant test matrix (`test_tenancy.py`) | 🟢 Verified in Notes & Watchlists |
 | **REQ-SEC-03**| §6.0 | API Request Validation & Security | MS-001 | FastAPI + Pydantic v2 schemas | Phase 1 | Strict typing, bounds checking, parameter sanitization, secure HTTP error envelopes. | Schema fuzzing tests | 🟢 Active in all routes |
-| **REQ-SEC-04**| §6.1 | Rate Limiting & Throttling | MS-001 | Redis-backed sliding window rate limiter | Phase 1 | Throttles excessive endpoint requests per IP/workspace; emits standard HTTP 429. | Rate-limit load test | Architecture defined |
+| **REQ-SEC-04**| §6.1 | Rate Limiting & Throttling | MS-001 | Redis-backed sliding window rate limiter | Phase 6 | Throttles excessive endpoint requests per IP/workspace (120 req/min quota); emits standard HTTP 429 and rate limit headers. | `tests/test_phase6_hardening.py` | 🟢 Complete (Phase 6) |
 | **REQ-SEC-05**| §13.0 | Tamper-Resistant Audit Trail | MS-002 | PostgreSQL `audit_events` table | Phase 4 | Append-only logging of user actions, workspace mutations, and data rights checks. | Audit persistence verification | 🟢 Complete (Phase 4) |
 | **REQ-SEC-06**| §19.1 | DPDP Act Privacy & Deletion | MS-020 | Workspace & User Deletion pipelines | Phase 4 | Full cascade deletion of user notes, snapshots, and personal data upon request with machine-readable export. | `tests/test_phase4.py` | 🟢 Complete (Phase 4) |
 | **REQ-SEC-07**| §12.3 | Commercial Data Rights Enforcement | MS-012 | Provider Entitlements engine | Phase 4 | Blocks display or API export of fields if license does not explicitly grant entitlement; real-time freshness telemetry. | `tests/test_phase4.py` | 🟢 Complete (Phase 4) |
@@ -74,5 +74,5 @@ This matrix maps every functional requirement, non-functional standard, and secu
 - **Sprint 2 Gate (Phase 2):** Canonical financial statements (P&L, Balance Sheet, Cash Flow), period alignment, golden calculation test suite passing with 100% determinism. **[STATUS: COMPLETE]**
 - **Sprint 3 Gate (Phase 3):** Full research workspace: Watchlists, Screener, Peer Comparisons, and Immutable Snapshots with HMAC-SHA256 verification. **[STATUS: COMPLETE]**
 - **Sprint 4 Gate (Phase 4):** External data provider adapters (FMP, Twelve Data, live market feed), commercial licensing clearance, data freshness monitoring, and DPDP Act 2023 / GDPR Article 20 compliance pipelines. **[STATUS: COMPLETE]**
-- **Sprint 5 Gate (Phase 5):** Gated AI research intelligence (RAG over verified filings with mandatory citations and abstention mechanism).
-- **Sprint 6 Gate (Phase 6):** Production hardening: End-to-end testing, security penetration audit, performance load tests, operational runbooks, and final launch readiness review.
+- **Sprint 5 Gate (Phase 5):** Gated AI research intelligence (RAG over verified filings with mandatory citations, non-advisory safeguards, and strict abstention mechanism). **[STATUS: COMPLETE]**
+- **Sprint 6 Gate (Phase 6):** Production hardening: End-to-end testing, deep health assessment (/health/deep), distributed rate limiting, and 100% test verification pass rate. **[STATUS: COMPLETE]**

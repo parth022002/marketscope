@@ -465,3 +465,85 @@ export async function purgeUserData(workspaceId: string, confirmationPhrase: str
   }
   return response.json();
 }
+
+// ─── Phase 5: Gated AI Research Synthesis (MOD-17) ────────────────────────────
+
+export type AISynthesisCitation = {
+  citation_id: string;
+  fact_or_ratio: string;
+  period: string;
+  value: string;
+  source_formula_or_filing: string;
+};
+
+export type AISynthesis = {
+  symbol: string;
+  company_name: string;
+  status: "SUCCESS" | "ABSTAINED";
+  executive_summary: string;
+  key_fundamental_strengths: string[];
+  key_fundamental_risks: string[];
+  valuation_and_solvency_assessment: string;
+  citations: AISynthesisCitation[];
+  grounding_score: number;
+  model_used: string;
+  provider: string;
+  generated_at: string;
+  disclaimer: string;
+};
+
+export async function getAISynthesis(
+  symbol: string,
+  focus?: string,
+  provider: string = "auto"
+): Promise<AISynthesis> {
+  const queryParams = new URLSearchParams();
+  if (focus) queryParams.set("focus", focus);
+  if (provider) queryParams.set("provider", provider);
+
+  const url = `${getApiBase()}/api/v1/instruments/${encodeURIComponent(symbol)}/ai-synthesis?${queryParams.toString()}`;
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to retrieve AI research synthesis");
+  return response.json();
+}
+
+export async function requestAISynthesis(
+  symbol: string,
+  focusTopic?: string,
+  providerPreference: string = "auto"
+): Promise<AISynthesis> {
+  const response = await fetch(`${getApiBase()}/api/v1/instruments/${encodeURIComponent(symbol)}/ai-synthesis`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      focus_topic: focusTopic,
+      provider_preference: providerPreference,
+    }),
+  });
+  if (!response.ok) throw new Error("Unable to generate AI synthesis");
+  return response.json();
+}
+
+// ─── Phase 6: Deep Health & Telemetry ─────────────────────────────────────────
+
+export type ServiceComponentHealth = {
+  name: string;
+  status: "HEALTHY" | "DEGRADED" | "OFFLINE";
+  latency_ms: number | null;
+  details: string | null;
+};
+
+export type DeepHealthResponse = {
+  status: "HEALTHY" | "DEGRADED";
+  service: string;
+  environment: string;
+  timestamp: string;
+  components: ServiceComponentHealth[];
+};
+
+export async function getDeepHealth(): Promise<DeepHealthResponse> {
+  const response = await fetch(`${getApiBase()}/api/v1/health/deep`, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to retrieve deep health telemetry");
+  return response.json();
+}
+

@@ -283,3 +283,52 @@ class DPDPPurgeResponse(BaseModel):
     records_deleted: dict[str, int]
 
 
+# ─── Phase 5 Schemas: Gated AI Research Synthesis (MOD-17) ────────────────────
+
+class AISynthesisCitation(BaseModel):
+    citation_id: str
+    fact_or_ratio: str
+    period: str
+    value: str
+    source_formula_or_filing: str
+
+
+class AISynthesisRequest(BaseModel):
+    focus_topic: str | None = None
+    provider_preference: str | None = None  # "groq", "gemini", "openrouter", "auto"
+
+
+class AISynthesisResponse(BaseModel):
+    symbol: str
+    company_name: str
+    status: str  # "SUCCESS", "ABSTAINED"
+    executive_summary: str
+    key_fundamental_strengths: list[str] = Field(default_factory=list)
+    key_fundamental_risks: list[str] = Field(default_factory=list)
+    valuation_and_solvency_assessment: str
+    citations: list[AISynthesisCitation] = Field(default_factory=list)
+    grounding_score: float = 1.0  # 0.0 - 1.0
+    model_used: str
+    provider: str
+    generated_at: datetime
+    disclaimer: str
+
+
+# ─── Phase 6 Schemas: Deep Health & Telemetry (MOD-01, REQ-SEC-04) ────────────
+
+class ServiceComponentHealth(BaseModel):
+    name: str
+    status: str  # "HEALTHY", "DEGRADED", "OFFLINE"
+    latency_ms: float | None = None
+    details: str | None = None
+
+
+class DeepHealthResponse(BaseModel):
+    status: str  # "HEALTHY", "DEGRADED"
+    service: str
+    environment: str
+    timestamp: datetime
+    components: list[ServiceComponentHealth] = Field(default_factory=list)
+
+
+
