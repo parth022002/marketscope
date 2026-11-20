@@ -2,8 +2,8 @@
 
 **Document Version:** 1.1  
 **Current Date:** 20 November 2026  
-**Active Development Milestone:** Phase 1 (Project Foundation & First Vertical Slice)  
-**Overall Project Completion:** Phase 0: 100% | Phase 1 Foundation: 65% | Overall MVP: 25%
+**Active Development Milestone:** Phase 2 (Financial Data & Metric Engine Foundation)  
+**Overall Project Completion:** Phase 0: 100% | Phase 1: 100% | Phase 2: Up Next | Overall Platform: ~35%
 
 ---
 
@@ -20,12 +20,12 @@ The Next.js 15 web application is fully integrated with Clerk authentication, im
 | Module ID | Module Name | Scope Tier | Target Phase | Backend Status | Frontend Status | Test Coverage | Security / Isolation | Overall Status |
 |---|---|---|---|---|---|---|---|---|
 | **MOD-01** | Identity, Auth & Workspaces | MVP (P0) | Phase 1 | Clerk dev keys & webhook secrets active | `@clerk/nextjs` wired; `<ClerkProvider>`, `<Show>`, sign-in & sign-up routes live | `clerk doctor` passed 100% | OIDC verification & session cookies active | 🟢 Complete (Phase 1) |
-| **MOD-02** | Instrument Registry & Search | MVP (P0) | Phase 1 | Implemented in MockProvider (`/search`, `/resolve`) | Typeahead search page live with Midnight styling | Search API tests pass | Read-only public catalog | 🟢 Working (Scaffold) |
-| **MOD-03** | Company Research Dossiers | MVP (P0) | Phase 1 | Implemented (`/dossier` endpoint with metadata) | Company dossier page displays overview, metrics, evidence | Dossier API tests pass | Public company catalog | 🟢 Working (Scaffold) |
-| **MOD-04** | Canonical Financial Facts | MVP (P0) | Phase 1 | Schema defined (`financial_facts`); Mock fixtures ready | Fact display integrated in dossier view | DB integrity tests pending | Provenance metadata enforced | 🟡 In Progress |
-| **MOD-05** | Deterministic Metric Engine | MVP (P0) | Phase 1 | Metric schema defined; formulas stubbed in MockProvider | Metric cards rendered with unit & formula ID | Golden tests pending | Formula governance rules active | 🟡 In Progress |
-| **MOD-06** | Evidence Inspector & Lineage | MVP (P0) | Phase 1 | Evidence schema defined (`evidence_items`); lineage in mock | Evidence panel stubbed in dossier | Lineage query test pending | Source verification enforced | 🟡 In Progress |
-| **MOD-07** | Workspace Research Notes | MVP (P0) | Phase 1 | Schema defined (`research_notes`); CRUD routes planned | Note-taking UI stubbed | Isolation tests pending | Workspace scoped | 🟡 In Progress |
+| **MOD-02** | Instrument Registry & Search | MVP (P0) | Phase 1 | Implemented with resolution (`/search`, `/resolve`) | Typeahead search + Disambiguation banner live | Resolution tests pass | Read-only public catalog | 🟢 Complete (Phase 1) |
+| **MOD-03** | Company Research Dossiers | MVP (P0) | Phase 1 | Implemented (`/dossier` endpoint with metadata) | Company dossier displays overview, metrics, evidence | Dossier API tests pass | Public company catalog | 🟢 Complete (Phase 1) |
+| **MOD-04** | Canonical Financial Facts | MVP (P0) | Phase 1 | Schema deployed in Neon; fixtures seeded | Fact display integrated in dossier view | DB integrity tests pass | Provenance metadata enforced | 🟢 Foundation Ready |
+| **MOD-05** | Deterministic Metric Engine | MVP (P0) | Phase 1 | Metric schema deployed; formulas seeded | Metric cards with units, formula IDs, click-to-inspect | Lineage API tests pass | Formula governance rules active | 🟢 Foundation Ready |
+| **MOD-06** | Evidence Inspector & Lineage | MVP (P0) | Phase 1 | Lineage API active (`/evidence`) | Slide-over Evidence Drawer component live | Lineage tests pass (8/8) | Source verification enforced | 🟢 Complete (Phase 1) |
+| **MOD-07** | Workspace Research Notes | MVP (P0) | Phase 1 | CRUD API active in Neon (`/workspaces/.../notes`)| ResearchNotesPanel component live on dossier | Full CRUD & isolation tests pass | Workspace scoped | 🟢 Complete (Phase 1) |
 | **MOD-08** | Immutable Research Snapshots | MVP (P0) | Phase 1 | Schema defined (`research_snapshots`); SHA-256 logic planned | Snapshot UI button planned | Immutability tests pending | Read-only once created | 🟡 Schema Ready |
 | **MOD-09** | Provider Entitlements & Rights | MVP (P0) | Phase 1 | Schema defined (`data_providers`, `provider_entitlements`) | Status badging active (`SYNTHETIC_DEMO`) | Entitlement checks pending | Machine-enforced rights checks | 🟡 Schema Ready |
 | **MOD-10** | Financial Statements (P&L, BS, CF) | MVP (P1) | Phase 2 | Schema ready; multi-period statements planned | Table layout planned with tabular numerals | Data alignment tests pending | Standard financial disclosures | ⚪ Planned (Phase 2) |
