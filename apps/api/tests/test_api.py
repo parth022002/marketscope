@@ -10,22 +10,22 @@ def test_health():
     assert response.json()["status"] == "ok"
 
 
-def test_search_returns_demo_instrument():
+def test_search_returns_live_or_indexed_instrument():
     response = client.get("/api/v1/instruments/search", params={"q": "TCS"})
     assert response.status_code == 200
     payload = response.json()
     assert payload["count"] >= 1
     assert payload["items"][0]["symbol"] == "TCS"
-    assert payload["items"][0]["data_status"] == "SYNTHETIC_DEMO"
+    assert payload["items"][0]["data_status"] in ["LIVE_MARKET", "SYNTHETIC_DEMO"]
 
 
-def test_dossier_contains_synthetic_disclaimer():
+def test_dossier_contains_research_disclaimer():
     response = client.get("/api/v1/instruments/in-nse-tcs/dossier")
     assert response.status_code == 200
     payload = response.json()
-    assert "Synthetic demo data only" in payload["disclaimer"]
+    assert "MarketScope.io is strictly a research and decision-support workspace" in payload["disclaimer"]
 
 
 def test_unknown_instrument_returns_404():
-    response = client.get("/api/v1/instruments/does-not-exist/dossier")
+    response = client.get("/api/v1/instruments/does-not-exist-xyz-9999/dossier")
     assert response.status_code == 404

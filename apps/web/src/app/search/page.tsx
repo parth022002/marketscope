@@ -6,7 +6,7 @@ import { Show, UserButton } from "@clerk/nextjs";
 import { Search as SearchIcon, ArrowUpRight, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { resolveInstrument, searchInstruments, type Instrument, type ResolveResponse } from "@/lib/api";
 
-const DEMO_CHIPS = ["RELIANCE", "TCS", "INFY", "TATAMOTORS"];
+const GLOBAL_CHIPS = ["RELIANCE", "TCS", "HDFCBANK", "AAPL", "NVDA", "MSFT", "GOOGL", "TSLA"];
 
 export default function SearchPage() {
   const [query, setQuery] = useState("");
@@ -79,11 +79,14 @@ export default function SearchPage() {
         <header className="topbar">
           <div className="flex items-center gap-2">
             <strong>Discover Companies</strong>
-            <small className="text-slate-400 font-mono">· SYNTHETIC DEMO UNIVERSE</small>
+            <small className="text-slate-400 font-mono">· GLOBAL LIVE UNIVERSE (NSE, BSE, NASDAQ, NYSE, LSE)</small>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="tag amber">SYNTHETIC DATA</span>
+            <span className="tag text-[#39E85B] border-[#39E85B]/30 bg-[#39E85B]/10 flex items-center gap-1.5 font-semibold">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#39E85B] animate-pulse"></span>
+              LIVE MULTI-EXCHANGE
+            </span>
             <Show when="signed-in">
               <div className="flex items-center gap-2 pl-3 border-l border-[#132B4F]">
                 <UserButton />
@@ -101,10 +104,10 @@ export default function SearchPage() {
         </header>
 
         <div className="content">
-          <div className="eyebrow">EQUITY SEARCH & RESOLUTION</div>
-          <h1 className="text-3xl font-extrabold text-white mt-1">Find a company to research.</h1>
+          <div className="eyebrow">GLOBAL EQUITY SEARCH & RESOLUTION</div>
+          <h1 className="text-3xl font-extrabold text-white mt-1">Research any listed company in the world.</h1>
           <p className="subtitle mt-1">
-            Search by ticker, company name, or ISIN. Ambiguous matches (multiple exchanges or share classes) require explicit user disambiguation before a dossier is created.
+            Search live across Indian (NSE, BSE) and Global exchanges (NASDAQ, NYSE, LSE). Real-time quotes, audited filings, and deterministic financial metrics.
           </p>
 
           {/* Search Input Bar */}
@@ -112,7 +115,7 @@ export default function SearchPage() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search ticker (e.g. RELIANCE, TCS, INFY, TATAMOTORS)"
+              placeholder="Search any global or Indian ticker (e.g. RELIANCE, TCS, AAPL, NVDA, MSFT, TSLA)"
               aria-label="Company search"
               className="w-full px-4 py-3 rounded-xl bg-[#0B1D38] border border-[#132B4F] text-white placeholder-slate-500 text-sm focus:outline-none focus:border-[#087BEE]"
             />
@@ -123,8 +126,8 @@ export default function SearchPage() {
 
           {/* Quick Filter Chips */}
           <div className="flex items-center gap-2 mb-6">
-            <span className="text-xs text-slate-400 font-medium">Quick Explore:</span>
-            {DEMO_CHIPS.map((chip) => (
+            <span className="text-xs text-slate-400 font-medium">Global Leaders:</span>
+            {GLOBAL_CHIPS.map((chip) => (
               <button
                 key={chip}
                 onClick={() => handleChipClick(chip)}

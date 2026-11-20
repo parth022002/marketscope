@@ -49,10 +49,10 @@ from app.engine.calculations import (
     compute_snapshot_checksum,
     verify_snapshot_checksum,
 )
-from app.providers.mock_provider import MockProvider
+from app.providers.hybrid_provider import HybridGlobalProvider
 
 router = APIRouter()
-provider = MockProvider()
+provider = HybridGlobalProvider()
 
 
 # ─── 1. Search & Resolution ──────────────────────────────────────────────────
@@ -531,30 +531,35 @@ def get_financial_statements(
     Returns standardized Ind AS financial statements (Income Statement, Balance Sheet, Cash Flow)
     supporting multi-period annual and quarterly reporting, and Consolidated vs Standalone basis.
     """
-    clean_sym = symbol.replace("in-nse-", "").upper()
+    clean_sym = symbol.replace("in-nse-", "").replace("us-nasdaq-", "").replace("us-nyse-", "").replace("live-", "").upper()
     data = FINANCIAL_STATEMENTS_DATABASE.get(clean_sym)
-    if not data:
-        raise HTTPException(status_code=404, detail=f"No financial statements found for symbol '{symbol}'")
+    if data:
+        if period_type == "quarterly":
+            quarterly_data = data.get("quarterly", {})
+            stmt_items = quarterly_data.get(statement_type, quarterly_data.get("income_statement", []))
+            periods = data.get("quarters", ["Q1 FY24", "Q2 FY24", "Q3 FY24", "Q4 FY24"])
+        else:
+            annual_data = data.get("annual", {})
+            stmt_items = annual_data.get(statement_type, annual_data.get("income_statement", []))
+            periods = data.get("periods", ["FY22", "FY23", "FY24"])
 
-    if period_type == "quarterly":
-        quarterly_data = data.get("quarterly", {})
-        stmt_items = quarterly_data.get(statement_type, quarterly_data.get("income_statement", []))
-        periods = data.get("quarters", ["Q1 FY24", "Q2 FY24", "Q3 FY24", "Q4 FY24"])
-    else:
-        annual_data = data.get("annual", {})
-        stmt_items = annual_data.get(statement_type, annual_data.get("income_statement", []))
-        periods = data.get("periods", ["FY22", "FY23", "FY24"])
+        return FinancialStatementsResponse(
+            symbol=clean_sym,
+            company_name=data["company_name"],
+            statement_type=statement_type,
+            period_type=period_type,
+            reporting_basis=reporting_basis,
+            periods=periods,
+            items=[StatementLineItem(**item) for item in stmt_items],
+            audit_status="AUDITED_IND_AS",
+        )
 
-    return FinancialStatementsResponse(
-        symbol=clean_sym,
-        company_name=data["company_name"],
-        statement_type=statement_type,
-        period_type=period_type,
-        reporting_basis=reporting_basis,
-        periods=periods,
-        items=[StatementLineItem(**item) for item in stmt_items],
-        audit_status="AUDITED_IND_AS",
-    )
+    # Dynamic fallback to live global financial statements for US & global markets
+    live_stmt = provider.get_live_statements(clean_sym, statement_type=statement_type, period_type=period_type, basis=reporting_basis)
+    if live_stmt:
+        return live_stmt
+
+    raise HTTPException(status_code=404, detail=f"No financial statements found for symbol '{symbol}'")
 
 
 # ─── 6. Valuation & Risk Analytics (Phase 2) ──────────────────────────────────
@@ -564,8 +569,16 @@ def get_company_ratios(symbol: str):
     """
     Returns deterministic valuation, profitability, solvency, and cash flow ratios.
     """
-    clean_sym = symbol.replace("in-nse-", "").upper()
-    return calculate_financial_ratios(clean_sym)
+    clean_sym = symbol.replace("in-nse-", "").replace("us-nasdaq-", "").replace("us-nyse-", "").replace("live-", "").upper()
+    if clean_sym in FINANCIAL_STATEMENTS_DATABASE:
+        return calculate_financial_ratios(clean_sym)
+
+    # Dynamic fallback to live ratio calculation
+    live_ratios = provider.get_live_ratios(clean_sym)
+    if live_ratios:
+        return live_ratios
+
+    raise HTTPException(status_code=404, detail=f"Ratios not found for symbol '{symbol}'")
 
 
 # ─── 7. Peer Comparison Workspace (Phase 3) ───────────────────────────────────
@@ -575,51 +588,88 @@ def get_peer_comparison(symbol: str):
     """
     Returns comparative fundamental metrics across industry peers with period alignment checks.
     """
-    clean_sym = symbol.replace("in-nse-", "").upper()
+    clean_sym = symbol.replace("in-nse-", "").replace("us-nasdaq-", "").replace("us-nyse-", "").replace("live-", "").upper()
     target_data = FINANCIAL_STATEMENTS_DATABASE.get(clean_sym)
-    if not target_data:
+    if target_data:
+        target_sector = target_data["sector"]
+        peers_symbols = [
+            s for s, d in FINANCIAL_STATEMENTS_DATABASE.items()
+            if d["sector"] == target_sector or clean_sym in ["TCS", "INFY"]
+        ]
+        if clean_sym not in peers_symbols:
+            peers_symbols.insert(0, clean_sym)
+
+        peer_items: list[PeerComparisonItem] = []
+        for s in peers_symbols:
+            r = calculate_financial_ratios(s)
+            d = FINANCIAL_STATEMENTS_DATABASE[s]
+            peer_items.append(
+                PeerComparisonItem(
+                    symbol=s,
+                    company_name=d["company_name"],
+                    sector=d["sector"],
+                    market_cap=d["market_cap"],
+                    current_price=d["current_price"],
+                    pe_ratio=r["valuation"]["pe_ratio"],
+                    pb_ratio=r["valuation"]["pb_ratio"],
+                    roe=r["profitability"]["roe"],
+                    roce=r["profitability"]["roce"],
+                    debt_to_equity=r["solvency"]["debt_to_equity"],
+                    operating_margin=r["profitability"]["operating_margin"],
+                    fcf=r["cash_flow"]["fcf"],
+                )
+            )
+
+        alignment_warnings = []
+        if len(peer_items) > 1:
+            alignment_warnings.append(
+                "Reporting Basis Notice: All comparative metrics are normalized on an Ind AS Consolidated FY2024 basis. Standalone figures are excluded to maintain comparability."
+            )
+
+        return PeerComparisonResponse(
+            target_symbol=clean_sym,
+            sector=target_sector,
+            peers=peer_items,
+            alignment_warnings=alignment_warnings,
+        )
+
+    # Dynamic global peer comparison fallback
+    live_target = provider.get_live_ratios(clean_sym)
+    if not live_target:
         raise HTTPException(status_code=404, detail=f"Symbol '{symbol}' not found")
 
-    target_sector = target_data["sector"]
-    peers_symbols = [
-        s for s, d in FINANCIAL_STATEMENTS_DATABASE.items()
-        if d["sector"] == target_sector or clean_sym in ["TCS", "INFY"]
-    ]
-    if clean_sym not in peers_symbols:
-        peers_symbols.insert(0, clean_sym)
+    peers_to_check = [clean_sym]
+    if clean_sym in ["AAPL", "MSFT", "NVDA", "GOOGL"]:
+        peers_to_check = ["AAPL", "MSFT", "NVDA", "GOOGL"]
+    elif clean_sym in ["TSLA", "TATAMOTORS"]:
+        peers_to_check = ["TSLA", "TATAMOTORS"]
 
     peer_items: list[PeerComparisonItem] = []
-    for s in peers_symbols:
-        r = calculate_financial_ratios(s)
-        d = FINANCIAL_STATEMENTS_DATABASE[s]
-        peer_items.append(
-            PeerComparisonItem(
-                symbol=s,
-                company_name=d["company_name"],
-                sector=d["sector"],
-                market_cap=d["market_cap"],
-                current_price=d["current_price"],
-                pe_ratio=r["valuation"]["pe_ratio"],
-                pb_ratio=r["valuation"]["pb_ratio"],
-                roe=r["profitability"]["roe"],
-                roce=r["profitability"]["roce"],
-                debt_to_equity=r["solvency"]["debt_to_equity"],
-                operating_margin=r["profitability"]["operating_margin"],
-                fcf=r["cash_flow"]["fcf"],
+    for s in peers_to_check:
+        pr = provider.get_live_ratios(s)
+        if pr:
+            peer_items.append(
+                PeerComparisonItem(
+                    symbol=s,
+                    company_name=pr.company_name,
+                    sector=pr.sector,
+                    market_cap=pr.valuation.get("market_cap") or 0.0,
+                    current_price=pr.valuation.get("market_cap") or 0.0,
+                    pe_ratio=pr.valuation.get("pe_ratio"),
+                    pb_ratio=pr.valuation.get("pb_ratio") or 0.0,
+                    roe=pr.profitability.get("roe") or 0.0,
+                    roce=pr.profitability.get("roce") or 0.0,
+                    debt_to_equity=pr.solvency.get("debt_to_equity") or 0.0,
+                    operating_margin=pr.profitability.get("operating_margin") or 0.0,
+                    fcf=pr.cash_flow.get("fcf") or 0.0,
+                )
             )
-        )
-
-    alignment_warnings = []
-    if len(peer_items) > 1:
-        alignment_warnings.append(
-            "Reporting Basis Notice: All comparative metrics are normalized on an Ind AS Consolidated FY2024 basis. Standalone figures are excluded to maintain comparability."
-        )
 
     return PeerComparisonResponse(
         target_symbol=clean_sym,
-        sector=target_sector,
+        sector=live_target.sector,
         peers=peer_items,
-        alignment_warnings=alignment_warnings,
+        alignment_warnings=["Global Comparative Notice: Financial numbers retrieved live from global exchange feeds."],
     )
 
 

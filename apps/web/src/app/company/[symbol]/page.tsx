@@ -33,7 +33,7 @@ export default function CompanyPage() {
   const params = useParams();
   const rawSymbol = (params?.symbol as string)?.toLowerCase() || "";
   const symbol = rawSymbol.toUpperCase();
-  const instrumentId = IDS_MAP[rawSymbol] || `in-nse-${rawSymbol}`;
+  const instrumentId = IDS_MAP[rawSymbol] || rawSymbol;
 
   const [dossier, setDossier] = useState<Dossier | null>(null);
   const [ratios, setRatios] = useState<CompanyRatios | null>(null);
@@ -136,7 +136,14 @@ export default function CompanyPage() {
           </div>
 
           <div className="flex items-center gap-4">
-            <span className="tag amber">SYNTHETIC DEMO</span>
+            {dossier.instrument.data_status === "LIVE_MARKET" ? (
+              <span className="tag text-[#39E85B] border-[#39E85B]/30 bg-[#39E85B]/10 flex items-center gap-1.5 font-semibold">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#39E85B] animate-pulse"></span>
+                LIVE MARKET FEED
+              </span>
+            ) : (
+              <span className="tag amber">SYNTHETIC DEMO</span>
+            )}
             <Show when="signed-in">
               <div className="flex items-center gap-2 pl-3 border-l border-[#132B4F]">
                 <UserButton />
@@ -188,7 +195,14 @@ export default function CompanyPage() {
 
           {/* Verification Badges */}
           <div className="flex items-center gap-2 my-4">
-            <span className="tag amber">SYNTHETIC FIXTURES</span>
+            {dossier.instrument.data_status === "LIVE_MARKET" ? (
+              <span className="tag text-[#39E85B] border-[#39E85B]/30 bg-[#39E85B]/10 flex items-center gap-1 font-semibold">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#39E85B]"></span>
+                LIVE {dossier.instrument.exchange} DATA
+              </span>
+            ) : (
+              <span className="tag amber">SYNTHETIC FIXTURES</span>
+            )}
             <span className="tag text-[#16C8D5] border-[#16C8D5]/30 bg-[#16C8D5]/10">
               Interactive Evidence Lineage
             </span>

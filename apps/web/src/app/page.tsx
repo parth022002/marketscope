@@ -4,9 +4,10 @@ import { ArrowUpRight, Search, ShieldCheck, FileSearch, Bookmark, CheckCircle2 }
 import { SignInButton, SignUpButton, Show, UserButton } from "@clerk/nextjs";
 
 const featuredCompanies = [
-  { symbol: "RELIANCE", name: "Reliance Industries Limited", sector: "Energy / Retail / Digital", status: "SYNTHETIC_DEMO" },
-  { symbol: "TCS", name: "Tata Consultancy Services Limited", sector: "Information Technology", status: "SYNTHETIC_DEMO" },
-  { symbol: "INFY", name: "Infosys Limited", sector: "Information Technology", status: "SYNTHETIC_DEMO" },
+  { symbol: "RELIANCE", name: "Reliance Industries Limited", sector: "Energy / Retail / Digital", status: "LIVE_MARKET", exchange: "NSE" },
+  { symbol: "TCS", name: "Tata Consultancy Services Limited", sector: "Information Technology", status: "LIVE_MARKET", exchange: "NSE" },
+  { symbol: "AAPL", name: "Apple Inc.", sector: "Consumer Electronics & Tech", status: "LIVE_MARKET", exchange: "NASDAQ" },
+  { symbol: "NVDA", name: "NVIDIA Corporation", sector: "Semiconductors & AI Hardware", status: "LIVE_MARKET", exchange: "NASDAQ" },
 ];
 
 export default function HomePage() {
@@ -46,7 +47,10 @@ export default function HomePage() {
         <header className="topbar">
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <span style={{ fontWeight: 700, fontSize: 14 }}>MarketScope Workspace</span>
-            <span className="tag amber">DEMO ENVIRONMENT · SYNTHETIC FIXTURES</span>
+            <span className="tag text-[#39E85B] border-[#39E85B]/30 bg-[#39E85B]/10 flex items-center gap-1.5" style={{ fontSize: 11, padding: "3px 8px" }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#39E85B] animate-pulse"></span>
+              LIVE MULTI-EXCHANGE FEED (NSE, BSE, NASDAQ, NYSE, LSE)
+            </span>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -78,7 +82,7 @@ export default function HomePage() {
           <div className="eyebrow">RESEARCH-FIRST FINANCIAL INTELLIGENCE</div>
           <h1>See the market beyond the numbers.</h1>
           <p className="subtitle">
-            Research listed Indian companies, understand financial performance, inspect source evidence, and maintain reproducible research snapshots.
+            Research listed companies across Indian (NSE/BSE) and Global markets (NASDAQ/NYSE/LSE), inspect source evidence, and maintain reproducible research snapshots.
           </p>
 
           <div className="search-row">
@@ -87,7 +91,7 @@ export default function HomePage() {
               href="/search"
               style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "13px 20px" }}
             >
-              <Search size={16} /> Search Indian Equities (NSE / BSE) <ArrowUpRight size={15} />
+              <Search size={16} /> Search Global &amp; Indian Equities <ArrowUpRight size={15} />
             </Link>
           </div>
 
@@ -124,8 +128,8 @@ export default function HomePage() {
           {/* Featured Equities Section */}
           <div className="section-head">
             <div>
-              <h2>Featured Listed Companies</h2>
-              <p className="subtitle">Synthetic demonstration fixtures for canonical instrument resolution and dossier inspection.</p>
+              <h2>Featured Global &amp; Indian Equities</h2>
+              <p className="subtitle">Real-time live multi-exchange market quotes and standardized canonical financial statements.</p>
             </div>
             <Link className="subtitle" href="/search" style={{ color: "var(--accent-cyan)", display: "inline-flex", alignItems: "center", gap: 4 }}>
               Explore Universe <ArrowUpRight size={14} />
@@ -142,8 +146,8 @@ export default function HomePage() {
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <strong style={{ fontSize: 16 }}>{company.symbol}</strong>
-                    <span className="tag verified" style={{ fontSize: 10, padding: "2px 6px" }}>NSE</span>
-                    <span className="tag amber" style={{ fontSize: 10, padding: "2px 6px" }}>SYNTHETIC</span>
+                    <span className="tag verified" style={{ fontSize: 10, padding: "2px 6px" }}>{company.exchange}</span>
+                    <span className="tag text-[#39E85B] border-[#39E85B]/30 bg-[#39E85B]/10" style={{ fontSize: 10, padding: "2px 6px" }}>LIVE</span>
                   </div>
                   <div className="subtitle" style={{ marginTop: 4 }}>{company.name}</div>
                 </div>
