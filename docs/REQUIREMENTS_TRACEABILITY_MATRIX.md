@@ -44,7 +44,7 @@ This matrix maps every functional requirement, non-functional standard, and secu
 
 | Req ID | Security Section | Control Category | Backlog Ticket | Implementation Mechanism | Target Phase | Verification Method | Current Status |
 |---|---|---|---|---|---|---|---|
-| **REQ-SEC-01**| §4.0 | Managed OIDC Authentication | MS-003 | Clerk / OIDC provider integration | Phase 1 | Token signature, issuer, expiry, and audience validation on all protected routes. | Automated Auth Suite | Local bypass configured; Clerk templates ready |
+| **REQ-SEC-01**| §4.0 | Managed OIDC Authentication | MS-003 | Clerk / OIDC provider integration | Phase 1 | Token signature, issuer, expiry, and audience validation on all protected routes. | Automated Auth Suite | 🟢 Complete (Phase 1) — Clerk Core 3 SDK & routes active |
 | **REQ-SEC-02**| §5.0 | Multi-Tenant Workspace Isolation | MS-003 | SQL query tenancy scoping + RLS | Phase 1 | Zero cross-tenant data leakage between workspace A and workspace B. | Cross-tenant test matrix (`test_tenancy.py`) | Schema prepared |
 | **REQ-SEC-03**| §6.0 | API Request Validation & Security | MS-001 | FastAPI + Pydantic v2 schemas | Phase 1 | Strict typing, bounds checking, parameter sanitization, secure HTTP error envelopes. | Schema fuzzing tests | Active in scaffold |
 | **REQ-SEC-04**| §6.1 | Rate Limiting & Throttling | MS-001 | Redis-backed sliding window rate limiter | Phase 1 | Throttles excessive endpoint requests per IP/workspace; emits standard HTTP 429. | Rate-limit load test | Architecture defined |
@@ -58,7 +58,7 @@ This matrix maps every functional requirement, non-functional standard, and secu
 
 | Req ID | Brand / Design Section | Design Standard | Implementation Mechanism | Target Phase | Verification Method | Current Status |
 |---|---|---|---|---|---|---|
-| **REQ-UX-01** | Brand §4.0 | Color System & Midnight Theme | Tailwind CSS tokens: `#07152B`, `#0B1D38`, `#087BEE`, `#16C8D5`, `#39E85B` | Phase 1 | Visual inspection, CSS token audit | In Progress (Updated in Phase 0) |
+| **REQ-UX-01** | Brand §4.0 | Color System & Midnight Theme | Tailwind CSS tokens: `#07152B`, `#0B1D38`, `#087BEE`, `#16C8D5`, `#39E85B` | Phase 1 | Visual inspection, CSS token audit | 🟢 Complete (Phase 1) — Midnight palette active |
 | **REQ-UX-02** | Brand §4.0 | Semantic Negative Color | Red `#F06464` used for losses/negative financial changes (never brand green) | Phase 1 | Financial table UI test | Specified in tokens |
 | **REQ-UX-03** | Brand §5.0 | Typography & Tabular Numerals | Inter font family with CSS `font-variant-numeric: tabular-nums` | Phase 1 | Font loading & layout inspection | Specified in tokens |
 | **REQ-UX-04** | Brand §7.0, Comp §7 | Experience States | Every view must support: Loading, Empty, Error, Stale Data, and Restricted states | Phase 1 | Component state regression tests | UI state patterns defined |

@@ -1,42 +1,39 @@
 # MarketScope.io — Configuration Status Tracker
 
 **Current Date:** 20 November 2026  
-**Active Phase:** Phase 1 (Foundation & Integrations Complete)  
-**Tracked Items Count:** 17  
-**Operational Status:** ALL CREDENTIALS & INTEGRATIONS CONFIGURED & VERIFIED
+**Status:** PHASE 1 FOUNDATION & INTEGRATIONS COMPLETED  
+**Overall Blockers:** **NONE (0 items blocking)**
 
 ---
 
-## Configuration Matrix
+## 1. Action Items for Project Owner: ZERO PENDING
 
-| Key / Variable | Category | Phase Required | Mandatory for Dev? | Mandatory for Prod? | Current Status | Active Value / Mode | Notes |
-|---|---|---|---|---|---|---|---|
-| `GITHUB_REPO` | Source Control | Phase 0 | Yes | Yes | **Configured & Linked** | `https://github.com/parth022002/marketscope.git` | Git repo initialized; origin set |
-| `DATABASE_URL` | Database | Phase 1 | Yes | Yes | **Configured** | Neon Direct (`ep-young-waterfall-bitep0rn...`) | Direct connection string active |
-| `DATABASE_POOL_URL` | Database | Phase 4 | No | Yes | **Configured** | Neon Pooled (`ep-young-waterfall-bitep0rn-pooler...`) | PgBouncer pooler active |
-| `UPSTASH_REDIS` | Cache / Skills | Phase 1 | Yes | Yes | **Installed & Configured** | MCP server & Agent skills installed | `C:\Users\parth\.gemini\skills\upstash` |
-| `CLERK_APP_ID` | Identity | Phase 1 | Yes | Yes | **Active & Verified** | `app_3MM9kR6zjk1ZzCJ9wEw6KJ2WvOh` | `clerk doctor` passed 100% |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Identity | Phase 1 | Yes | Yes | **Active & Verified** | `pk_test_c2luZ3VsYXItamVubmV0...` | Installed in Next.js web app |
-| `CLERK_SECRET_KEY` | Identity | Phase 1 | Yes | Yes | **Active & Verified** | `sk_test_Hbx0Vx46E7bXlCjV...` | Configured in root & api envs |
-| `CLERK_NEXTJS_SDK` | Identity | Phase 1 | Yes | Yes | **Installed & Built** | `@clerk/nextjs ^7.10.5` | Production build verified |
-| `SENTRY_ORG` | Monitoring | Phase 6 | No | Yes | **Configured** | `flexconvert` | Sentry organization set |
-| `SENTRY_PROJECT` | Monitoring | Phase 6 | No | Yes | **Configured** | `marketscope` | Sentry project set |
-| `OPENROUTER_API_KEY` | Intelligence | Phase 5 | No | Optional | **Configured (Gated)** | `sk-or-v1-56d765...` | Saved in uncommitted local envs |
-| `GROQ_API_KEY` | Intelligence | Phase 5 | No | Optional | **Configured (Gated)** | `gsk_R2sf40wEip6Z...` | Saved in uncommitted local envs |
-| `GEMINI_API_KEY` | Intelligence | Phase 5 | No | Optional | **Configured (Gated)** | `AQ.Ab8RN6KAWhpQ...` | Saved in uncommitted local envs |
-| `AI_ENABLED` | Intelligence | Phase 5 | No | Optional | **Configured (Disabled)** | `false` (Gated by architecture policy) | Gated until Phase 5 release |
-| `APP_ENV` | Core | Phase 1 | Yes | Yes | **Configured** | `development` | Local development mode |
-| `SECRET_KEY` | Security | Phase 1 | Yes | Yes | **Configured** | Local 32-byte secret | Cryptographic signing key |
-| `MARKET_DATA_PROVIDER` | Market Data | Phase 1 | Yes | Yes | **Configured** | `mock` (`MockProvider` with Reliance, TCS, INFY) | Synthetic Indian equity fixtures |
-| `CORS_ORIGINS` | Security | Phase 1 | Yes | Yes | **Configured** | `http://localhost:3000,http://127.0.0.1:3000` | Local frontend dev origins |
+All required credentials, infrastructure connections, authentication keys, and AI keys for Phase 0 and Phase 1 have been provided, configured, deployed, and verified.
 
 ---
 
-## Action Summary
+## 2. Completed & Verified Integrations (Done / Archived from To-Do)
 
-1. **GitHub:** Git repository initialized in `MarketScope.io Code` and origin set to `https://github.com/parth022002/marketscope.git`.
-2. **Neon PostgreSQL:** Direct and pooled connection strings added to `.env` and `apps/api/.env`.
-3. **Upstash:** Setup executed successfully via `npx -y upstash setup --yes --gemini`. MCP server and skills installed to `C:\Users\parth\.gemini\settings.json` and `C:\Users\parth\.gemini\skills\upstash`.
-4. **Clerk:** `@clerk/nextjs` installed and verified. Middleware, `<ClerkProvider>`, `<Show>`, sign-in, and sign-up routes built and passing. All 8 Clerk agent skills installed. `clerk doctor` passed with 0 errors.
-5. **AI Providers (OpenRouter, Groq, Gemini):** Keys securely added to local `.env` and `apps/api/.env`. They remain gated (`AI_ENABLED=false`) until Phase 5.
-6. **Sentry:** Org `flexconvert` and Project `marketscope` configured for Next.js monitoring.
+| Component | Status | Details & Verification | Date Completed |
+|---|---|---|---|
+| **GitHub Repository** | **COMPLETED** | Initialized Git repository; linked to `https://github.com/parth022002/marketscope.git`. Baseline committed. | 20 Nov 2026 |
+| **Neon PostgreSQL Database** | **COMPLETED & DEPLOYED** | Direct & Pooled URLs configured in `.env` and `apps/api/.env`. `001_initial.sql` executed against live Neon cluster (PostgreSQL 18.7). All 14 relational tables active. | 20 Nov 2026 |
+| **Clerk Authentication Suite** | **COMPLETED & DEPLOYED** | Application `MarketScope` (`app_3MM9kR6zjk1ZzCJ9wEw6KJ2WvOh`) linked. Keys configured. `@clerk/nextjs` (v7 Core 3) installed. Middleware, `<ClerkProvider>`, `<Show>`, `/sign-in`, `/sign-up` wired. `clerk doctor` passed 100%. Next.js production build succeeded. 8 Clerk agent skills installed. | 20 Nov 2026 |
+| **Upstash Redis Ecosystem** | **COMPLETED & DEPLOYED** | Upstash MCP server added to `settings.json` (`https://mcp.upstash.com/mcp`). Upstash agent skills installed covering Redis, Ratelimit, QStash, Workflow, Vector, Search, Blob, and Box sandboxes. | 20 Nov 2026 |
+| **AI Credentials Vault** | **COMPLETED & GATED** | OpenRouter, Groq, and Gemini API keys securely stored in local uncommitted environment files. Gated (`AI_ENABLED=false`) until Phase 5 per architectural mandate. | 20 Nov 2026 |
+| **Sentry Project Configuration** | **COMPLETED** | Organization (`flexconvert`) and project (`marketscope`) configured in environment files. | 20 Nov 2026 |
+| **Design System & Branding** | **COMPLETED** | Official Midnight palette (`#07152B`, `#0B1D38`, `#087BEE`, `#16C8D5`, `#39E85B`, `#F06464`) and Inter font with tabular numerals implemented. | 20 Nov 2026 |
+| **Local Synthetic Fixtures** | **COMPLETED** | Internal `MockProvider` active with Reliance, TCS, and Infosys fixtures tagged with `SYNTHETIC_DEMO`. | 19 Nov 2026 |
+
+---
+
+## 3. Future Requirements (Not Needed Until Later Phases)
+
+The items below are **NOT required for current development**. They are tracked here solely for future reference:
+
+| Configuration Item | Category | Required Phase | Why & When Needed | Current Fallback / State |
+|---|---|---|---|---|
+| **Commercial Exchange / Vendor Feeds** | Market Data | Phase 4 | Needed only when switching from synthetic fixtures to live commercial feeds (NSE/BSE Data agreements). | Internal `MockProvider` fully handles development and demonstrations. |
+| **Cloudflare R2 Object Storage** | Storage | Phase 4 | Needed only when archiving original filing PDFs in cloud object storage. | Local filesystem storage active. |
+| **Sentry DSN (Cloud Tracing)** | Monitoring | Phase 6 | Needed before public production launch for cloud telemetry. | Local logging active; org and project parameters already configured. |
+| **Production Domain & SSL** | DNS | Phase 6 | Needed when pointing `marketscope.io` DNS to production host. | `localhost:3000` active. |

@@ -203,44 +203,34 @@ MarketScope.io uses **Clerk** (or an approved managed OIDC provider) to provide 
 
 ---
 
-## 10. User Input Status Tracker
+## 10. Configuration & Integrations Status Tracker
 
-This tracker monitors the status of every configuration item throughout development.
+This tracker monitors the status of every infrastructure and configuration item across the development lifecycle.
 
-| Configuration Item | Category | Required Phase | Mandatory? | Provided? | Status | Notes / Next Step |
-|---|---|---|---|---|---|---|
-| **Project Name & Authority Baseline** | Metadata | Phase 0 | Yes | Yes | **Approved** | MarketScope.io confirmed. PRD v1.0 authoritative. |
-| **Local PostgreSQL / Docker** | Database | Phase 1 | Yes | Yes | **Configured** | Available in `docker-compose.yml`. |
-| **Neon PostgreSQL Cloud URL** | Database | Phase 4 | No (Local DB in Phase 1) | No | **Not required yet** | Local DB active; Neon needed for staging/deploy. |
-| **Mock Authentication Bypass** | Identity | Phase 1 | Yes | Yes | **Configured** | `MOCK_AUTH_ENABLED=true` enables instant offline dev. |
-| **Clerk Publishable & Secret Keys** | Identity | Phase 4 | Yes (for Staging/Prod) | No | **Pending user input** | Needed before multi-user staging deployment. |
-| **Synthetic Equity Fixtures** | Market Data | Phase 1 | Yes | Yes | **Configured** | Reliance, TCS, INFY fixtures ready in `MockProvider`. |
-| **Licensed Exchange / Vendor Feed** | Market Data | Phase 4 | Yes (for Live Data) | No | **Pending user input** | Commercial data agreements required for live feeds. |
-| **Cloudflare R2 Object Storage** | Storage | Phase 4 | No (Local FS in Phase 1) | No | **Not required yet** | Needed for cloud filing PDF storage. |
-| **Upstash Redis Cache** | Cache / Queue| Phase 3 | No (Local Redis in Phase 1) | No | **Not required yet** | Docker Redis handles Phase 1 local development. |
-| **Sentry DSN** | Monitoring | Phase 6 | No | No | **Not required yet** | Configure during production hardening. |
-| **AI Provider Keys (OpenAI/Anthropic)**| Intelligence | Phase 5 | No (Strictly Gated) | No | **Not required yet** | AI is disabled in MVP 1.0 by architecture mandate. |
-| **Production Domain & SSL** | DNS | Phase 6 | Yes (for Launch) | No | **Not required yet** | Will configure `marketscope.io` prior to launch. |
+| Configuration Item | Category | Required Phase | Status | Details & Verification |
+|---|---|---|---|---|
+| **Project Name & Authority Baseline** | Metadata | Phase 0 | **COMPLETED & APPROVED** | `MarketScope.io` confirmed across codebase; PRD v1.0 & Security Spec v1.0 authoritative. |
+| **GitHub Remote Repository** | Version Control | Phase 0 | **COMPLETED & LINKED** | Linked to `https://github.com/parth022002/marketscope.git`. Baseline & migrations committed. |
+| **Neon PostgreSQL Database** | Database | Phase 1 | **COMPLETED & DEPLOYED** | Direct & Pooled URLs configured. `001_initial.sql` executed against live Neon cluster (PostgreSQL 18.7). All 14 relational tables verified. |
+| **Clerk Authentication Suite** | Identity | Phase 1 | **COMPLETED & DEPLOYED** | Application `MarketScope` (`app_3MM9kR6zjk1ZzCJ9wEw6KJ2WvOh`) integrated. `@clerk/nextjs` (v7 Core 3), middleware, `<ClerkProvider>`, `<Show>`, sign-in/up routes active. `clerk doctor` passed 100%. Next.js production build verified. |
+| **Upstash Redis Ecosystem** | Cache / Queue | Phase 1 | **COMPLETED & DEPLOYED** | Upstash MCP server configured in `settings.json`. Official Upstash agent skills installed covering Redis, Ratelimit, QStash, Workflow, Vector, Search, Blob, and Box. |
+| **AI Provider Keys Vault** | Intelligence | Phase 1 | **COMPLETED & GATED** | OpenRouter, Groq, and Gemini API keys securely vaulted in uncommitted environment files. Gated (`AI_ENABLED=false`) until Phase 5 per architectural mandate. |
+| **Sentry Telemetry Config** | Monitoring | Phase 1 | **COMPLETED** | Organization (`flexconvert`) and project (`marketscope`) configured in environment files. |
+| **Design System & Theme Tokens** | UI/UX | Phase 1 | **COMPLETED** | Official Midnight palette (`#07152B`, `#0B1D38`, `#087BEE`, `#16C8D5`, `#39E85B`, `#F06464`) with Inter font and tabular numerals implemented. |
+| **Synthetic Equity Fixtures** | Market Data | Phase 1 | **COMPLETED** | Reliance, TCS, INFY fixtures active in `MockProvider` tagged with `SYNTHETIC_DEMO`. |
 
 ---
 
-## 11. Step-by-Step Instructions for Providing Missing Information
+## 11. Future External Data & Production Roadmap (Post-Phase 1)
 
-When you are ready to configure any of the external services, follow these exact steps:
+All foundational infrastructure and initial developer credentials have been fully provisioned and verified. The following external items are scheduled for subsequent phases:
 
-### How to set up Neon (PostgreSQL):
-1. Navigate to [https://neon.tech](https://neon.tech) and create an account.
-2. Click **Create Project**, enter name `marketscope`, select region `ap-southeast-1` (Singapore) or closest to India.
-3. In the project dashboard, copy the **Connection string** (select `psycopg` or `URI`).
-4. In your local `apps/api/.env`, update:
-   ```bash
-   DATABASE_URL="postgresql+psycopg://<user>:<password>@<host>/marketscope?sslmode=require"
-   ```
-
-### How to set up Clerk (Authentication):
-1. Navigate to [https://clerk.com](https://clerk.com) and create an account.
-2. Click **Add application**, enter `MarketScope.io`, choose **Email OTP** and optional Google login.
-3. In Clerk Dashboard -> **API Keys**, copy:
-   - **Publishable Key** -> place in `apps/web/.env.local` as `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`.
-   - **Secret Key** -> place in `apps/api/.env` as `CLERK_SECRET_KEY`.
-4. Turn off `MOCK_AUTH_ENABLED=false` once you wish to test real Clerk sign-ins.
+1. **Phase 4 — Commercial Exchange / Vendor Market Data Agreements:**
+   - Real-time/delayed official feeds from NSE/BSE or authorized market data redistributors.
+   - *Current Status:* Internal `MockProvider` provides complete deterministic coverage for development, testing, and demonstrations.
+2. **Phase 4 — Cloudflare R2 Cloud Object Storage:**
+   - Object bucket for long-term cloud archival of original regulatory PDF filings.
+   - *Current Status:* Local filesystem storage handles Phase 1-3 document fixtures.
+3. **Phase 6 — Production Domain & SSL Certificates:**
+   - Production DNS records mapping `marketscope.io` and `api.marketscope.io` to Vercel/production host.
+   - *Current Status:* Local development on `localhost:3000` and `localhost:8000`.
