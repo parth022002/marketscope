@@ -1,0 +1,66 @@
+# MarketScope.io — Non-Secret Integration Settings
+# Example configuration for external service metadata, rate limits, and provider capabilities.
+
+providers:
+  mock:
+    name: "MarketScope Internal Mock Provider"
+    active: true
+    data_status: "SYNTHETIC_DEMO"
+    coverage:
+      universe: "Curated Indian Equities (NSE/BSE)"
+      initial_instruments: ["RELIANCE", "TCS", "INFY", "HDFCBANK", "ICICIBANK"]
+      frequencies: ["ANNUAL", "QUARTERLY", "EOD"]
+    entitlements:
+      display: true
+      export: true
+      derivative_metrics: true
+      ai_synthesis: false
+
+  nse_official:
+    name: "National Stock Exchange of India"
+    active: false
+    requires_written_approval: true
+    website: "https://www.nseindia.com"
+    documentation_url: "https://www.nseindia.com/market-data"
+    commercial_redistribution_status: "PENDING_LICENSE_REVIEW"
+    refresh_frequency: "END_OF_DAY"
+    rate_limits:
+      requests_per_minute: 60
+    attribution_text: "Market data provided by NSE India. End-of-day delayed data."
+
+  bse_official:
+    name: "Bombay Stock Exchange Ltd"
+    active: false
+    requires_written_approval: true
+    website: "https://www.bseindia.com"
+    commercial_redistribution_status: "PENDING_LICENSE_REVIEW"
+    refresh_frequency: "END_OF_DAY"
+    attribution_text: "Market data provided by BSE Ltd."
+
+  mca_corporate:
+    name: "Ministry of Corporate Affairs (MCA21)"
+    active: false
+    requires_written_approval: false
+    website: "https://www.mca.gov.in"
+    refresh_frequency: "PERIODIC_FILINGS"
+    attribution_text: "Corporate registry information sourced from MCA21 portal."
+
+  rbi_dbie:
+    name: "Reserve Bank of India DBIE"
+    active: false
+    requires_written_approval: false
+    website: "https://dbie.rbi.org.in"
+    refresh_frequency: "MONTHLY"
+    attribution_text: "Macroeconomic figures sourced from RBI Database on Indian Economy."
+
+features:
+  ai_research_assistant:
+    enabled: false
+    gated_milestone: "Phase 5"
+    strict_citations_enforced: true
+    abstain_on_insufficient_evidence: true
+
+  trading_execution:
+    enabled: false
+    permanently_disabled: true
+    reason: "MarketScope.io is strictly a read-only research intelligence platform."
