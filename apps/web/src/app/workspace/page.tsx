@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { exportUserData, purgeUserData, type DPDPDataExportResponse, type DPDPPurgeResponse } from "@/lib/api";
 import Footer from "@/components/Footer";
+import BrandLogo from "@/components/BrandLogo";
 
 const PRIMARY_WORKSPACE_ID = "11111111-1111-1111-1111-111111111111";
 
@@ -79,10 +80,7 @@ export default function WorkspacePage() {
       {/* Sidebar Navigation */}
       <aside className="sidebar">
         <div>
-          <div className="brand">
-            Market<span>Scope</span>
-          </div>
-          <div className="brand-sub">FINANCIAL RESEARCH &amp; INTELLIGENCE</div>
+          <BrandLogo variant="full" height={38} className="mb-2" />
         </div>
 
         <div>
@@ -108,7 +106,9 @@ export default function WorkspacePage() {
       {/* Main Content */}
       <main className="main">
         <header className="topbar">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-icon.png" alt="MarketScope" className="w-5 h-5 rounded object-contain shadow-sm" />
             <strong>Workspace Settings &amp; Data Rights</strong>
             <small className="text-slate-400 font-mono">· DPDP COMPLIANCE ACTIVE</small>
           </div>

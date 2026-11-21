@@ -25,6 +25,7 @@ import SnapshotModal from "@/components/SnapshotModal";
 import AddToWatchlistModal from "@/components/AddToWatchlistModal";
 import AISynthesisPanel from "@/components/AISynthesisPanel";
 import Footer from "@/components/Footer";
+import BrandLogo from "@/components/BrandLogo";
 
 const IDS_MAP: Record<string, string> = {
   reliance: "in-nse-reliance",
@@ -102,10 +103,7 @@ export default function CompanyPage() {
       {/* Sidebar Navigation */}
       <aside className="sidebar">
         <div>
-          <div className="brand">
-            Market<span>Scope</span>
-          </div>
-          <div className="brand-sub">FINANCIAL RESEARCH & INTELLIGENCE</div>
+          <BrandLogo variant="full" height={38} className="mb-2" />
         </div>
 
         <div>
@@ -136,9 +134,13 @@ export default function CompanyPage() {
               <ArrowLeft size={14} /> Back to Search
             </Link>
             <span className="text-slate-600">|</span>
-            <small className="text-slate-400 font-mono tracking-wider">
-              {dossier.instrument.symbol} · {dossier.instrument.exchange}
-            </small>
+            <div className="flex items-center gap-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo-icon.png" alt="MarketScope" className="w-5 h-5 rounded object-contain shadow-sm" />
+              <small className="text-slate-300 font-mono font-semibold tracking-wider">
+                {dossier.instrument.symbol} · {dossier.instrument.exchange}
+              </small>
+            </div>
           </div>
 
           <div className="flex items-center gap-4">

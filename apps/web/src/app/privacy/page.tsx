@@ -1,19 +1,25 @@
 import Link from "next/link";
 import { ArrowLeft, ShieldCheck, Download, Trash2, Lock, EyeOff } from "lucide-react";
+import BrandLogo from "@/components/BrandLogo";
 
 export default function PrivacyPage() {
   return (
     <div className="shell min-h-screen bg-[#07152B] text-slate-200 py-10 px-6">
       <div className="max-w-4xl mx-auto space-y-8">
+        {/* Top Branding & Navigation */}
+        <div className="flex items-center justify-between pb-2">
+          <BrandLogo variant="inline" size={32} />
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-xs font-semibold text-[#087BEE] hover:text-[#16C8D5] transition"
+          >
+            <ArrowLeft size={14} /> Back to MarketScope.io
+          </Link>
+        </div>
+
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#132B4F] pb-6">
           <div>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 text-xs font-semibold text-[#087BEE] hover:text-[#16C8D5] transition mb-3"
-            >
-              <ArrowLeft size={14} /> Back to MarketScope.io
-            </Link>
             <h1 className="text-2xl font-bold text-white">Privacy Policy &amp; DPDP Act 2023 Compliance</h1>
             <p className="text-xs text-slate-400 mt-1">
               Compliant with the Digital Personal Data Protection (DPDP) Act 2023 (India) &amp; GDPR (Article 20)

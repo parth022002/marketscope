@@ -6,6 +6,7 @@ import { Show, UserButton } from "@clerk/nextjs";
 import { Scale, AlertCircle, ArrowUpRight } from "lucide-react";
 import { getPeerComparison, type PeerComparisonResponse } from "@/lib/api";
 import Footer from "@/components/Footer";
+import BrandLogo from "@/components/BrandLogo";
 
 const QUICK_COMPANIES = ["TCS", "INFY", "RELIANCE", "TATAMOTORS"];
 
@@ -41,10 +42,7 @@ export default function ComparePage() {
       {/* Sidebar Navigation */}
       <aside className="sidebar">
         <div>
-          <div className="brand">
-            Market<span>Scope</span>
-          </div>
-          <div className="brand-sub">FINANCIAL RESEARCH & INTELLIGENCE</div>
+          <BrandLogo variant="full" height={38} />
         </div>
 
         <div>
@@ -70,6 +68,8 @@ export default function ComparePage() {
       <main className="main">
         <header className="topbar">
           <div className="flex items-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-icon.png" alt="MarketScope" className="w-5 h-5 rounded object-contain shadow-sm" />
             <strong>Peer Comparison Workspace</strong>
             <small className="text-slate-400 font-mono">· PHASE 3 BENCHMARKING</small>
           </div>

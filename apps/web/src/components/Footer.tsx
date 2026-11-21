@@ -1,15 +1,14 @@
 import Link from "next/link";
 import { ShieldCheck, Scale, FileText, Database } from "lucide-react";
+import BrandLogo from "@/components/BrandLogo";
 
 export default function Footer() {
   return (
     <footer className="mt-16 border-t border-[#132B4F] pt-8 pb-12 text-xs text-slate-400">
       <div className="max-w-7xl mx-auto px-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="space-y-2">
-            <div className="text-white font-bold text-sm">
-              Market<span className="text-[#087BEE]">Scope</span>.io
-            </div>
+          <div className="space-y-3">
+            <BrandLogo variant="full" height={32} />
             <p className="text-[11px] text-slate-400 leading-relaxed">
               India-first &amp; global fundamental research workspace. Canonical financial statements, deterministic ratios, and gated AI research intelligence.
             </p>

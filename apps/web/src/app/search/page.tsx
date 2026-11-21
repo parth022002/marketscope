@@ -6,6 +6,7 @@ import { Show, UserButton } from "@clerk/nextjs";
 import { Search as SearchIcon, ArrowUpRight, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { resolveInstrument, searchInstruments, type Instrument, type ResolveResponse } from "@/lib/api";
 import Footer from "@/components/Footer";
+import BrandLogo from "@/components/BrandLogo";
 
 const GLOBAL_CHIPS = ["RELIANCE", "TCS", "HDFCBANK", "AAPL", "NVDA", "MSFT", "GOOGL", "TSLA"];
 
@@ -51,10 +52,7 @@ export default function SearchPage() {
       {/* Sidebar Navigation */}
       <aside className="sidebar">
         <div>
-          <div className="brand">
-            Market<span>Scope</span>
-          </div>
-          <div className="brand-sub">FINANCIAL RESEARCH & INTELLIGENCE</div>
+          <BrandLogo variant="full" height={38} />
         </div>
 
         <div>
@@ -80,6 +78,8 @@ export default function SearchPage() {
       <main className="main">
         <header className="topbar">
           <div className="flex items-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-icon.png" alt="MarketScope" className="w-5 h-5 rounded object-contain shadow-sm" />
             <strong>Discover Companies</strong>
             <small className="text-slate-400 font-mono">· GLOBAL LIVE UNIVERSE (NSE, BSE, NASDAQ, NYSE, LSE)</small>
           </div>

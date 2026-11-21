@@ -12,6 +12,7 @@ import {
   type Watchlist,
 } from "@/lib/api";
 import Footer from "@/components/Footer";
+import BrandLogo from "@/components/BrandLogo";
 
 export default function WatchlistsPage() {
   const [watchlists, setWatchlists] = useState<Watchlist[]>([]);
@@ -90,10 +91,7 @@ export default function WatchlistsPage() {
       {/* Sidebar Navigation */}
       <aside className="sidebar">
         <div>
-          <div className="brand">
-            Market<span>Scope</span>
-          </div>
-          <div className="brand-sub">FINANCIAL RESEARCH & INTELLIGENCE</div>
+          <BrandLogo variant="full" height={38} />
         </div>
 
         <div>
@@ -119,6 +117,8 @@ export default function WatchlistsPage() {
       <main className="main">
         <header className="topbar">
           <div className="flex items-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-icon.png" alt="MarketScope" className="w-5 h-5 rounded object-contain shadow-sm" />
             <strong>Workspace Watchlists</strong>
             <small className="text-slate-400 font-mono">· NEON DATABASE BACKED</small>
           </div>

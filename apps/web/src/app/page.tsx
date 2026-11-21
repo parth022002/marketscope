@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { ArrowUpRight, Search, ShieldCheck, FileSearch, Bookmark, CheckCircle2 } from "lucide-react";
 import { SignInButton, SignUpButton, Show, UserButton } from "@clerk/nextjs";
 import Footer from "@/components/Footer";
+import BrandLogo from "@/components/BrandLogo";
 
 const featuredCompanies = [
   { symbol: "RELIANCE", name: "Reliance Industries Limited", sector: "Energy / Retail / Digital", status: "LIVE_MARKET", exchange: "NSE" },
@@ -17,10 +18,7 @@ export default function HomePage() {
       {/* Sidebar Navigation */}
       <aside className="sidebar">
         <div>
-          <div className="brand">
-            Market<span>Scope</span>
-          </div>
-          <div className="brand-sub">FINANCIAL RESEARCH &amp; INTELLIGENCE</div>
+          <BrandLogo variant="full" height={38} />
         </div>
 
         <div>
@@ -47,7 +45,9 @@ export default function HomePage() {
       <main className="main">
         {/* Topbar with Clerk Authentication Controls */}
         <header className="topbar">
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-icon.png" alt="MarketScope" className="w-5 h-5 rounded object-contain shadow-sm" />
             <span style={{ fontWeight: 700, fontSize: 14 }}>MarketScope Workspace</span>
             <span className="tag text-[#39E85B] border-[#39E85B]/30 bg-[#39E85B]/10 flex items-center gap-1.5" style={{ fontSize: 11, padding: "3px 8px" }}>
               <span className="w-1.5 h-1.5 rounded-full bg-[#39E85B] animate-pulse"></span>
