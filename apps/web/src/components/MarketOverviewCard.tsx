@@ -12,6 +12,7 @@ interface MarketOverviewCardProps {
   change_pct: number;
   currency?: string;
   exchange: string;
+  asset_class?: string;
   data_status?: string;
   sparkline?: number[];
 }
@@ -24,23 +25,58 @@ export default function MarketOverviewCard({
   change_pct,
   currency = "INR",
   exchange,
+  asset_class,
   data_status,
   sparkline,
 }: MarketOverviewCardProps) {
   const isPositive = change_pct >= 0;
+  const isYield = asset_class === "YIELD" || symbol.includes("YIELD") || exchange === "BOND" || exchange === "RBI";
+  const isIndex = asset_class === "INDEX" || exchange === "NSE" || exchange === "BSE" || exchange === "CBOE" || symbol.includes("NIFTY") || symbol.includes("SENSEX") || symbol.includes("500") || symbol.includes("100");
 
   const formatPrice = (val: number, cur: string) => {
-    if (cur === "INR") {
-      return `₹${val.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    if (isYield) {
+      return `${val.toFixed(3)}%`;
     }
-    return `$${val.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    switch (cur) {
+      case "INR":
+        return `₹${val.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      case "USD":
+        return `$${val.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      case "EUR":
+        return `€${val.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      case "GBP":
+        return `£${val.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      case "JPY":
+        return `¥${val.toLocaleString("ja-JP", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+      case "HKD":
+        return `HK$${val.toLocaleString("zh-HK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      case "CNY":
+        return `¥${val.toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      case "KRW":
+        return `₩${val.toLocaleString("ko-KR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+      case "AUD":
+        return `A$${val.toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      default:
+        return `${val.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+  };
+
+  const formatChangeText = () => {
+    const sign = isPositive ? "+" : "";
+    if (isYield) {
+      const bps = (change * 100).toFixed(1);
+      return `${sign}${bps} bps`;
+    }
+    if (isIndex && !symbol.includes("USD") && !symbol.includes("EUR")) {
+      return `${sign}${change.toFixed(2)} pts`;
+    }
+    const curSymbol = currency === "INR" ? "₹" : currency === "USD" ? "$" : currency === "EUR" ? "€" : currency === "GBP" ? "£" : "";
+    return `${sign}${curSymbol}${Math.abs(change).toFixed(2)}`;
   };
 
   const defaultSparkline = sparkline && sparkline.length > 1
     ? sparkline
-    : isPositive
-    ? [price * 0.985, price * 0.992, price * 0.998, price * 1.004, price]
-    : [price * 1.015, price * 1.008, price * 1.002, price * 0.995, price];
+    : [price, price];
 
   return (
     <Link
@@ -87,7 +123,7 @@ export default function MarketOverviewCard({
             {formatPrice(price, currency)}
           </div>
           <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-400">
-            <span>{isPositive ? "+" : ""}{change.toFixed(2)} pts</span>
+            <span>{formatChangeText()}</span>
             {data_status && (
               <span className={`text-[8px] px-1 py-0.2 rounded font-bold uppercase ${
                 data_status === "LIVE" ? "bg-emerald-500/20 text-emerald-400" :

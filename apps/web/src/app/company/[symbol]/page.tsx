@@ -270,7 +270,15 @@ export default function CompanyPage() {
             </span>
           )}
           <span className="px-2.5 py-1 rounded text-xs text-[#16C8D5] border border-[#16C8D5]/30 bg-[#16C8D5]/10 flex items-center gap-1 font-semibold">
-            <Clock size={12} /> FRESHNESS: REAL-TIME (FMP / 12D)
+            <Clock size={12} /> FRESHNESS: {
+              dossier.instrument.data_status === "LIVE_MARKET" || dossier.instrument.data_status === "LIVE"
+                ? "REAL-TIME (EXCHANGE DIRECT)"
+                : dossier.instrument.data_status === "DELAYED_15M"
+                ? "15-MIN DELAYED"
+                : dossier.instrument.data_status === "CLOSED" || dossier.instrument.data_status === "EOD"
+                ? "END-OF-DAY CLOSE"
+                : "REFERENCE BENCHMARK"
+            }
           </span>
           <span className="px-2.5 py-1 rounded text-xs text-[#16C8D5] border border-[#16C8D5]/30 bg-[#16C8D5]/10">
             Interactive Evidence Lineage

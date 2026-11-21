@@ -2,17 +2,22 @@
 MarketScope.io — Live Exchange Market Data Provider
 Integrates direct live exchange feeds via yfinance fast_info for real-time rates,
 prices, percentage changes, and session metadata across global and Indian instruments.
+Enhanced with canonical instrument resolution, domestic commodity parity pricing,
+and exact Decimal arithmetic.
 """
 
 import logging
 import asyncio
 from datetime import datetime, timezone
 from typing import Sequence
+from decimal import Decimal
 import yfinance as yf
 
 from app.providers.market_data.base import BaseMarketDataProvider
 from app.domain.schemas import MarketQuote, ProviderHealthItem
 from app.engine.market_calendar import resolve_session_state_for_exchange
+from app.engine.instrument_resolver import instrument_resolver
+from app.engine.price_calculation_service import price_calculation_service
 
 logger = logging.getLogger(__name__)
 
@@ -105,12 +110,15 @@ class LiveExchangeProvider(BaseMarketDataProvider):
 
     def _fetch_quote_sync(self, ysym: str, raw_symbol: str, exchange: str | None) -> MarketQuote | None:
         try:
-            t = yf.Ticker(ysym)
+            mapping = instrument_resolver.resolve(raw_symbol, exchange)
+            actual_ysym = mapping.yfinance_ticker if mapping else ysym
+
+            t = yf.Ticker(actual_ysym)
             fi = t.fast_info
 
             last_price = getattr(fi, "last_price", None)
             if not last_price or last_price <= 0.0:
-                # Fallback to history for 1 day
+                # Fallback to history for 2 days
                 df = t.history(period="2d")
                 if not df.empty:
                     last_price = float(df["Close"].iloc[-1])
@@ -128,27 +136,61 @@ class LiveExchangeProvider(BaseMarketDataProvider):
                 low_p = getattr(fi, "day_low", None)
                 vol = getattr(fi, "last_volume", None)
 
-            change, change_pct = self.calculate_price_change(last_price, prev_close)
+            # Metadata resolution
+            exch = mapping.exchange if mapping else (exchange or getattr(fi, "exchange", "GLOBAL") or "NSE")
+            asset_class = mapping.asset_class if mapping else ("EQUITY" if (".NS" in actual_ysym or ".BO" in actual_ysym) else "INDEX")
+            currency = mapping.currency if mapping else ("INR" if (".NS" in actual_ysym or ".BO" in actual_ysym or "INR" in raw_symbol or exch in ("NSE", "BSE", "MCX", "RBI")) else "USD")
+            precision = mapping.price_precision if mapping else 2
 
-            exch = exchange or getattr(fi, "exchange", "GLOBAL") or "NSE"
+            # Normalize yield multiplier if applicable (e.g. ^TNX is 10x yield)
+            if mapping and mapping.is_yield and mapping.yield_multiplier != 1.0:
+                last_price = last_price * mapping.yield_multiplier
+                prev_close = prev_close * mapping.yield_multiplier
+                if open_p: open_p = open_p * mapping.yield_multiplier
+                if high_p: high_p = high_p * mapping.yield_multiplier
+                if low_p: low_p = low_p * mapping.yield_multiplier
+
+            # Domestic MCX parity conversion for domestic Gold & Silver from COMEX benchmark
+            if mapping and mapping.symbol == "GOLD MCX":
+                parity_factor = (84.42 / 31.1034768) * 10.0 * 1.05  # USD/INR cross / troy oz to 10g + duty parity
+                last_price = last_price * parity_factor
+                prev_close = prev_close * parity_factor
+                if open_p: open_p = open_p * parity_factor
+                if high_p: high_p = high_p * parity_factor
+                if low_p: low_p = low_p * parity_factor
+            elif mapping and mapping.symbol == "SILVER MCX":
+                parity_factor = (84.42 / 31.1034768) * 1000.0 * 1.05  # USD/INR cross / troy oz to 1kg + duty parity
+                last_price = last_price * parity_factor
+                prev_close = prev_close * parity_factor
+                if open_p: open_p = open_p * parity_factor
+                if high_p: high_p = high_p * parity_factor
+                if low_p: low_p = low_p * parity_factor
+
+            # Exact Decimal price change calculation
+            dec_change, dec_change_pct = price_calculation_service.calculate_price_change(
+                last_price, prev_close, precision=precision
+            )
+            change = float(dec_change)
+            change_pct = float(dec_change_pct)
+
             session = resolve_session_state_for_exchange(exch)
-
-            # Currency determination
-            curr = "INR" if (".NS" in ysym or ".BO" in ysym or "INR" in raw_symbol or exch in ("NSE", "BSE", "MCX", "RBI")) else "USD"
-
             now = datetime.now(timezone.utc)
+
+            rounded_price = round(float(last_price), precision)
+            rounded_prev_close = round(float(prev_close), precision)
+
             return MarketQuote(
-                instrument_id=f"inst_live_{raw_symbol.replace(' ', '_').replace('/', '_')}",
+                instrument_id=mapping.canonical_id if mapping else f"inst_live_{raw_symbol.replace(' ', '_').replace('/', '_')}",
                 symbol=raw_symbol,
-                name=raw_symbol,
+                name=mapping.symbol if mapping else raw_symbol,
                 exchange=exch,
-                asset_class="EQUITY" if (".NS" in ysym or ".BO" in ysym or ysym in ("AAPL", "NVDA", "MSFT")) else "INDEX",
-                currency=curr,
-                price=round(float(last_price), 2),
-                open=round(float(open_p), 2) if open_p else None,
-                high=round(float(high_p), 2) if high_p else None,
-                low=round(float(low_p), 2) if low_p else None,
-                previous_close=round(float(prev_close), 2),
+                asset_class=asset_class,
+                currency=currency,
+                price=rounded_price,
+                open=round(float(open_p), precision) if open_p else None,
+                high=round(float(high_p), precision) if high_p else None,
+                low=round(float(low_p), precision) if low_p else None,
+                previous_close=rounded_prev_close,
                 change=change,
                 change_pct=change_pct,
                 volume=int(vol) if vol else None,
@@ -157,7 +199,7 @@ class LiveExchangeProvider(BaseMarketDataProvider):
                 source_provider=self.provider_name,
                 timestamp=now,
                 received_at=now,
-                sparkline=[round(float(prev_close), 2), round(float(last_price), 2)],
+                sparkline=[rounded_prev_close, rounded_price],
             )
         except Exception as e:
             logger.debug(f"Live exchange quote failed for {ysym}: {e}")

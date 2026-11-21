@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   TrendingUp,
@@ -12,27 +12,52 @@ import {
   Sparkles,
 } from "lucide-react";
 import NavigationShell from "@/components/NavigationShell";
+import { getMarketOverview } from "@/lib/api";
 
-const ALL_STOCKS = [
-  { symbol: "RELIANCE", name: "Reliance Industries Limited", exchange: "NSE", sector: "Energy & Conglomerate", price: 1377.50, change_pct: 0.14, market_cap_cr: 1991200, pe: 27.8, roe: 9.8, status: "LIVE" },
-  { symbol: "TCS", name: "Tata Consultancy Services", exchange: "NSE", sector: "Information Technology", price: 2376.20, change_pct: 1.43, market_cap_cr: 1492500, pe: 31.4, roe: 48.2, status: "LIVE" },
-  { symbol: "HDFCBANK", name: "HDFC Bank Limited", exchange: "NSE", sector: "Financial Services", price: 846.00, change_pct: 2.94, market_cap_cr: 1334000, pe: 19.2, roe: 16.4, status: "LIVE" },
-  { symbol: "ICICIBANK", name: "ICICI Bank Limited", exchange: "NSE", sector: "Financial Services", price: 1640.00, change_pct: 1.93, market_cap_cr: 1148000, pe: 18.5, roe: 18.9, status: "LIVE" },
-  { symbol: "INFY", name: "Infosys Limited", exchange: "NSE", sector: "Information Technology", price: 1098.00, change_pct: 0.56, market_cap_cr: 912000, pe: 28.6, roe: 31.5, status: "LIVE" },
-  { symbol: "BHARTIARTL", name: "Bharti Airtel Limited", exchange: "NSE", sector: "Telecommunications", price: 2161.70, change_pct: 0.83, market_cap_cr: 1224000, pe: 42.1, roe: 14.8, status: "LIVE" },
-  { symbol: "TATAMOTORS", name: "Tata Motors Limited", exchange: "NSE", sector: "Automobile", price: 742.50, change_pct: 0.85, market_cap_cr: 298500, pe: 9.8, roe: 38.4, status: "LIVE" },
-  { symbol: "LT", name: "Larsen & Toubro Limited", exchange: "NSE", sector: "Infrastructure", price: 4209.10, change_pct: -0.05, market_cap_cr: 578000, pe: 34.2, roe: 15.6, status: "LIVE" },
-  { symbol: "NVDA", name: "NVIDIA Corporation", exchange: "NASDAQ", sector: "Semiconductors", price: 125.53, change_pct: -13.93, market_cap_cr: 3580000, pe: 54.2, roe: 115.0, status: "LIVE", currency: "USD" },
-  { symbol: "AAPL", name: "Apple Inc.", exchange: "NASDAQ", sector: "Consumer Tech", price: 342.56, change_pct: -2.40, market_cap_cr: 4978000, pe: 33.1, roe: 152.0, status: "LIVE", currency: "USD" },
-  { symbol: "MSFT", name: "Microsoft Corporation", exchange: "NASDAQ", sector: "Software & Cloud", price: 484.52, change_pct: -2.58, market_cap_cr: 3620000, pe: 34.8, roe: 38.5, status: "LIVE", currency: "USD" },
-  { symbol: "GOOGL", name: "Alphabet Inc.", exchange: "NASDAQ", sector: "Internet & AI", price: 189.40, change_pct: 0.85, market_cap_cr: 2360000, pe: 24.2, roe: 29.8, status: "LIVE", currency: "USD" },
+const BASELINE_STOCKS = [
+  { symbol: "RELIANCE", name: "Reliance Industries Limited", exchange: "NSE", sector: "Energy & Conglomerate", price: 1265.40, change_pct: 0.59, market_cap_cr: 1991200, pe: 27.8, roe: 9.8, status: "LIVE" },
+  { symbol: "TCS", name: "Tata Consultancy Services", exchange: "NSE", sector: "Information Technology", price: 4150.20, change_pct: 0.73, market_cap_cr: 1492500, pe: 31.4, roe: 48.2, status: "LIVE" },
+  { symbol: "HDFCBANK", name: "HDFC Bank Limited", exchange: "NSE", sector: "Financial Services", price: 1745.00, change_pct: 0.75, market_cap_cr: 1334000, pe: 19.2, roe: 16.4, status: "LIVE" },
+  { symbol: "ICICIBANK", name: "ICICI Bank Limited", exchange: "NSE", sector: "Financial Services", price: 1260.00, change_pct: 0.80, market_cap_cr: 1148000, pe: 18.5, roe: 18.9, status: "LIVE" },
+  { symbol: "INFY", name: "Infosys Limited", exchange: "NSE", sector: "Information Technology", price: 1860.00, change_pct: 0.81, market_cap_cr: 912000, pe: 28.6, roe: 31.5, status: "LIVE" },
+  { symbol: "BHARTIARTL", name: "Bharti Airtel Limited", exchange: "NSE", sector: "Telecommunications", price: 1580.00, change_pct: 0.96, market_cap_cr: 1224000, pe: 42.1, roe: 14.8, status: "LIVE" },
+  { symbol: "TATAMOTORS", name: "Tata Motors Limited", exchange: "NSE", sector: "Automobile", price: 820.00, change_pct: 0.61, market_cap_cr: 298500, pe: 9.8, roe: 38.4, status: "LIVE" },
+  { symbol: "LT", name: "Larsen & Toubro Limited", exchange: "NSE", sector: "Infrastructure", price: 3620.00, change_pct: 0.84, market_cap_cr: 578000, pe: 34.2, roe: 15.6, status: "LIVE" },
+  { symbol: "NVDA", name: "NVIDIA Corporation", exchange: "NASDAQ", sector: "Semiconductors", price: 142.20, change_pct: 1.21, market_cap_cr: 3580000, pe: 54.2, roe: 115.0, status: "LIVE", currency: "USD" },
+  { symbol: "AAPL", name: "Apple Inc.", exchange: "NASDAQ", sector: "Consumer Tech", price: 228.50, change_pct: 0.66, market_cap_cr: 4978000, pe: 33.1, roe: 152.0, status: "LIVE", currency: "USD" },
+  { symbol: "MSFT", name: "Microsoft Corporation", exchange: "NASDAQ", sector: "Software & Cloud", price: 425.00, change_pct: 0.47, market_cap_cr: 3620000, pe: 34.8, roe: 38.5, status: "LIVE", currency: "USD" },
+  { symbol: "GOOGL", name: "Alphabet Inc.", exchange: "NASDAQ", sector: "Internet & AI", price: 178.60, change_pct: 0.55, market_cap_cr: 2360000, pe: 24.2, roe: 29.8, status: "LIVE", currency: "USD" },
 ];
 
 export default function StocksPage() {
   const [exchangeFilter, setExchangeFilter] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [stocksList, setStocksList] = useState(BASELINE_STOCKS);
 
-  const filtered = ALL_STOCKS.filter((stock) => {
+  useEffect(() => {
+    getMarketOverview()
+      .then((data) => {
+        if (data?.top_companies && data.top_companies.length > 0) {
+          const liveMap = new Map(data.top_companies.map((tc) => [tc.symbol.toUpperCase(), tc]));
+          setStocksList((prev) =>
+            prev.map((s) => {
+              const live = liveMap.get(s.symbol.toUpperCase());
+              if (live) {
+                return {
+                  ...s,
+                  price: live.price,
+                  change_pct: live.change_pct,
+                };
+              }
+              return s;
+            })
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const filtered = stocksList.filter((stock) => {
     if (exchangeFilter === "nse" && stock.exchange !== "NSE") return false;
     if (exchangeFilter === "us" && stock.exchange !== "NASDAQ") return false;
     if (searchTerm) {
@@ -73,7 +98,7 @@ export default function StocksPage() {
                 exchangeFilter === "all" ? "bg-blue-600 text-white shadow-sm" : "text-slate-400 hover:text-white"
               }`}
             >
-              All Equities ({ALL_STOCKS.length})
+              All Equities ({stocksList.length})
             </button>
             <button
               onClick={() => setExchangeFilter("nse")}

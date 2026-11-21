@@ -37,6 +37,9 @@ from app.providers.market_data.live_exchange_provider import LiveExchangeProvide
 from app.providers.market_data.twelvedata_provider import TwelveDataProvider
 from app.providers.market_data.fmp_provider import FMPDataProvider
 from app.providers.market_data.fallback_provider import FallbackDevProvider, FALLBACK_UNIVERSE
+from app.engine.instrument_resolver import instrument_resolver
+from app.engine.price_calculation_service import PriceCalculationService
+from decimal import Decimal
 
 logger = logging.getLogger(__name__)
 
@@ -243,15 +246,24 @@ class MarketDataService:
         return quote
 
     def _apply_validation_and_session(self, quote: MarketQuote, session) -> MarketQuote:
+        canonical_inst = instrument_resolver.resolve(quote.symbol, quote.exchange)
+        precision = canonical_inst.price_precision if canonical_inst else 2
+
         # Validate mathematical change with strict Decimal precision
-        change, change_pct = BaseMarketDataProvider.calculate_price_change(
-            quote.price, quote.previous_close
+        change_dec, pct_dec = PriceCalculationService.calculate_price_change(
+            Decimal(str(quote.price)),
+            Decimal(str(quote.previous_close)),
+            precision=precision,
         )
-        quote.change = change
-        quote.change_pct = change_pct
+        quote.change = float(change_dec)
+        quote.change_pct = float(pct_dec)
 
         # Check price jump anomaly
-        if BaseMarketDataProvider.is_price_jump_anomalous(quote.price, quote.previous_close):
+        if PriceCalculationService.is_price_jump_anomalous(
+            Decimal(str(quote.price)),
+            Decimal(str(quote.previous_close)),
+            threshold_pct=35.0,
+        ):
             self._anomaly_log.append({
                 "symbol": quote.symbol,
                 "price": quote.price,

@@ -1,0 +1,63 @@
+# MarketScope.io — Market Data Providers Configuration Example
+# Copy this file to config/market-data-providers.yaml for local or production overrides.
+
+version: "1.0"
+
+providers:
+  # Primary: Exchange direct and foreign exchange rate service
+  live_exchange:
+    enabled: true
+    priority: 1
+    timeout_seconds: 1.5
+    rate_limit_per_minute: 120
+    supported_asset_classes:
+      - CURRENCY
+      - COMMODITY
+      - INDEX
+
+  # Secondary: Twelve Data Enterprise API
+  twelvedata:
+    enabled: true
+    priority: 2
+    api_key_env: "TWELVEDATA_API_KEY"
+    timeout_seconds: 2.0
+    rate_limit_per_minute: 800
+    supported_asset_classes:
+      - EQUITY
+      - INDEX
+      - COMMODITY
+      - CURRENCY
+
+  # Tertiary: Financial Modeling Prep (FMP)
+  fmp:
+    enabled: true
+    priority: 3
+    api_key_env: "FMP_API_KEY"
+    timeout_seconds: 2.5
+    rate_limit_per_minute: 300
+    supported_asset_classes:
+      - EQUITY
+      - RATIOS
+      - STATEMENTS
+
+  # Fallback: Deterministic simulated reference provider
+  synthetic_dev:
+    enabled: true
+    priority: 4
+    always_available: true
+    flag_as: "SYNTHETIC_DEVELOPMENT"
+
+caching:
+  l1_in_memory:
+    active_market_ttl_seconds: 5.0
+    closed_market_ttl_seconds: 300.0
+  l2_redis:
+    enabled: true
+    url_env: "REDIS_URL"
+    default_url: "redis://localhost:6379/0"
+
+validation:
+  anomaly_threshold_pct: 35.0
+  enforce_ohlc_bounds: true
+  prevent_zero_previous_close: true
+  rounding_mode: "ROUND_HALF_UP"

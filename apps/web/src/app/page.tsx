@@ -176,12 +176,12 @@ export default function DashboardPage() {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {(overview?.indices?.slice(0, 6) || [
-              { symbol: "NIFTY 50", price: 25800.60, change: 286.30, change_pct: 1.12, exchange: "NSE", currency: "INR" },
-              { symbol: "SENSEX", price: 83919.71, change: 897.96, change_pct: 1.08, exchange: "BSE", currency: "INR" },
-              { symbol: "NIFTY BANK", price: 64635.20, change: 1572.20, change_pct: 2.49, exchange: "NSE", currency: "INR" },
-              { symbol: "NASDAQ 100", price: 25028.98, change: -1494.46, change_pct: -5.63, exchange: "NASDAQ", currency: "USD" },
-              { symbol: "S&P 500", price: 6910.39, change: -267.17, change_pct: -3.72, exchange: "NYSE", currency: "USD" },
-              { symbol: "BRENT CRUDE", price: 92.57, change: 2.52, change_pct: 2.80, exchange: "ICE", currency: "USD" },
+              { symbol: "NIFTY 50", price: 24180.80, change: 125.40, change_pct: 0.52, exchange: "NSE", currency: "INR" },
+              { symbol: "SENSEX", price: 79802.40, change: 380.20, change_pct: 0.48, exchange: "BSE", currency: "INR" },
+              { symbol: "NIFTY BANK", price: 51820.50, change: 210.30, change_pct: 0.41, exchange: "NSE", currency: "INR" },
+              { symbol: "NASDAQ 100", price: 20910.45, change: -85.20, change_pct: -0.41, exchange: "NASDAQ", currency: "USD" },
+              { symbol: "S&P 500", price: 5969.34, change: 12.50, change_pct: 0.21, exchange: "NYSE", currency: "USD" },
+              { symbol: "BRENT CRUDE", price: 74.20, change: 0.85, change_pct: 1.16, exchange: "ICE", currency: "USD" },
             ]).map((idx, i) => (
               <MarketOverviewCard
                 key={i}

@@ -12,117 +12,117 @@ const FALLBACK_TICKERS: TickerItem[] = [
     name: "Nifty 50 Index",
     category: "indian_index",
     exchange: "NSE",
-    price: 25800.60,
-    change: 286.30,
-    change_pct: 1.12,
+    price: 24180.80,
+    change: 125.40,
+    change_pct: 0.52,
     currency: "INR",
     market_status: "CLOSED",
     data_status: "EOD",
-    sparkline: [25420, 25514.30, 25680, 25800.60],
+    sparkline: [24055.40, 24090.0, 24140.0, 24180.80],
   },
   {
     symbol: "SENSEX",
     name: "BSE SENSEX 30",
     category: "indian_index",
     exchange: "BSE",
-    price: 83919.71,
-    change: 897.96,
-    change_pct: 1.08,
+    price: 79802.40,
+    change: 380.20,
+    change_pct: 0.48,
     currency: "INR",
     market_status: "CLOSED",
     data_status: "EOD",
-    sparkline: [82950, 83021.75, 83450, 83919.71],
+    sparkline: [79422.20, 79510.0, 79650.0, 79802.40],
   },
   {
     symbol: "NIFTY BANK",
     name: "Nifty Bank Index",
     category: "indian_index",
     exchange: "NSE",
-    price: 64635.20,
-    change: 1572.20,
-    change_pct: 2.49,
+    price: 51820.50,
+    change: 210.30,
+    change_pct: 0.41,
     currency: "INR",
     market_status: "CLOSED",
     data_status: "EOD",
-    sparkline: [62980, 63063.00, 63800, 64635.20],
+    sparkline: [51610.20, 51680.0, 51740.0, 51820.50],
   },
   {
     symbol: "NASDAQ 100",
     name: "NASDAQ 100",
     category: "global_index",
     exchange: "NASDAQ",
-    price: 25028.98,
-    change: -1494.46,
-    change_pct: -5.63,
+    price: 20910.45,
+    change: -85.20,
+    change_pct: -0.41,
     currency: "USD",
     market_status: "CLOSED",
     data_status: "EOD",
-    sparkline: [26523.44, 26050, 25680, 25028.98],
+    sparkline: [20995.65, 20970.0, 20940.0, 20910.45],
   },
   {
     symbol: "S&P 500",
     name: "S&P 500 Index",
     category: "global_index",
     exchange: "NYSE",
-    price: 6910.39,
-    change: -267.17,
-    change_pct: -3.72,
+    price: 5969.34,
+    change: 12.50,
+    change_pct: 0.21,
     currency: "USD",
     market_status: "CLOSED",
     data_status: "EOD",
-    sparkline: [7177.56, 7080, 7020, 6910.39],
+    sparkline: [5956.84, 5960.0, 5964.0, 5969.34],
   },
   {
     symbol: "BRENT CRUDE",
     name: "Brent Crude Oil",
     category: "commodity",
     exchange: "ICE",
-    price: 92.57,
-    change: 2.52,
-    change_pct: 2.80,
+    price: 74.20,
+    change: 0.85,
+    change_pct: 1.16,
     currency: "USD",
     market_status: "CLOSED",
     data_status: "EOD",
-    sparkline: [90.05, 90.80, 91.40, 92.57],
+    sparkline: [73.35, 73.60, 73.85, 74.20],
   },
   {
     symbol: "GOLD MCX",
     name: "Gold 24K (10g)",
     category: "commodity",
     exchange: "MCX",
-    price: 98450.00,
-    change: -470.00,
-    change_pct: -0.47,
+    price: 76450.00,
+    change: 210.00,
+    change_pct: 0.28,
     currency: "INR",
     market_status: "CLOSED",
     data_status: "EOD",
-    sparkline: [98920, 98800, 98650, 98450.00],
+    sparkline: [76240.0, 76300.0, 76360.0, 76450.00],
   },
   {
     symbol: "USD/INR",
     name: "US Dollar / Indian Rupee",
     category: "currency",
     exchange: "FOREX",
-    price: 92.67,
-    change: -0.61,
-    change_pct: -0.65,
+    price: 84.42,
+    change: 0.04,
+    change_pct: 0.05,
     currency: "INR",
     market_status: "CLOSED",
     data_status: "EOD",
-    sparkline: [93.28, 93.10, 92.80, 92.67],
+    sparkline: [84.38, 84.39, 84.41, 84.42],
   },
   {
     symbol: "US 10Y YIELD",
     name: "US 10-Year Treasury",
     category: "yield",
     exchange: "BOND",
-    price: 4.91,
-    change: -0.14,
-    change_pct: -2.77,
+    price: 4.420,
+    change: -0.030,
+    change_pct: -0.67,
     currency: "USD",
     market_status: "CLOSED",
     data_status: "EOD",
-    sparkline: [5.05, 5.00, 4.96, 4.91],
+    sparkline: [4.450, 4.442, 4.435, 4.420],
   },
 ];
 
@@ -167,11 +167,29 @@ export default function MarketTicker() {
 
   // Format price according to currency
   const formatPrice = (price: number, currency: string, category: string) => {
-    if (category === "yield") return `${price.toFixed(2)}%`;
-    if (currency === "INR") {
-      return `₹${price.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    if (category === "yield") return `${price.toFixed(3)}%`;
+    switch (currency) {
+      case "INR":
+        return `₹${price.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      case "USD":
+        return `$${price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      case "EUR":
+        return `€${price.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      case "GBP":
+        return `£${price.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      case "JPY":
+        return `¥${price.toLocaleString("ja-JP", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+      case "HKD":
+        return `HK$${price.toLocaleString("zh-HK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      case "CNY":
+        return `¥${price.toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      case "KRW":
+        return `₩${price.toLocaleString("ko-KR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+      case "AUD":
+        return `A$${price.toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      default:
+        return `${price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
-    return `$${price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   const getStatusBadge = (status: string) => {

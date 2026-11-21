@@ -8,10 +8,13 @@ NEVER claims to be live real-time market data.
 
 import logging
 from datetime import datetime, timezone
+from decimal import Decimal
 from typing import Sequence
 from app.providers.market_data.base import BaseMarketDataProvider
 from app.domain.schemas import MarketQuote, ProviderHealthItem
 from app.engine.market_calendar import resolve_session_state_for_exchange
+from app.engine.instrument_resolver import instrument_resolver
+from app.engine.price_calculation_service import PriceCalculationService
 
 logger = logging.getLogger(__name__)
 
@@ -24,9 +27,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "NSE",
         "asset_class": "INDEX",
         "currency": "INR",
-        "price": 25800.60,
-        "previous_close": 25514.30,
-        "sparkline": [25420.0, 25514.30, 25680.0, 25740.0, 25800.60],
+        "price": 24180.80,
+        "previous_close": 24055.40,
+        "sparkline": [24055.40, 24090.0, 24140.0, 24160.0, 24180.80],
     },
     {
         "symbol": "NIFTY NEXT 50",
@@ -34,9 +37,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "NSE",
         "asset_class": "INDEX",
         "currency": "INR",
-        "price": 73207.25,
-        "previous_close": 72892.75,
-        "sparkline": [72750.0, 72892.75, 73050.0, 73150.0, 73207.25],
+        "price": 68450.00,
+        "previous_close": 68120.00,
+        "sparkline": [68120.0, 68210.0, 68330.0, 68400.0, 68450.00],
     },
     {
         "symbol": "NIFTY BANK",
@@ -44,9 +47,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "NSE",
         "asset_class": "INDEX",
         "currency": "INR",
-        "price": 64635.20,
-        "previous_close": 63063.00,
-        "sparkline": [62980.0, 63063.00, 63800.0, 64200.0, 64635.20],
+        "price": 51820.50,
+        "previous_close": 51610.20,
+        "sparkline": [51610.20, 51680.0, 51740.0, 51790.0, 51820.50],
     },
     {
         "symbol": "NIFTY FINANCIAL SERVICES",
@@ -54,9 +57,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "NSE",
         "asset_class": "INDEX",
         "currency": "INR",
-        "price": 28871.20,
-        "previous_close": 28299.65,
-        "sparkline": [28250.0, 28299.65, 28500.0, 28720.0, 28871.20],
+        "price": 23980.50,
+        "previous_close": 23890.00,
+        "sparkline": [23890.0, 23910.0, 23940.0, 23960.0, 23980.50],
     },
     {
         "symbol": "NIFTY IT",
@@ -64,9 +67,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "NSE",
         "asset_class": "INDEX",
         "currency": "INR",
-        "price": 31322.65,
-        "previous_close": 30919.45,
-        "sparkline": [30850.0, 30919.45, 31100.0, 31250.0, 31322.65],
+        "price": 41250.00,
+        "previous_close": 40920.00,
+        "sparkline": [40920.0, 41020.0, 41110.0, 41190.0, 41250.00],
     },
     {
         "symbol": "NIFTY MIDCAP 100",
@@ -74,9 +77,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "NSE",
         "asset_class": "INDEX",
         "currency": "INR",
-        "price": 62031.00,
-        "previous_close": 61618.85,
-        "sparkline": [61550.0, 61618.85, 61850.0, 61950.0, 62031.00],
+        "price": 55420.00,
+        "previous_close": 55180.00,
+        "sparkline": [55180.0, 55240.0, 55310.0, 55380.0, 55420.00],
     },
     {
         "symbol": "SENSEX",
@@ -84,9 +87,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "BSE",
         "asset_class": "INDEX",
         "currency": "INR",
-        "price": 83919.71,
-        "previous_close": 83021.75,
-        "sparkline": [82950.0, 83021.75, 83450.0, 83780.0, 83919.71],
+        "price": 79802.40,
+        "previous_close": 79422.20,
+        "sparkline": [79422.20, 79510.0, 79650.0, 79740.0, 79802.40],
     },
     {
         "symbol": "BSE 100",
@@ -94,9 +97,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "BSE",
         "asset_class": "INDEX",
         "currency": "INR",
-        "price": 27480.50,
-        "previous_close": 27190.20,
-        "sparkline": [27150.0, 27190.20, 27320.0, 27410.0, 27480.50],
+        "price": 25850.00,
+        "previous_close": 25720.00,
+        "sparkline": [25720.0, 25760.0, 25800.0, 25830.0, 25850.00],
     },
     {
         "symbol": "BSE 500",
@@ -104,9 +107,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "BSE",
         "asset_class": "INDEX",
         "currency": "INR",
-        "price": 37735.95,
-        "previous_close": 37442.64,
-        "sparkline": [37380.0, 37442.64, 37580.0, 37690.0, 37735.95],
+        "price": 34920.00,
+        "previous_close": 34750.00,
+        "sparkline": [34750.0, 34800.0, 34850.0, 34890.0, 34920.00],
     },
 
     # ─── 2. International Benchmark Indices ──────────────────────────────────
@@ -116,9 +119,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "NASDAQ",
         "asset_class": "INDEX",
         "currency": "USD",
-        "price": 22617.73,
-        "previous_close": 23882.10,
-        "sparkline": [23882.10, 23450.0, 23100.0, 22800.0, 22617.73],
+        "price": 18987.42,
+        "previous_close": 19020.10,
+        "sparkline": [19020.10, 19005.0, 18995.0, 18990.0, 18987.42],
     },
     {
         "symbol": "NASDAQ 100",
@@ -126,9 +129,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "NASDAQ",
         "asset_class": "INDEX",
         "currency": "USD",
-        "price": 25028.98,
-        "previous_close": 26523.44,
-        "sparkline": [26523.44, 26050.0, 25680.0, 25300.0, 25028.98],
+        "price": 20910.45,
+        "previous_close": 20995.65,
+        "sparkline": [20995.65, 20970.0, 20940.0, 20925.0, 20910.45],
     },
     {
         "symbol": "S&P 500",
@@ -136,9 +139,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "NYSE",
         "asset_class": "INDEX",
         "currency": "USD",
-        "price": 6910.39,
-        "previous_close": 7177.56,
-        "sparkline": [7177.56, 7080.0, 7020.0, 6960.0, 6910.39],
+        "price": 5969.34,
+        "previous_close": 5956.84,
+        "sparkline": [5956.84, 5960.0, 5964.0, 5968.0, 5969.34],
     },
     {
         "symbol": "Dow Jones",
@@ -146,9 +149,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "NYSE",
         "asset_class": "INDEX",
         "currency": "USD",
-        "price": 48147.33,
-        "previous_close": 49112.63,
-        "sparkline": [49112.63, 48800.0, 48500.0, 48300.0, 48147.33],
+        "price": 43910.25,
+        "previous_close": 43850.10,
+        "sparkline": [43850.10, 43870.0, 43890.0, 43900.0, 43910.25],
     },
     {
         "symbol": "Russell 2000",
@@ -156,9 +159,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "NYSE",
         "asset_class": "INDEX",
         "currency": "USD",
-        "price": 2581.79,
-        "previous_close": 2656.24,
-        "sparkline": [2656.24, 2630.0, 2610.0, 2595.0, 2581.79],
+        "price": 2365.40,
+        "previous_close": 2358.10,
+        "sparkline": [2358.10, 2360.0, 2362.5, 2364.0, 2365.40],
     },
     {
         "symbol": "VIX",
@@ -166,9 +169,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "CBOE",
         "asset_class": "INDEX",
         "currency": "USD",
-        "price": 35.89,
-        "previous_close": 28.47,
-        "sparkline": [28.47, 30.2, 32.5, 34.1, 35.89],
+        "price": 14.80,
+        "previous_close": 15.20,
+        "sparkline": [15.20, 15.05, 14.95, 14.88, 14.80],
     },
     {
         "symbol": "FTSE 100",
@@ -176,9 +179,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "LSE",
         "asset_class": "INDEX",
         "currency": "GBP",
-        "price": 10346.30,
-        "previous_close": 10459.18,
-        "sparkline": [10459.18, 10420.0, 10380.0, 10360.0, 10346.30],
+        "price": 8380.50,
+        "previous_close": 8360.20,
+        "sparkline": [8360.20, 8368.0, 8372.0, 8377.0, 8380.50],
     },
     {
         "symbol": "DAX 40",
@@ -186,9 +189,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "XETRA",
         "asset_class": "INDEX",
         "currency": "EUR",
-        "price": 24802.78,
-        "previous_close": 25498.54,
-        "sparkline": [25498.54, 25200.0, 25050.0, 24900.0, 24802.78],
+        "price": 19950.20,
+        "previous_close": 19890.00,
+        "sparkline": [19890.00, 19910.0, 19930.0, 19942.0, 19950.20],
     },
     {
         "symbol": "CAC 40",
@@ -196,9 +199,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "EURONEXT",
         "asset_class": "INDEX",
         "currency": "EUR",
-        "price": 7927.75,
-        "previous_close": 8084.91,
-        "sparkline": [8084.91, 8040.0, 7990.0, 7950.0, 7927.75],
+        "price": 7420.15,
+        "previous_close": 7405.00,
+        "sparkline": [7405.00, 7410.0, 7414.0, 7418.0, 7420.15],
     },
     {
         "symbol": "EURO STOXX 50",
@@ -206,9 +209,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "EURONEXT",
         "asset_class": "INDEX",
         "currency": "EUR",
-        "price": 5941.95,
-        "previous_close": 6120.02,
-        "sparkline": [6120.02, 6060.0, 6010.0, 5970.0, 5941.95],
+        "price": 4890.30,
+        "previous_close": 4880.00,
+        "sparkline": [4880.00, 4882.0, 4885.0, 4888.0, 4890.30],
     },
     {
         "symbol": "Nikkei 225",
@@ -216,9 +219,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "TSE",
         "asset_class": "INDEX",
         "currency": "JPY",
-        "price": 56436.65,
-        "previous_close": 59542.41,
-        "sparkline": [59542.41, 58600.0, 57800.0, 57100.0, 56436.65],
+        "price": 38650.00,
+        "previous_close": 38520.00,
+        "sparkline": [38520.00, 38560.0, 38600.0, 38630.0, 38650.00],
     },
     {
         "symbol": "Hang Seng",
@@ -226,9 +229,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "HKEX",
         "asset_class": "INDEX",
         "currency": "HKD",
-        "price": 22410.80,
-        "previous_close": 22841.62,
-        "sparkline": [22841.62, 22700.0, 22580.0, 22490.0, 22410.80],
+        "price": 19580.00,
+        "previous_close": 19640.00,
+        "sparkline": [19640.00, 19620.0, 19600.0, 19590.0, 19580.00],
     },
     {
         "symbol": "Shanghai Composite",
@@ -236,9 +239,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "SSE",
         "asset_class": "INDEX",
         "currency": "CNY",
-        "price": 3533.79,
-        "previous_close": 3575.79,
-        "sparkline": [3575.79, 3560.0, 3550.0, 3540.0, 3533.79],
+        "price": 3370.00,
+        "previous_close": 3365.00,
+        "sparkline": [3365.00, 3366.0, 3368.0, 3369.0, 3370.00],
     },
     {
         "symbol": "KOSPI",
@@ -246,9 +249,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "KRX",
         "asset_class": "INDEX",
         "currency": "KRW",
-        "price": 4869.96,
-        "previous_close": 5084.99,
-        "sparkline": [5084.99, 5020.0, 4960.0, 4910.0, 4869.96],
+        "price": 2480.00,
+        "previous_close": 2490.00,
+        "sparkline": [2490.00, 2488.0, 2485.0, 2482.0, 2480.00],
     },
     {
         "symbol": "ASX 200",
@@ -256,9 +259,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "ASX",
         "asset_class": "INDEX",
         "currency": "AUD",
-        "price": 8592.60,
-        "previous_close": 8730.40,
-        "sparkline": [8730.40, 8680.0, 8640.0, 8610.0, 8592.60],
+        "price": 8420.00,
+        "previous_close": 8400.00,
+        "sparkline": [8400.00, 8405.0, 8412.0, 8416.0, 8420.00],
     },
 
     # ─── 3. Commodities & Energy ──────────────────────────────────────────────
@@ -268,9 +271,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "COMEX",
         "asset_class": "COMMODITY",
         "currency": "USD",
-        "price": 3515.40,
-        "previous_close": 3533.00,
-        "sparkline": [3533.0, 3528.0, 3522.0, 3518.0, 3515.40],
+        "price": 2685.40,
+        "previous_close": 2678.00,
+        "sparkline": [2678.0, 2680.0, 2682.0, 2684.0, 2685.40],
     },
     {
         "symbol": "GOLD MCX",
@@ -278,9 +281,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "MCX",
         "asset_class": "COMMODITY",
         "currency": "INR",
-        "price": 98450.00,
-        "previous_close": 98920.00,
-        "sparkline": [98920.0, 98800.0, 98650.0, 98520.0, 98450.00],
+        "price": 76450.00,
+        "previous_close": 76240.00,
+        "sparkline": [76240.0, 76300.0, 76360.0, 76410.0, 76450.00],
     },
     {
         "symbol": "SILVER",
@@ -288,9 +291,19 @@ FALLBACK_UNIVERSE = [
         "exchange": "COMEX",
         "asset_class": "COMMODITY",
         "currency": "USD",
-        "price": 41.03,
-        "previous_close": 41.36,
-        "sparkline": [41.36, 41.25, 41.15, 41.08, 41.03],
+        "price": 31.42,
+        "previous_close": 31.25,
+        "sparkline": [31.25, 31.30, 31.35, 31.39, 31.42],
+    },
+    {
+        "symbol": "SILVER MCX",
+        "name": "Silver 1Kg",
+        "exchange": "MCX",
+        "asset_class": "COMMODITY",
+        "currency": "INR",
+        "price": 89200.00,
+        "previous_close": 88800.00,
+        "sparkline": [88800.0, 88900.0, 89050.0, 89150.0, 89200.00],
     },
     {
         "symbol": "BRENT CRUDE",
@@ -298,9 +311,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "ICE",
         "asset_class": "COMMODITY",
         "currency": "USD",
-        "price": 92.57,
-        "previous_close": 90.05,
-        "sparkline": [90.05, 90.80, 91.40, 92.00, 92.57],
+        "price": 74.20,
+        "previous_close": 73.35,
+        "sparkline": [73.35, 73.60, 73.85, 74.05, 74.20],
     },
     {
         "symbol": "WTI CRUDE",
@@ -308,9 +321,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "NYMEX",
         "asset_class": "COMMODITY",
         "currency": "USD",
-        "price": 83.98,
-        "previous_close": 82.99,
-        "sparkline": [82.99, 83.20, 83.50, 83.75, 83.98],
+        "price": 70.15,
+        "previous_close": 69.40,
+        "sparkline": [69.40, 69.65, 69.85, 70.00, 70.15],
     },
     {
         "symbol": "NATURAL GAS",
@@ -318,9 +331,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "NYMEX",
         "asset_class": "COMMODITY",
         "currency": "USD",
-        "price": 3.41,
-        "previous_close": 3.23,
-        "sparkline": [3.23, 3.28, 3.32, 3.37, 3.41],
+        "price": 3.15,
+        "previous_close": 3.08,
+        "sparkline": [3.08, 3.10, 3.12, 3.14, 3.15],
     },
     {
         "symbol": "COPPER",
@@ -328,9 +341,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "COMEX",
         "asset_class": "COMMODITY",
         "currency": "USD",
-        "price": 5.48,
-        "previous_close": 5.49,
-        "sparkline": [5.49, 5.49, 5.48, 5.48, 5.48],
+        "price": 4.18,
+        "previous_close": 4.15,
+        "sparkline": [4.15, 4.16, 4.17, 4.175, 4.18],
     },
     {
         "symbol": "ALUMINIUM",
@@ -338,9 +351,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "LME",
         "asset_class": "COMMODITY",
         "currency": "USD",
-        "price": 2860.00,
-        "previous_close": 2795.00,
-        "sparkline": [2795.0, 2810.0, 2830.0, 2845.0, 2860.00],
+        "price": 2620.00,
+        "previous_close": 2610.00,
+        "sparkline": [2610.0, 2612.0, 2615.0, 2618.0, 2620.00],
     },
 
     # ─── 4. Foreign Exchange & Dollar Index ──────────────────────────────────
@@ -350,9 +363,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "FOREX",
         "asset_class": "CURRENCY",
         "currency": "INR",
-        "price": 92.67,
-        "previous_close": 93.28,
-        "sparkline": [93.28, 93.10, 92.95, 92.80, 92.67],
+        "price": 84.4200,
+        "previous_close": 84.3800,
+        "sparkline": [84.3800, 84.3900, 84.4050, 84.4150, 84.4200],
     },
     {
         "symbol": "EUR/INR",
@@ -360,9 +373,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "FOREX",
         "asset_class": "CURRENCY",
         "currency": "INR",
-        "price": 101.61,
-        "previous_close": 102.35,
-        "sparkline": [102.35, 102.15, 101.90, 101.75, 101.61],
+        "price": 89.1500,
+        "previous_close": 89.0500,
+        "sparkline": [89.0500, 89.0800, 89.1100, 89.1350, 89.1500],
     },
     {
         "symbol": "GBP/INR",
@@ -370,9 +383,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "FOREX",
         "asset_class": "CURRENCY",
         "currency": "INR",
-        "price": 121.23,
-        "previous_close": 122.07,
-        "sparkline": [122.07, 121.85, 121.60, 121.40, 121.23],
+        "price": 106.8500,
+        "previous_close": 106.7000,
+        "sparkline": [106.7000, 106.7400, 106.7900, 106.8200, 106.8500],
     },
     {
         "symbol": "JPY/INR",
@@ -380,9 +393,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "FOREX",
         "asset_class": "CURRENCY",
         "currency": "INR",
-        "price": 58.20,
-        "previous_close": 58.45,
-        "sparkline": [58.45, 58.40, 58.32, 58.25, 58.20],
+        "price": 54.8000,
+        "previous_close": 54.9000,
+        "sparkline": [54.9000, 54.8800, 54.8500, 54.8200, 54.8000],
     },
     {
         "symbol": "EUR/USD",
@@ -390,9 +403,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "FOREX",
         "asset_class": "CURRENCY",
         "currency": "USD",
-        "price": 1.1000,
-        "previous_close": 1.1000,
-        "sparkline": [1.1000, 1.1000, 1.1000, 1.1000, 1.1000],
+        "price": 1.0560,
+        "previous_close": 1.0550,
+        "sparkline": [1.0550, 1.0552, 1.0555, 1.0558, 1.0560],
     },
     {
         "symbol": "GBP/USD",
@@ -400,9 +413,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "FOREX",
         "asset_class": "CURRENCY",
         "currency": "USD",
-        "price": 1.3100,
-        "previous_close": 1.3100,
-        "sparkline": [1.3100, 1.3100, 1.3100, 1.3100, 1.3100],
+        "price": 1.2650,
+        "previous_close": 1.2640,
+        "sparkline": [1.2640, 1.2642, 1.2646, 1.2648, 1.2650],
     },
     {
         "symbol": "USD/JPY",
@@ -410,9 +423,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "FOREX",
         "asset_class": "CURRENCY",
         "currency": "JPY",
-        "price": 159.71,
-        "previous_close": 159.74,
-        "sparkline": [159.74, 159.72, 159.70, 159.71, 159.71],
+        "price": 154.20,
+        "previous_close": 153.90,
+        "sparkline": [153.90, 154.00, 154.10, 154.15, 154.20],
     },
     {
         "symbol": "DXY",
@@ -420,9 +433,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "ICE",
         "asset_class": "CURRENCY",
         "currency": "USD",
-        "price": 103.81,
-        "previous_close": 103.79,
-        "sparkline": [103.79, 103.79, 103.80, 103.81, 103.81],
+        "price": 106.85,
+        "previous_close": 106.90,
+        "sparkline": [106.90, 106.88, 106.87, 106.86, 106.85],
     },
 
     # ─── 5. Sovereign Benchmark Bond Yields ───────────────────────────────────
@@ -432,9 +445,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "BOND",
         "asset_class": "YIELD",
         "currency": "USD",
-        "price": 4.91,
-        "previous_close": 5.05,
-        "sparkline": [5.05, 5.00, 4.96, 4.93, 4.91],
+        "price": 4.420,
+        "previous_close": 4.450,
+        "sparkline": [4.450, 4.442, 4.435, 4.428, 4.420],
     },
     {
         "symbol": "INDIA 10Y YIELD",
@@ -442,9 +455,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "RBI",
         "asset_class": "YIELD",
         "currency": "INR",
-        "price": 6.82,
-        "previous_close": 6.84,
-        "sparkline": [6.84, 6.83, 6.83, 6.82, 6.82],
+        "price": 6.780,
+        "previous_close": 6.810,
+        "sparkline": [6.810, 6.802, 6.795, 6.788, 6.780],
     },
 
     # ─── 6. Major Indian & Global Equities ───────────────────────────────────
@@ -454,9 +467,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "NSE",
         "asset_class": "EQUITY",
         "currency": "INR",
-        "price": 1377.50,
-        "previous_close": 1375.60,
-        "sparkline": [1370.0, 1375.60, 1365.0, 1372.0, 1377.50],
+        "price": 1265.40,
+        "previous_close": 1258.00,
+        "sparkline": [1258.00, 1260.0, 1262.5, 1264.0, 1265.40],
     },
     {
         "symbol": "TCS",
@@ -464,9 +477,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "NSE",
         "asset_class": "EQUITY",
         "currency": "INR",
-        "price": 2376.20,
-        "previous_close": 2342.70,
-        "sparkline": [2335.0, 2342.70, 2355.0, 2368.0, 2376.20],
+        "price": 4150.20,
+        "previous_close": 4120.00,
+        "sparkline": [4120.00, 4130.0, 4138.0, 4145.0, 4150.20],
     },
     {
         "symbol": "HDFCBANK",
@@ -474,9 +487,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "NSE",
         "asset_class": "EQUITY",
         "currency": "INR",
-        "price": 846.00,
-        "previous_close": 821.80,
-        "sparkline": [818.0, 821.80, 830.0, 840.0, 846.00],
+        "price": 1745.00,
+        "previous_close": 1732.00,
+        "sparkline": [1732.00, 1736.0, 1740.0, 1742.5, 1745.00],
     },
     {
         "symbol": "INFY",
@@ -484,9 +497,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "NSE",
         "asset_class": "EQUITY",
         "currency": "INR",
-        "price": 1098.00,
-        "previous_close": 1091.90,
-        "sparkline": [1085.0, 1091.90, 1090.0, 1095.0, 1098.00],
+        "price": 1860.00,
+        "previous_close": 1845.00,
+        "sparkline": [1845.00, 1850.0, 1855.0, 1858.0, 1860.00],
     },
     {
         "symbol": "ICICIBANK",
@@ -494,9 +507,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "NSE",
         "asset_class": "EQUITY",
         "currency": "INR",
-        "price": 1640.00,
-        "previous_close": 1608.90,
-        "sparkline": [1600.0, 1608.90, 1620.0, 1632.0, 1640.00],
+        "price": 1260.00,
+        "previous_close": 1250.00,
+        "sparkline": [1250.00, 1252.0, 1256.0, 1258.5, 1260.00],
     },
     {
         "symbol": "BHARTIARTL",
@@ -504,9 +517,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "NSE",
         "asset_class": "EQUITY",
         "currency": "INR",
-        "price": 2161.70,
-        "previous_close": 2144.00,
-        "sparkline": [2135.0, 2144.00, 2150.0, 2158.0, 2161.70],
+        "price": 1580.00,
+        "previous_close": 1565.00,
+        "sparkline": [1565.00, 1570.0, 1574.0, 1578.0, 1580.00],
     },
     {
         "symbol": "TATAMOTORS",
@@ -514,9 +527,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "NSE",
         "asset_class": "EQUITY",
         "currency": "INR",
-        "price": 742.50,
-        "previous_close": 736.20,
-        "sparkline": [730.0, 736.20, 738.0, 740.0, 742.50],
+        "price": 820.00,
+        "previous_close": 815.00,
+        "sparkline": [815.00, 816.5, 818.0, 819.0, 820.00],
     },
     {
         "symbol": "LT",
@@ -524,9 +537,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "NSE",
         "asset_class": "EQUITY",
         "currency": "INR",
-        "price": 4209.10,
-        "previous_close": 4211.00,
-        "sparkline": [4215.0, 4211.00, 4205.0, 4210.0, 4209.10],
+        "price": 3620.00,
+        "previous_close": 3590.00,
+        "sparkline": [3590.00, 3600.0, 3608.0, 3615.0, 3620.00],
     },
     {
         "symbol": "AAPL",
@@ -534,9 +547,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "NASDAQ",
         "asset_class": "EQUITY",
         "currency": "USD",
-        "price": 342.56,
-        "previous_close": 350.97,
-        "sparkline": [350.97, 348.0, 345.0, 343.5, 342.56],
+        "price": 228.50,
+        "previous_close": 227.00,
+        "sparkline": [227.00, 227.4, 227.9, 228.2, 228.50],
     },
     {
         "symbol": "NVDA",
@@ -544,9 +557,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "NASDAQ",
         "asset_class": "EQUITY",
         "currency": "USD",
-        "price": 125.53,
-        "previous_close": 145.84,
-        "sparkline": [145.84, 140.0, 134.0, 128.0, 125.53],
+        "price": 142.20,
+        "previous_close": 140.50,
+        "sparkline": [140.50, 141.0, 141.5, 141.9, 142.20],
     },
     {
         "symbol": "MSFT",
@@ -554,9 +567,9 @@ FALLBACK_UNIVERSE = [
         "exchange": "NASDAQ",
         "asset_class": "EQUITY",
         "currency": "USD",
-        "price": 484.52,
-        "previous_close": 497.34,
-        "sparkline": [497.34, 492.0, 488.0, 485.5, 484.52],
+        "price": 425.00,
+        "previous_close": 423.00,
+        "sparkline": [423.00, 423.5, 424.2, 424.8, 425.00],
     },
 ]
 FALLBACK_MAP = {item["symbol"].upper(): item for item in FALLBACK_UNIVERSE}
@@ -567,38 +580,47 @@ class FallbackDevProvider(BaseMarketDataProvider):
 
     async def get_quote(self, symbol: str, exchange: str | None = None) -> MarketQuote | None:
         sym_clean = symbol.upper().strip()
-        data = FALLBACK_MAP.get(sym_clean)
+        canonical_inst = instrument_resolver.resolve(sym_clean, exchange)
+        lookup_symbol = canonical_inst.symbol if canonical_inst else sym_clean
+
+        data = FALLBACK_MAP.get(lookup_symbol)
         if not data:
             # Fallback search by base symbol if symbol contains prefix or suffix
             for k, v in FALLBACK_MAP.items():
-                if sym_clean in k or k in sym_clean:
+                if lookup_symbol in k or k in lookup_symbol:
                     data = v
                     break
 
         if not data:
             return None
 
-        exch = exchange or data["exchange"]
+        exch = canonical_inst.exchange if canonical_inst else (exchange or data["exchange"])
         session = resolve_session_state_for_exchange(exch)
         price = data["price"]
         prev_close = data["previous_close"]
-        change, change_pct = self.calculate_price_change(price, prev_close)
+        precision = canonical_inst.price_precision if canonical_inst else 2
+
+        change_dec, pct_dec = PriceCalculationService.calculate_price_change(
+            Decimal(str(price)),
+            Decimal(str(prev_close)),
+            precision=precision,
+        )
         now = datetime.now(timezone.utc)
 
         return MarketQuote(
-            instrument_id=f"inst_dev_{sym_clean.replace(' ', '_').replace('/', '_')}",
+            instrument_id=f"inst_dev_{lookup_symbol.replace(' ', '_').replace('/', '_')}",
             symbol=data["symbol"],
             name=data["name"],
             exchange=exch,
-            asset_class=data["asset_class"],
-            currency=data["currency"],
+            asset_class=canonical_inst.asset_class if canonical_inst else data["asset_class"],
+            currency=canonical_inst.currency if canonical_inst else data["currency"],
             price=price,
-            open=round(prev_close * 1.001, 2),
-            high=round(max(price, prev_close) * 1.004, 2),
-            low=round(min(price, prev_close) * 0.996, 2),
+            open=round(prev_close * 1.001, precision),
+            high=round(max(price, prev_close) * 1.004, precision),
+            low=round(min(price, prev_close) * 0.996, precision),
             previous_close=prev_close,
-            change=change,
-            change_pct=change_pct,
+            change=float(change_dec),
+            change_pct=float(pct_dec),
             volume=5000000,
             market_status=session.market_status,
             data_status="SYNTHETIC_DEVELOPMENT",  # STRICTLY FLAGGED
