@@ -6,6 +6,7 @@ from app.core.config import settings
 from app.core.database import SessionLocal
 from app.core.seed import seed_database
 from app.api.routes import router
+from app.api.websocket_routes import ws_router
 
 # Optional Sentry Error Telemetry Initialization
 sentry_dsn = os.getenv("SENTRY_DSN", "")
@@ -49,6 +50,7 @@ app.add_middleware(
 )
 
 app.include_router(router, prefix="/api/v1")
+app.include_router(ws_router)
 
 
 @app.get("/health")

@@ -191,6 +191,7 @@ export default function DashboardPage() {
                 change_pct={idx.change_pct}
                 currency={idx.currency || "INR"}
                 exchange={idx.exchange}
+                data_status={(idx as any).data_status}
               />
             ))}
           </div>

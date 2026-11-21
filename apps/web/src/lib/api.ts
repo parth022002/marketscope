@@ -552,15 +552,17 @@ export async function getDeepHealth(): Promise<DeepHealthResponse> {
 export type TickerItem = {
   symbol: string;
   name: string;
-  category: "indian_index" | "global_index" | "commodity" | "currency" | "yield";
+  category: "indian_index" | "global_index" | "commodity" | "currency" | "yield" | string;
   exchange: string;
   price: number;
   change: number;
   change_pct: number;
   currency: string;
-  market_status: "OPEN" | "CLOSED" | "PRE_MARKET" | "AFTER_HOURS";
-  data_status: "LIVE" | "DELAYED_15M" | "EOD" | "SYNTHETIC";
+  market_status: "OPEN" | "CLOSED" | "PRE_MARKET" | "AFTER_HOURS" | "PRE_OPEN" | "POST_CLOSE" | "HOLIDAY" | string;
+  data_status: "LIVE" | "DELAYED_15M" | "EOD" | "CLOSED" | "SYNTHETIC" | "SYNTHETIC_DEVELOPMENT" | string;
   sparkline: number[];
+  timestamp?: string;
+  provider?: string;
 };
 
 export type MarketBreadth = {
@@ -753,5 +755,52 @@ export async function getCalendarEvents(eventType?: string): Promise<CalendarEve
   if (!response.ok) throw new Error("Unable to retrieve calendar events");
   return response.json();
 }
+
+export type InstrumentMasterItem = {
+  instrument_id: string;
+  symbol: string;
+  display_name: string;
+  exchange: string;
+  asset_class: string;
+  currency: string;
+  isin: string | null;
+  bse_scrip_code: string | null;
+  primary_vendor: string;
+  supported_vendors: string[];
+};
+
+export type ProviderHealthItem = {
+  provider_name: string;
+  status: string;
+  latency_ms: number;
+  last_checked: string;
+  error_message: string | null;
+  rate_limit_remaining: number | null;
+};
+
+export type DataQualityReport = {
+  status: string;
+  providers: ProviderHealthItem[];
+  total_instruments_monitored: number;
+  live_streaming_count: number;
+  delayed_count: number;
+  eod_closed_count: number;
+  anomaly_count: number;
+  active_websocket_connections: number;
+  timestamp: string;
+};
+
+export async function getMarketInstruments(): Promise<InstrumentMasterItem[]> {
+  const response = await fetch(`${getApiBase()}/api/v1/market/instruments`, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to retrieve instrument catalog");
+  return response.json();
+}
+
+export async function getDataQualityReport(): Promise<DataQualityReport> {
+  const response = await fetch(`${getApiBase()}/api/v1/data/quality`, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to retrieve data quality report");
+  return response.json();
+}
+
 
 

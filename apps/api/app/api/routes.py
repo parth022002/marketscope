@@ -57,7 +57,10 @@ from app.domain.schemas import (
     NewsItem,
     NewsDetailResponse,
     CalendarEventItem,
+    DataQualityReport,
+    InstrumentMasterItem,
 )
+from app.engine.market_data_service import market_data_service
 from app.engine.ai_synthesis import generate_ai_synthesis
 from app.engine.market_intelligence import (
     get_global_ticker_feed,
@@ -1340,9 +1343,9 @@ def get_deep_health(db: Session = Depends(get_db)):
     summary="Continuous Global Market Ticker Feed",
     dependencies=[Depends(rate_limit_dependency)],
 )
-def get_market_ticker():
-    """Returns continuous multi-asset quotes for Indian & Global indices, commodities, currencies, and yields."""
-    return get_global_ticker_feed()
+async def get_market_ticker():
+    """Returns continuous multi-asset quotes for Indian & Global indices, commodities, currencies, and yields via MarketDataService."""
+    return await market_data_service.get_ticker_feed()
 
 
 @router.get(
@@ -1351,9 +1354,31 @@ def get_market_ticker():
     summary="Unified Market Pulse & Overview Dashboard",
     dependencies=[Depends(rate_limit_dependency)],
 )
-def get_market_overview():
-    """Returns market breadth, market mood sentiment, top companies, market movers, and sector performance."""
-    return get_market_overview_data()
+async def get_market_overview():
+    """Returns market breadth, market mood sentiment, top companies, market movers, and sector performance via MarketDataService."""
+    return await market_data_service.get_market_overview()
+
+
+@router.get(
+    "/market/instruments",
+    response_model=list[InstrumentMasterItem],
+    summary="Canonical Instrument Master Catalog",
+    dependencies=[Depends(rate_limit_dependency)],
+)
+def get_canonical_instruments():
+    """Returns authoritative registry of all supported instruments and provider mappings."""
+    return market_data_service.get_canonical_instruments()
+
+
+@router.get(
+    "/data/quality",
+    response_model=DataQualityReport,
+    summary="Market Data Quality & Provider Health Report",
+    dependencies=[Depends(rate_limit_dependency)],
+)
+async def get_data_quality():
+    """Provides provider health, latency benchmarks, freshness counts, and anomaly metrics."""
+    return await market_data_service.get_data_quality_report()
 
 
 @router.get(

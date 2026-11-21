@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { TrendingUp, TrendingDown, Radio } from "lucide-react";
+import { TrendingUp, TrendingDown, Wifi, WifiOff } from "lucide-react";
 import { getMarketTicker, type TickerItem } from "@/lib/api";
+import { useMarketWebSocket } from "@/lib/useMarketWebSocket";
 
 const FALLBACK_TICKERS: TickerItem[] = [
   {
@@ -126,18 +127,43 @@ const FALLBACK_TICKERS: TickerItem[] = [
 ];
 
 export default function MarketTicker() {
-  const [items, setItems] = useState<TickerItem[]>(FALLBACK_TICKERS);
+  const [restItems, setRestItems] = useState<TickerItem[]>(FALLBACK_TICKERS);
   const [isPaused, setIsPaused] = useState(false);
 
+  // Real-time WebSocket hook
+  const { isConnected, ticks } = useMarketWebSocket();
+
+  // Initial REST fetch
   useEffect(() => {
     getMarketTicker()
       .then((data) => {
-        if (data && data.length > 0) setItems(data);
+        if (data && data.length > 0) setRestItems(data);
       })
       .catch(() => {
-        // Fallback gracefully to default items
+        // graceful fallback to initial list
       });
   }, []);
+
+  // Merge WebSocket real-time updates over REST baseline
+  const mergedItems = useMemo(() => {
+    if (Object.keys(ticks).length === 0) return restItems;
+
+    return restItems.map((item) => {
+      const liveTick = ticks[item.symbol];
+      if (liveTick) {
+        return {
+          ...item,
+          price: liveTick.price,
+          change: liveTick.change,
+          change_pct: liveTick.change_pct,
+          data_status: liveTick.data_status,
+          market_status: liveTick.market_status,
+          timestamp: liveTick.timestamp,
+        };
+      }
+      return item;
+    });
+  }, [restItems, ticks]);
 
   // Format price according to currency
   const formatPrice = (price: number, currency: string, category: string) => {
@@ -148,6 +174,44 @@ export default function MarketTicker() {
     return `$${price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "LIVE":
+        return (
+          <span className="text-[8px] px-1 py-0.2 rounded font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+            LIVE
+          </span>
+        );
+      case "DELAYED_15M":
+        return (
+          <span className="text-[8px] px-1 py-0.2 rounded font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+            15M
+          </span>
+        );
+      case "CLOSED":
+        return (
+          <span className="text-[8px] px-1 py-0.2 rounded font-mono font-bold bg-slate-700/30 text-slate-400 border border-slate-700/40">
+            CLOSED
+          </span>
+        );
+      case "EOD":
+        return (
+          <span className="text-[8px] px-1 py-0.2 rounded font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+            EOD
+          </span>
+        );
+      case "SYNTHETIC_DEVELOPMENT":
+      case "SYNTHETIC":
+        return (
+          <span className="text-[8px] px-1 py-0.2 rounded font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+            DEV
+          </span>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div
       className="w-full bg-[#051022] border-b border-[#132B4F] overflow-hidden text-xs select-none relative z-20"
@@ -155,10 +219,23 @@ export default function MarketTicker() {
       onMouseLeave={() => setIsPaused(false)}
     >
       <div className="flex items-center">
-        {/* Market Status Pill */}
+        {/* Stream Status Indicator */}
         <div className="hidden md:flex items-center gap-1.5 px-3 py-2 bg-[#07152B] border-r border-[#132B4F] shrink-0 font-mono text-[10px] text-slate-300 font-semibold tracking-wider">
-          <span className="w-2 h-2 rounded-full bg-[#39E85B] animate-pulse"></span>
-          <span>MARKETS LIVE</span>
+          {isConnected ? (
+            <>
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="text-emerald-300 flex items-center gap-1">
+                <Wifi size={10} /> STREAM LIVE
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="w-2 h-2 rounded-full bg-cyan-400"></span>
+              <span className="text-slate-400 flex items-center gap-1">
+                <WifiOff size={10} /> REST SYNC
+              </span>
+            </>
+          )}
         </div>
 
         {/* Marquee Container */}
@@ -169,7 +246,7 @@ export default function MarketTicker() {
             }`}
           >
             {/* Render items twice to create seamless loop */}
-            {[...items, ...items].map((item, idx) => {
+            {[...mergedItems, ...mergedItems].map((item, idx) => {
               const isPositive = item.change >= 0;
               return (
                 <Link
@@ -206,9 +283,7 @@ export default function MarketTicker() {
                     {item.change_pct.toFixed(2)}%
                   </span>
 
-                  {item.data_status === "DELAYED_15M" && (
-                    <span className="text-[9px] text-slate-500 font-mono">15m</span>
-                  )}
+                  {getStatusBadge(item.data_status)}
                 </Link>
               );
             })}

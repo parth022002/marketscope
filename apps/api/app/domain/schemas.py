@@ -342,9 +342,11 @@ class TickerItem(BaseModel):
     change: float
     change_pct: float
     currency: str
-    market_status: str = "OPEN"  # "OPEN", "CLOSED", "PRE_MARKET", "AFTER_HOURS"
-    data_status: str = "LIVE"    # "LIVE", "DELAYED_15M", "EOD", "SYNTHETIC"
+    market_status: str = "OPEN"  # "OPEN", "CLOSED", "PRE_MARKET", "AFTER_HOURS", "POST_CLOSE", "HOLIDAY"
+    data_status: str = "LIVE"    # "LIVE", "DELAYED_15M", "EOD", "SYNTHETIC", "SYNTHETIC_DEVELOPMENT"
     sparkline: list[float] = Field(default_factory=list)
+    timestamp: str | None = None
+    provider: str | None = None
 
 
 class MarketBreadth(BaseModel):
@@ -471,6 +473,64 @@ class CalendarEventItem(BaseModel):
     previous: str | None = None
     symbol: str | None = None
     notes: str | None = None
+
+
+class MarketQuote(BaseModel):
+    instrument_id: str
+    symbol: str
+    name: str
+    exchange: str
+    asset_class: str = "EQUITY"
+    currency: str = "INR"
+    price: float
+    open: float | None = None
+    high: float | None = None
+    low: float | None = None
+    previous_close: float
+    change: float
+    change_pct: float
+    volume: int | None = None
+    market_status: str = "OPEN"
+    data_status: str = "LIVE"
+    source_provider: str = "twelvedata"
+    timestamp: datetime
+    received_at: datetime
+    sparkline: list[float] = Field(default_factory=list)
+
+
+class ProviderHealthItem(BaseModel):
+    provider_name: str
+    status: str       # "HEALTHY", "DEGRADED", "ERROR", "DISABLED"
+    latency_ms: float
+    last_checked: datetime
+    error_message: str | None = None
+    rate_limit_remaining: int | None = None
+
+
+class DataQualityReport(BaseModel):
+    status: str       # "OPTIMAL", "ACCEPTABLE", "DEGRADED"
+    providers: list[ProviderHealthItem] = Field(default_factory=list)
+    total_instruments_monitored: int
+    live_streaming_count: int
+    delayed_count: int
+    eod_closed_count: int
+    anomaly_count: int = 0
+    active_websocket_connections: int = 0
+    timestamp: datetime
+
+
+class InstrumentMasterItem(BaseModel):
+    instrument_id: str
+    symbol: str
+    display_name: str
+    exchange: str
+    asset_class: str
+    currency: str
+    isin: str | None = None
+    bse_scrip_code: str | None = None
+    primary_vendor: str
+    supported_vendors: list[str] = Field(default_factory=list)
+
 
 
 

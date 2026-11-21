@@ -90,6 +90,7 @@ export default function MarketsPage() {
               change_pct={item.change_pct}
               currency={item.currency}
               exchange={item.exchange}
+              data_status={item.data_status}
               sparkline={item.sparkline}
             />
           ))}

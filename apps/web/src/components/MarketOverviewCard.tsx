@@ -12,6 +12,7 @@ interface MarketOverviewCardProps {
   change_pct: number;
   currency?: string;
   exchange: string;
+  data_status?: string;
   sparkline?: number[];
 }
 
@@ -23,6 +24,7 @@ export default function MarketOverviewCard({
   change_pct,
   currency = "INR",
   exchange,
+  data_status,
   sparkline,
 }: MarketOverviewCardProps) {
   const isPositive = change_pct >= 0;
@@ -84,8 +86,18 @@ export default function MarketOverviewCard({
           <div className="text-base font-extrabold font-mono text-white tabular-nums">
             {formatPrice(price, currency)}
           </div>
-          <div className="text-[10px] font-mono text-slate-400">
-            {isPositive ? "+" : ""}{change.toFixed(2)} pts
+          <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-400">
+            <span>{isPositive ? "+" : ""}{change.toFixed(2)} pts</span>
+            {data_status && (
+              <span className={`text-[8px] px-1 py-0.2 rounded font-bold uppercase ${
+                data_status === "LIVE" ? "bg-emerald-500/20 text-emerald-400" :
+                data_status === "DELAYED_15M" ? "bg-amber-500/20 text-amber-300" :
+                data_status === "CLOSED" ? "bg-slate-700/40 text-slate-400" :
+                data_status === "EOD" ? "bg-cyan-500/20 text-cyan-300" : "bg-purple-500/20 text-purple-300"
+              }`}>
+                {data_status === "DELAYED_15M" ? "15M" : data_status === "SYNTHETIC_DEVELOPMENT" ? "DEV" : data_status}
+              </span>
+            )}
           </div>
         </div>
 
