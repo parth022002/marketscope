@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
+from app.api.news_routes import news_router
 from app.core.database import get_db
 from app.domain.models import (
     Workspace,
@@ -1416,44 +1417,11 @@ def get_market_heatmap(
     return get_market_heatmap_data(universe=universe)
 
 
-@router.get(
-    "/news",
-    response_model=list[NewsDetailResponse],
-    summary="News Intelligence Centre Feed",
-    dependencies=[Depends(rate_limit_dependency)],
-)
-def get_news(
-    category: str | None = Query(None, description="Category filter"),
-    priority: str | None = Query(None, description="Priority filter"),
-    country: str | None = Query(None, description="Country filter"),
-    query: str | None = Query(None, description="Search term or entity name"),
-    symbol: str | None = Query(None, description="Filter news mentioning ticker symbol"),
-):
-    """Returns categorized, relevance-ranked news articles with entity tags and impact levels."""
-    return get_news_feed(
-        category=category,
-        priority=priority,
-        country=country,
-        query=query,
-        symbol=symbol,
-    )
+# ─────────────────────────────────────────────────────────────────────────────
+# Verified News & Trust Intelligence System Router Mount
+# ─────────────────────────────────────────────────────────────────────────────
+router.include_router(news_router)
 
-
-@router.get(
-    "/news/{news_id}",
-    response_model=NewsDetailResponse,
-    summary="News Story Detail & Transmission Channels",
-    dependencies=[Depends(rate_limit_dependency)],
-)
-def get_news_story(news_id: str):
-    """Returns detailed news story breakdown with market transmission channels and corroborating sources."""
-    story = get_news_detail(news_id)
-    if not story:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"News story with ID '{news_id}' not found.",
-        )
-    return story
 
 
 @router.get(

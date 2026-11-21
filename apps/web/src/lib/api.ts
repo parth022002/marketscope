@@ -655,35 +655,133 @@ export type NewsEntity = {
   type: string;
   name: string;
   symbol: string | null;
+  exchange?: string | null;
+  isin?: string | null;
+  relevance_pct?: number;
 };
 
-export type NewsTransmissionChannel = {
+export type NewsEvidence = {
+  evidence_id: string;
+  evidence_type: string;
+  title: string;
+  url: string;
+  publisher_or_authority: string;
+  document_timestamp: string;
+  document_hash: string | null;
+  verified_by_engine: boolean;
+};
+
+export type NewsCorrection = {
+  correction_id: string;
+  article_id: string;
+  corrected_at: string;
+  correction_type: string;
+  original_text: string;
+  corrected_text: string;
+  publisher_notice_url?: string | null;
+  reason: string;
+};
+
+export type MarketTransmissionChannel = {
   channel: string;
   description: string;
-  impact_type: "confirmed" | "implication";
+  impact_type: "confirmed" | "implication" | string;
+  affected_instruments: string[];
+  affected_sectors: string[];
 };
 
-export type NewsItem = {
+export type MarketImpactAnalysis = {
+  headline_implication: string;
+  direct_reported_impact: string;
+  transmission_channels: MarketTransmissionChannel[];
+  historical_precedent?: string | null;
+  uncertainty_qualification: string;
+};
+
+export type CanonicalNewsArticle = {
   id: string;
-  title: string;
+  headline: string;
+  title?: string;
   summary: string;
-  publisher: string;
+  publisher_name: string;
+  publisher?: string;
+  publisher_id: string;
+  original_url: string;
+  url?: string;
+  author?: string | null;
   published_at: string;
-  updated_at: string | null;
-  url: string;
+  published_timezone: string;
+  publication_time_verified: boolean;
+  first_detected_at: string;
+  last_updated_at?: string | null;
+  source_tier: "TIER_1_PRIMARY_OFFICIAL" | "TIER_2_ESTABLISHED_JOURNALISM" | "TIER_3_SECONDARY_INDUSTRY" | "TIER_4_UNVERIFIED" | string;
+  verification_status: "PRIMARY_SOURCE_CONFIRMED" | "MULTIPLE_SOURCES_REPORTED" | "SINGLE_CREDIBLE_SOURCE" | "DEVELOPING_STORY" | "DISPUTED" | "UNVERIFIED" | "CORRECTED" | "RETRACTED" | string;
+  freshness_state: string;
+  license_status: string;
   category: string;
+  secondary_categories?: string[];
   country: string;
-  priority: "BREAKING" | "CRITICAL" | "HIGH" | "MEDIUM" | "GENERAL" | "LOW";
-  relevance_score: number;
-  impact_level: "HIGH" | "MEDIUM" | "LOW";
-  entities: NewsEntity[];
+  market: string;
+  asset_classes?: string[];
+  related_entities?: NewsEntity[];
+  entities?: NewsEntity[];
+  key_facts: string[];
+  evidence_items: NewsEvidence[];
   corroborating_sources: string[];
-  cluster_id: string | null;
-  key_facts?: string[];
+  cluster_id?: string | null;
+  is_disputed: boolean;
+  dispute_details?: string | null;
+  correction_history?: NewsCorrection[];
+  relevance_score: number;
+  ranking_explanation: string;
+  market_impact?: MarketImpactAnalysis | null;
+  priority?: "BREAKING" | "CRITICAL" | "HIGH" | "MEDIUM" | "GENERAL" | "LOW" | string;
+  impact_level?: "HIGH" | "MEDIUM" | "LOW" | string;
+  transmission_channels?: MarketTransmissionChannel[];
   affected_instruments?: string[];
   affected_sectors?: string[];
-  transmission_channels?: NewsTransmissionChannel[];
   historical_context?: string | null;
+};
+
+// NewsItem is an alias for CanonicalNewsArticle to preserve backward compatibility
+export type NewsItem = CanonicalNewsArticle;
+
+export type NewsSourceItem = {
+  source_id: string;
+  name: string;
+  tier: string;
+  category: string;
+  country: string;
+  official_website: string;
+  feed_url?: string | null;
+  license_status: string;
+  is_active: boolean;
+  status: string;
+  latency_ms: number;
+  last_successful_fetch?: string | null;
+  articles_ingested_24h: number;
+};
+
+export type UserDisputeReport = {
+  report_id: string;
+  article_id: string;
+  submitted_at: string;
+  report_category: string;
+  description: string;
+  evidence_url?: string | null;
+  status: string;
+};
+
+export type NewsAdminStats = {
+  active_sources_count: number;
+  disabled_sources_count: number;
+  total_articles_ingested_24h: number;
+  primary_source_confirmed_pct: number;
+  disputed_articles_count: number;
+  unresolved_user_reports: number;
+  circuit_breakers_tripped: number;
+  pipeline_health: string;
+  timestamp: string;
 };
 
 export type CalendarEvent = {
@@ -724,15 +822,25 @@ export async function getNewsFeed(params?: {
   category?: string;
   priority?: string;
   country?: string;
+  market?: string;
   query?: string;
   symbol?: string;
-}): Promise<NewsItem[]> {
+  verification_status?: string;
+  source_tier?: string;
+  limit?: number;
+  page?: number;
+}): Promise<CanonicalNewsArticle[]> {
   const query = new URLSearchParams();
   if (params?.category) query.set("category", params.category);
   if (params?.priority) query.set("priority", params.priority);
   if (params?.country) query.set("country", params.country);
+  if (params?.market) query.set("market", params.market);
   if (params?.query) query.set("query", params.query);
   if (params?.symbol) query.set("symbol", params.symbol);
+  if (params?.verification_status) query.set("verification_status", params.verification_status);
+  if (params?.source_tier) query.set("source_tier", params.source_tier);
+  if (params?.limit) query.set("limit", params.limit.toString());
+  if (params?.page) query.set("page", params.page.toString());
 
   const url = `${getApiBase()}/api/v1/news?${query.toString()}`;
   const response = await fetch(url, { cache: "no-store" });
@@ -740,9 +848,54 @@ export async function getNewsFeed(params?: {
   return response.json();
 }
 
-export async function getNewsStory(id: string): Promise<NewsItem> {
+export async function getNewsStory(id: string): Promise<CanonicalNewsArticle> {
   const response = await fetch(`${getApiBase()}/api/v1/news/${encodeURIComponent(id)}`, { cache: "no-store" });
   if (!response.ok) throw new Error("Unable to retrieve news story");
+  return response.json();
+}
+
+export async function getNewsStoryEvidence(id: string): Promise<NewsEvidence[]> {
+  const response = await fetch(`${getApiBase()}/api/v1/news/${encodeURIComponent(id)}/evidence`, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to retrieve news story evidence");
+  return response.json();
+}
+
+export async function getNewsStoryHistory(id: string): Promise<NewsCorrection[]> {
+  const response = await fetch(`${getApiBase()}/api/v1/news/${encodeURIComponent(id)}/history`, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to retrieve news story history");
+  return response.json();
+}
+
+export async function getNewsSources(): Promise<NewsSourceItem[]> {
+  const response = await fetch(`${getApiBase()}/api/v1/news/sources`, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to retrieve news sources");
+  return response.json();
+}
+
+export async function getNewsHealth(): Promise<Record<string, unknown>> {
+  const response = await fetch(`${getApiBase()}/api/v1/news/health`, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to retrieve news pipeline health");
+  return response.json();
+}
+
+export async function submitDisputeReport(payload: {
+  article_id: string;
+  report_category: string;
+  description: string;
+  evidence_url?: string;
+}): Promise<UserDisputeReport> {
+  const response = await fetch(`${getApiBase()}/api/v1/news/report`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) throw new Error("Unable to submit dispute report");
+  return response.json();
+}
+
+export async function getNewsAdminStats(): Promise<NewsAdminStats> {
+  const response = await fetch(`${getApiBase()}/api/v1/admin/news/monitor`, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to retrieve news admin monitor stats");
   return response.json();
 }
 
