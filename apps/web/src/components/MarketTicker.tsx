@@ -167,11 +167,6 @@ export default function MarketTicker() {
             className={`inline-flex items-center gap-6 px-4 ${
               isPaused ? "" : "animate-marquee"
             }`}
-            style={{
-              animationDuration: "42s",
-              animationTimingFunction: "linear",
-              animationIterationCount: "infinite",
-            }}
           >
             {/* Render items twice to create seamless loop */}
             {[...items, ...items].map((item, idx) => {
