@@ -802,5 +802,324 @@ export async function getDataQualityReport(): Promise<DataQualityReport> {
   return response.json();
 }
 
+// ─── Universal Global Markets Expansion Types & API Client ──────────────────
+
+export type TradingHours = {
+  open_time: string;
+  close_time: string;
+  pre_open_time: string | null;
+  post_close_time: string | null;
+  utc_offset: string;
+};
+
+export type ExchangeMetadata = {
+  exchange_id: string;
+  name: string;
+  mic: string;
+  country: string;
+  country_code: string;
+  region: string;
+  trading_currency: string;
+  settlement_currency: string;
+  timezone: string;
+  trading_hours: TradingHours;
+  asset_classes: string[];
+  data_licensing_status: string;
+  website: string;
+  status: string;
+  notes: string;
+};
+
+export type RegulatoryAccess = {
+  status: string;
+  display_badge: string;
+  description: string;
+  governing_framework: string;
+  permitted_route: string;
+  key_conditions: string[];
+  disclaimer: string;
+};
+
+export type UniversalInstrument = {
+  instrument_id: string;
+  symbol: string;
+  alt_symbols: string[];
+  name: string;
+  asset_class: string;
+  instrument_type: string;
+  country: string;
+  country_code: string;
+  region: string;
+  exchange: string;
+  mic: string;
+  trading_currency: string;
+  settlement_currency: string;
+  isin: string | null;
+  bse_scrip_code: string | null;
+  price_precision: number;
+  tick_size: number;
+  timezone: string;
+  market_calendar: string;
+  trading_status: string;
+  historical_data_available: boolean;
+  streaming_available: boolean;
+  data_delivery_mode: string;
+  data_licensing_status: string;
+  investment_access_status: string;
+  permitted_investment_route: string;
+  regulatory_details: RegulatoryAccess | null;
+  notes: string;
+};
+
+export type UniversalSearchResponse = {
+  query: string;
+  count: number;
+  results: UniversalInstrument[];
+};
+
+export type DerivativesPulseItem = {
+  symbol: string;
+  name: string;
+  underlying_price: number;
+  futures_price: number;
+  basis: number;
+  basis_pct: number;
+  implied_volatility: number;
+  put_call_ratio: number;
+  total_oi: number;
+  oi_change_pct: number;
+  sentiment: string;
+  data_status: string;
+  timestamp: string;
+};
+
+export type DerivativesOverview = {
+  india_vix: number;
+  cboe_vix: number;
+  vix_spread: number;
+  put_call_ratio_nifty: number;
+  put_call_ratio_banknifty: number;
+  items: DerivativesPulseItem[];
+  updated_at: string;
+};
+
+export type YieldCurvePoint = {
+  tenor: string;
+  tenor_months: number;
+  yield_pct: number;
+  change_bps: number;
+  updated_at: string;
+};
+
+export type CentralBankPolicyRate = {
+  country: string;
+  central_bank: string;
+  rate_name: string;
+  rate_pct: number;
+  last_action: string;
+  next_meeting: string;
+};
+
+export type SovereignGoldBondItem = {
+  series: string;
+  symbol: string;
+  issue_price: number;
+  current_market_price: number;
+  yield_to_maturity_pct: number;
+  maturity_date: string;
+  annual_coupon_pct: number;
+};
+
+export type FixedIncomeOverview = {
+  india_benchmark_10y: number;
+  us_benchmark_10y: number;
+  spread_bps: number;
+  india_yield_curve: YieldCurvePoint[];
+  us_yield_curve: YieldCurvePoint[];
+  policy_rates: CentralBankPolicyRate[];
+  sovereign_gold_bonds: SovereignGoldBondItem[];
+  updated_at: string;
+};
+
+export type FundMarketItem = {
+  scheme_code: string;
+  scheme_name: string;
+  fund_house: string;
+  category: string;
+  sub_category: string;
+  nav: number;
+  previous_nav: number;
+  change: number;
+  change_pct: number;
+  aum_cr: number;
+  expense_ratio_pct: number;
+  feeder_target: string | null;
+  regulatory_status: string;
+  updated_at: string;
+};
+
+export type FundsOverview = {
+  total_schemes: number;
+  categories: string[];
+  funds: FundMarketItem[];
+  updated_at: string;
+};
+
+export type CommodityItem = {
+  symbol: string;
+  name: string;
+  category: string;
+  exchange: string;
+  price: number;
+  change: number;
+  change_pct: number;
+  unit: string;
+  currency: string;
+  data_status: string;
+  sparkline: number[];
+};
+
+export type CommoditiesOverview = {
+  categories: string[];
+  commodities: CommodityItem[];
+  updated_at: string;
+};
+
+export type CurrencyItem = {
+  pair: string;
+  name: string;
+  category: string;
+  rate: number;
+  change: number;
+  change_pct: number;
+  source: string;
+  data_status: string;
+  sparkline: number[];
+};
+
+export type CurrenciesOverview = {
+  rbi_reference_rate_date: string;
+  usd_inr: number;
+  eur_inr: number;
+  gbp_inr: number;
+  jpy_100_inr: number;
+  dxy_index: number;
+  pairs: CurrencyItem[];
+  updated_at: string;
+};
+
+export type ProviderCapability = {
+  provider_id: string;
+  name: string;
+  tier: string;
+  supported_asset_classes: string[];
+  supported_exchanges: string[];
+  live_streaming_capable: boolean;
+  rate_limit_per_min: number | string;
+  data_lag: string;
+  status: string;
+  latency_ms: number;
+  compliance_classification: string;
+};
+
+export type AdminProvidersOverview = {
+  total_providers: number;
+  active_providers: number;
+  providers: ProviderCapability[];
+  engine_mode: string;
+  updated_at: string;
+};
+
+export async function getGlobalExchanges(region?: string, countryCode?: string, assetClass?: string): Promise<ExchangeMetadata[]> {
+  const query = new URLSearchParams();
+  if (region) query.set("region", region);
+  if (countryCode) query.set("country_code", countryCode);
+  if (assetClass) query.set("asset_class", assetClass);
+
+  const url = `${getApiBase()}/api/v1/market/exchanges?${query.toString()}`;
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to retrieve global exchanges registry");
+  return response.json();
+}
+
+export async function getUniversalInstruments(params?: {
+  asset_class?: string;
+  country?: string;
+  region?: string;
+  exchange?: string;
+  access_status?: string;
+  limit?: number;
+}): Promise<UniversalInstrument[]> {
+  const query = new URLSearchParams();
+  if (params?.asset_class) query.set("asset_class", params.asset_class);
+  if (params?.country) query.set("country", params.country);
+  if (params?.region) query.set("region", params.region);
+  if (params?.exchange) query.set("exchange", params.exchange);
+  if (params?.access_status) query.set("access_status", params.access_status);
+  if (params?.limit) query.set("limit", String(params.limit));
+
+  const url = `${getApiBase()}/api/v1/market/instruments/universal?${query.toString()}`;
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to retrieve universal instruments");
+  return response.json();
+}
+
+export async function getUniversalInstrumentDetail(id: string): Promise<UniversalInstrument> {
+  const response = await fetch(`${getApiBase()}/api/v1/market/instruments/universal/${encodeURIComponent(id)}`, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to retrieve instrument detail");
+  return response.json();
+}
+
+export async function searchUniversalInstruments(q: string, assetClass?: string, exchange?: string): Promise<UniversalSearchResponse> {
+  const query = new URLSearchParams({ q });
+  if (assetClass) query.set("asset_class", assetClass);
+  if (exchange) query.set("exchange", exchange);
+
+  const url = `${getApiBase()}/api/v1/market/universal-search?${query.toString()}`;
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to perform universal search");
+  return response.json();
+}
+
+export async function getDerivativesPulse(): Promise<DerivativesOverview> {
+  const response = await fetch(`${getApiBase()}/api/v1/market/derivatives`, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to retrieve derivatives pulse");
+  return response.json();
+}
+
+export async function getFixedIncomeOverview(): Promise<FixedIncomeOverview> {
+  const response = await fetch(`${getApiBase()}/api/v1/market/fixed-income`, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to retrieve fixed income overview");
+  return response.json();
+}
+
+export async function getFundsOverview(category?: string): Promise<FundsOverview> {
+  const query = new URLSearchParams();
+  if (category) query.set("category", category);
+
+  const url = `${getApiBase()}/api/v1/market/funds?${query.toString()}`;
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to retrieve funds overview");
+  return response.json();
+}
+
+export async function getCommoditiesOverview(): Promise<CommoditiesOverview> {
+  const response = await fetch(`${getApiBase()}/api/v1/market/commodities`, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to retrieve commodities overview");
+  return response.json();
+}
+
+export async function getCurrenciesOverview(): Promise<CurrenciesOverview> {
+  const response = await fetch(`${getApiBase()}/api/v1/market/currencies`, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to retrieve currencies overview");
+  return response.json();
+}
+
+export async function getAdminProviders(): Promise<AdminProvidersOverview> {
+  const response = await fetch(`${getApiBase()}/api/v1/market/admin/providers`, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to retrieve admin providers status");
+  return response.json();
+}
+
 
 

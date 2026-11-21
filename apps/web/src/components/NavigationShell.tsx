@@ -24,6 +24,7 @@ import {
   Command,
   Radio,
   Sparkles,
+  Server,
 } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
 import MarketTicker from "@/components/MarketTicker";
@@ -46,6 +47,7 @@ const NAV_ITEMS = [
   { label: "Peer Comparison", href: "/compare", icon: BarChart3 },
   { label: "Watchlists", href: "/watchlists", icon: Bookmark },
   { label: "Calendar & Events", href: "/calendar", icon: Calendar },
+  { label: "Data Quality & Feeds", href: "/admin/market-data", icon: Server },
   { label: "Workspace & Privacy", href: "/workspace", icon: ShieldCheck },
 ];
 

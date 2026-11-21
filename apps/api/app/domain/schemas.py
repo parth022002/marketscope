@@ -532,6 +532,234 @@ class InstrumentMasterItem(BaseModel):
     supported_vendors: list[str] = Field(default_factory=list)
 
 
+# ─── Universal Global Markets Expansion Schemas ──────────────────────────────
+
+class TradingHoursResponse(BaseModel):
+    open_time: str
+    close_time: str
+    pre_open_time: str | None = None
+    post_close_time: str | None = None
+    utc_offset: str = "+00:00"
+
+
+class ExchangeMetadataResponse(BaseModel):
+    exchange_id: str
+    name: str
+    mic: str
+    country: str
+    country_code: str
+    region: str
+    trading_currency: str
+    settlement_currency: str
+    timezone: str
+    trading_hours: TradingHoursResponse
+    asset_classes: list[str] = Field(default_factory=list)
+    data_licensing_status: str
+    website: str
+    status: str = "ACTIVE"
+    notes: str = ""
+
+
+class RegulatoryAccessResponse(BaseModel):
+    status: str
+    display_badge: str
+    description: str
+    governing_framework: str
+    permitted_route: str
+    key_conditions: list[str] = Field(default_factory=list)
+    disclaimer: str
+
+
+class UniversalInstrumentResponse(BaseModel):
+    instrument_id: str
+    symbol: str
+    alt_symbols: list[str] = Field(default_factory=list)
+    name: str
+    asset_class: str
+    instrument_type: str
+    country: str
+    country_code: str
+    region: str
+    exchange: str
+    mic: str
+    trading_currency: str
+    settlement_currency: str
+    isin: str | None = None
+    bse_scrip_code: str | None = None
+    price_precision: int = 2
+    tick_size: float = 0.05
+    timezone: str
+    market_calendar: str
+    trading_status: str = "ACTIVE"
+    historical_data_available: bool = True
+    streaming_available: bool = True
+    data_delivery_mode: str = "HYBRID_LIVE_DELAYED"
+    data_licensing_status: str = "LICENSED_DISPLAY"
+    investment_access_status: str
+    permitted_investment_route: str
+    regulatory_details: RegulatoryAccessResponse | None = None
+    notes: str = ""
+
+
+class UniversalSearchResponse(BaseModel):
+    query: str
+    count: int
+    results: list[UniversalInstrumentResponse] = Field(default_factory=list)
+
+
+class DerivativesPulseItem(BaseModel):
+    symbol: str
+    name: str
+    underlying_price: float
+    futures_price: float
+    basis: float
+    basis_pct: float
+    implied_volatility: float
+    put_call_ratio: float
+    total_oi: int
+    oi_change_pct: float
+    sentiment: str
+    data_status: str = "LIVE"
+    timestamp: datetime
+
+
+class DerivativesOverviewResponse(BaseModel):
+    india_vix: float
+    cboe_vix: float
+    vix_spread: float
+    put_call_ratio_nifty: float
+    put_call_ratio_banknifty: float
+    items: list[DerivativesPulseItem] = Field(default_factory=list)
+    updated_at: datetime
+
+
+class YieldCurvePoint(BaseModel):
+    tenor: str
+    tenor_months: int
+    yield_pct: float
+    change_bps: float
+    updated_at: str
+
+
+class CentralBankPolicyRate(BaseModel):
+    country: str
+    central_bank: str
+    rate_name: str
+    rate_pct: float
+    last_action: str
+    next_meeting: str
+
+
+class SovereignGoldBondItem(BaseModel):
+    series: str
+    symbol: str
+    issue_price: float
+    current_market_price: float
+    yield_to_maturity_pct: float
+    maturity_date: str
+    annual_coupon_pct: float = 2.5
+
+
+class FixedIncomeOverviewResponse(BaseModel):
+    india_benchmark_10y: float
+    us_benchmark_10y: float
+    spread_bps: float
+    india_yield_curve: list[YieldCurvePoint] = Field(default_factory=list)
+    us_yield_curve: list[YieldCurvePoint] = Field(default_factory=list)
+    policy_rates: list[CentralBankPolicyRate] = Field(default_factory=list)
+    sovereign_gold_bonds: list[SovereignGoldBondItem] = Field(default_factory=list)
+    updated_at: datetime
+
+
+class FundMarketItem(BaseModel):
+    scheme_code: str
+    scheme_name: str
+    fund_house: str
+    category: str        # "Equity", "Debt", "Hybrid", "Index ETF", "Global Feeder"
+    sub_category: str
+    nav: float
+    previous_nav: float
+    change: float
+    change_pct: float
+    aum_cr: float
+    expense_ratio_pct: float
+    feeder_target: str | None = None
+    regulatory_status: str = "DOMESTIC_ACCESS"
+    updated_at: str
+
+
+class FundsOverviewResponse(BaseModel):
+    total_schemes: int
+    categories: list[str] = Field(default_factory=list)
+    funds: list[FundMarketItem] = Field(default_factory=list)
+    updated_at: datetime
+
+
+class CommodityItem(BaseModel):
+    symbol: str
+    name: str
+    category: str        # "Precious Metals", "Energy", "Base Metals", "Agriculture"
+    exchange: str        # "MCX", "COMEX", "NYMEX", "ICE"
+    price: float
+    change: float
+    change_pct: float
+    unit: str
+    currency: str
+    data_status: str
+    sparkline: list[float] = Field(default_factory=list)
+
+
+class CommoditiesOverviewResponse(BaseModel):
+    categories: list[str] = Field(default_factory=list)
+    commodities: list[CommodityItem] = Field(default_factory=list)
+    updated_at: datetime
+
+
+class CurrencyItem(BaseModel):
+    pair: str
+    name: str
+    category: str        # "RBI_REFERENCE", "CROSS_CURRENCY", "DOLLAR_INDEX"
+    rate: float
+    change: float
+    change_pct: float
+    source: str          # "RBI", "Interbank", "ICE"
+    data_status: str
+    sparkline: list[float] = Field(default_factory=list)
+
+
+class CurrenciesOverviewResponse(BaseModel):
+    rbi_reference_rate_date: str
+    usd_inr: float
+    eur_inr: float
+    gbp_inr: float
+    jpy_100_inr: float
+    dxy_index: float
+    pairs: list[CurrencyItem] = Field(default_factory=list)
+    updated_at: datetime
+
+
+class ProviderCapabilityItem(BaseModel):
+    provider_id: str
+    name: str
+    tier: str            # "FREE", "COMMERCIAL", "GOVERNMENT_OPEN", "PARTNER"
+    supported_asset_classes: list[str] = Field(default_factory=list)
+    supported_exchanges: list[str] = Field(default_factory=list)
+    live_streaming_capable: bool
+    rate_limit_per_min: int | str
+    data_lag: str
+    status: str          # "ACTIVE", "HEALTHY", "DEGRADED", "NOT_CONFIGURED"
+    latency_ms: float
+    compliance_classification: str
+
+
+class AdminProvidersResponse(BaseModel):
+    total_providers: int
+    active_providers: int
+    providers: list[ProviderCapabilityItem] = Field(default_factory=list)
+    engine_mode: str
+    updated_at: datetime
+
+
 
 
 
