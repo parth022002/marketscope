@@ -1,96 +1,108 @@
-# MarketScope.io — Deployment & Operations Guide
+# MarketScope.io — Cloud Deployment & Operations Guide
 
-**Document Version:** 1.0  
-**Date:** 19 November 2026  
-**Status:** Approved Operational Blueprint  
-**Target Environments:** Local Dev, Cloud Staging, Production
-
----
-
-## 1. Environments Overview
-
-| Environment | Frontend Host | Backend API Host | Database | Cache | Auth Mode | Purpose |
-|---|---|---|---|---|---|---|
-| **Local Dev** | Node.js (`localhost:3000`) | Uvicorn (`localhost:8000`) | Local PostgreSQL (Docker) | Local Redis (Docker) | Mock Bypass (`MOCK_AUTH_ENABLED=true`) | Rapid feature iteration without external dependencies |
-| **Cloud Staging** | Vercel (Preview Branch) | Render / Neon Compute / Fly.io | Neon Serverless (Branch DB) | Upstash Redis (Staging) | Clerk Dev Tenant | Pre-release QA, stakeholder review, cross-tenant testing |
-| **Production** | Vercel (`marketscope.io`) | Dedicated Container / Cloud VM | Neon Production (Multi-AZ) | Upstash Redis (Prod) | Clerk Production Tenant (MFA) | General availability for verified researchers |
+**Document Version:** 2.0  
+**Current Date:** 21 November 2026  
+**Status:** Ready for Cloud Deployment (Vercel & Render)  
+**Target Environments:** Vercel (Frontend), Render (Backend API), Neon Serverless PostgreSQL (Singapore)
 
 ---
 
-## 2. Local Development Quickstart
+## 1. Architecture Overview
 
-### Prerequisites
-- Node.js 18+ (Node 20+ recommended)
-- Python 3.11+
-- Docker & Docker Compose (for local PostgreSQL and Redis)
-
-### Step 1: Clone and Configure Environment
-```bash
-# In repository root:
-cp .env.example .env
-cp apps/web/.env.local.example apps/web/.env.local
-cp apps/api/.env.example apps/api/.env
-```
-
-### Step 2: Start Background Infrastructure (PostgreSQL & Redis)
-```bash
-docker-compose up -d db redis
-```
-This launches:
-- PostgreSQL 16 on `localhost:5432` with database `marketscope`.
-- Initializes schema automatically via `./database/schema/001_initial.sql`.
-- Redis on `localhost:6379`.
-
-### Step 3: Start the Backend API
-```bash
-cd apps/api
-# Create virtual environment:
-python -m venv .venv
-# Activate virtual environment (Windows PowerShell):
-.venv\Scripts\Activate.ps1
-# (Linux/macOS: source .venv/bin/activate)
-
-pip install -r requirements.txt
-pip install -r requirements-dev.txt
-
-# Run FastAPI server with auto-reload:
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-```
-API is accessible at `http://localhost:8000`. OpenAPI docs available at `http://localhost:8000/docs`.
-
-### Step 4: Start the Frontend Application
-```bash
-cd apps/web
-npm install
-npm run dev
-```
-Frontend is accessible at `http://localhost:3000`.
+MarketScope.io is structured as a decoupled production architecture:
+1. **Frontend (Vercel):** Next.js 15 App Router deployed on Vercel Edge/Serverless platform.
+2. **Backend API (Render):** FastAPI modular monolith containerized via multi-stage Dockerfile (`apps/api/Dockerfile`) deployed on Render (AWS Singapore region: `ap-southeast-1` to match Neon DB latency).
+3. **Database (Neon Serverless PostgreSQL):** Managed PostgreSQL 18.7 instance running in AWS Singapore.
+4. **Authentication (Clerk):** Managed Clerk OIDC instance (`MarketScope` app).
+5. **AI Synthesis (Groq & Gemini):** Gated server-side research synthesis with fallback.
 
 ---
 
-## 3. Database Migration Procedures
+## 2. Deploying Backend API to Render
 
-- Schema migrations are managed via **Alembic** in `apps/api`.
-- Never modify existing production schema files directly; always generate a versioned migration.
-```bash
-# Create a new migration after model changes:
-alembic revision --autogenerate -m "add_watchlist_table"
+You can deploy the backend using Render's Blueprint (`render.yaml`) or as an individual Docker Web Service.
 
-# Apply pending migrations:
-alembic upgrade head
+### Option A: Via Render Blueprint (Recommended)
+1. Go to [Render Dashboard](https://dashboard.render.com).
+2. Click **New +** > **Blueprint**.
+3. Connect your GitHub repository: `https://github.com/parth022002/marketscope.git`.
+4. Render will parse [`render.yaml`](../render.yaml) automatically and detect `marketscope-api`.
+5. Enter the required environment variable values (see below).
+6. Click **Apply**.
 
-# Rollback one migration:
-alembic downgrade -1
-```
+### Option B: As a Manual Web Service
+1. Click **New +** > **Web Service**.
+2. Select repository `parth022002/marketscope`.
+3. Set **Runtime** to `Docker`.
+4. Set **Root Directory** to `apps/api`.
+5. Set **Region** to `Singapore (Southeast Asia)`.
+6. Set **Instance Type** to `Starter` or `Standard`.
+7. Set **Health Check Path** to `/health`.
+8. Add the following **Environment Variables**:
+
+| Variable Name | Value / Description |
+|---|---|
+| `PORT` | `8000` |
+| `APP_ENV` | `production` |
+| `APP_NAME` | `MarketScope.io API` |
+| `APP_DEBUG` | `false` |
+| `API_CORS_ORIGINS` | `https://<your-vercel-domain>.vercel.app,https://marketscope.io` |
+| `DATABASE_URL` | Neon direct connection string (`postgresql+psycopg://...`) |
+| `DATABASE_POOL_URL` | Neon pooled connection string (`postgresql+psycopg://...-pooler...`) |
+| `SECRET_KEY` | Long random 32+ character string |
+| `SNAPSHOT_SIGNING_SALT` | Random string for HMAC-SHA256 checksums |
+| `MOCK_AUTH_ENABLED` | `false` |
+| `CLERK_SECRET_KEY` | `sk_test_...` (from Clerk Dashboard) |
+| `CLERK_PUBLISHABLE_KEY`| `pk_test_...` (from Clerk Dashboard) |
+| `MARKET_DATA_PROVIDER`| `hybrid` |
+| `FMP_API_KEY` | `s8nLoZs9t2xAj9zG2c1Yif1CFVq0y5eM` |
+| `TWELVEDATA_API_KEY` | `33327d6b467444618dd21e99671f0a3c` |
+| `AI_ENABLED` | `true` |
+| `GROQ_API_KEY` | `gsk_...` |
+| `GEMINI_API_KEY` | `AQ....` |
+| `OPENROUTER_API_KEY` | `sk-or-v1-...` |
+
+Once deployed, copy your Render service URL (e.g., `https://marketscope-api.onrender.com`).
 
 ---
 
-## 4. Staging & Production Deployment Checklist
+## 3. Deploying Frontend to Vercel
 
-1. [ ] **Environment Secrets:** Verify that all production secrets (`DATABASE_URL`, `CLERK_SECRET_KEY`, `SECRET_KEY`, `SNAPSHOT_SIGNING_SALT`) are configured in Vercel and backend host environment variables.
-2. [ ] **Auth Mode:** Verify `MOCK_AUTH_ENABLED` is set to `false`.
-3. [ ] **AI Gating:** Verify `AI_ENABLED` is set to `false`.
-4. [ ] **CORS Configuration:** Verify `API_CORS_ORIGINS` is restricted strictly to `https://marketscope.io`.
-5. [ ] **Database Connection Pooling:** Verify serverless environments use Neon's pooled connection string (`DATABASE_POOL_URL`).
-6. [ ] **Health Check:** Confirm `GET /health` returns `200 OK` and database is connected.
-7. [ ] **Audit Logging:** Confirm `audit_events` table is receiving operational logs.
+1. Go to [Vercel Dashboard](https://vercel.com/dashboard).
+2. Click **Add New...** > **Project**.
+3. Import the GitHub repository: `parth022002/marketscope`.
+4. Configure the project settings:
+   - **Framework Preset:** `Next.js`
+   - **Root Directory:** Click **Edit** and choose `apps/web`.
+   - **Build Command:** `npm run build` (default)
+   - **Output Directory:** `.next` (default)
+   - **Install Command:** `npm install` (default)
+5. Under **Environment Variables**, add:
+
+| Variable Name | Value |
+|---|---|
+| `NEXT_PUBLIC_APP_NAME` | `MarketScope.io` |
+| `NEXT_PUBLIC_APP_TAGLINE` | `Financial Research & Intelligence` |
+| `NEXT_PUBLIC_API_BASE_URL` | `https://marketscope-api.onrender.com` (Your Render backend URL) |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | `pk_test_c2luZ3VsYXItamVubmV0LTUwMzEuY2xlcmsuYWNjb3VudHMuZGV2JA` |
+| `CLERK_SECRET_KEY` | `sk_test_Hbx0Vx46E7bXlCjV3yrPZat35RKY4fhJxp2oIFuKNT` |
+| `NEXT_PUBLIC_CLERK_SIGN_IN_URL` | `/sign-in` |
+| `NEXT_PUBLIC_CLERK_SIGN_UP_URL` | `/sign-up` |
+| `NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL` | `/workspace` |
+| `NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL` | `/workspace` |
+| `NEXT_PUBLIC_AI_ENABLED` | `true` |
+
+6. Click **Deploy**.
+7. Once deployed on Vercel, copy your Vercel URL (e.g. `https://marketscope.vercel.app`) and update `API_CORS_ORIGINS` in your Render backend settings to allow requests from that domain.
+
+---
+
+## 4. Post-Deployment Verification Checklist
+
+1. [ ] **Backend Health Check:** Visit `https://marketscope-api.onrender.com/health` & `https://marketscope-api.onrender.com/api/v1/health/deep`. Status should be `HEALTHY` or `ok`.
+2. [ ] **Swagger API Docs:** Visit `https://marketscope-api.onrender.com/docs` to test endpoints.
+3. [ ] **Frontend Home:** Visit your Vercel domain; verify live quotes, featured cards, and navbar.
+4. [ ] **Clerk Sign-In / Sign-Up:** Click "Sign In" or "Create Account" modal and authenticate.
+5. [ ] **Company Dossier:** Open `/company/reliance` or `/company/tcs` and verify financial statements and ratios.
+6. [ ] **Gated AI Research:** In company dossier, switch to **AI Research Synthesis** tab and generate grounded intelligence.
+7. [ ] **Compliance & Legal:** Verify footer links navigate to `/terms`, `/privacy`, and `/disclaimer`.

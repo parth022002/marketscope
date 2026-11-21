@@ -1,0 +1,6 @@
+# MarketScope.io Robots.txt
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /workspace
+Sitemap: https://marketscope.io/sitemap.xml
