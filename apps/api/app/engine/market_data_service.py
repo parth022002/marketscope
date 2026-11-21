@@ -33,6 +33,7 @@ from app.engine.market_calendar import (
     get_us_session_state,
 )
 from app.providers.market_data.base import BaseMarketDataProvider
+from app.providers.market_data.live_exchange_provider import LiveExchangeProvider
 from app.providers.market_data.twelvedata_provider import TwelveDataProvider
 from app.providers.market_data.fmp_provider import FMPDataProvider
 from app.providers.market_data.fallback_provider import FallbackDevProvider, FALLBACK_UNIVERSE
@@ -127,6 +128,7 @@ class MarketDataService:
         twelve_key = os.getenv("TWELVEDATA_API_KEY", "")
         fmp_key = os.getenv("FMP_API_KEY", "") or os.getenv("FINANCIAL_DATA_API_KEY", "")
 
+        self.live_provider = LiveExchangeProvider()
         self.twelve_provider = TwelveDataProvider(api_key=twelve_key)
         self.fmp_provider = FMPDataProvider(api_key=fmp_key)
         self.fallback_provider = FallbackDevProvider()
@@ -174,21 +176,27 @@ class MarketDataService:
         session = resolve_session_state_for_exchange(exchange or "")
         quote: MarketQuote | None = None
 
-        # 3. Attempt Primary Commercial Provider (Twelve Data)
-        if self.twelve_provider.api_key:
+        # 3. Attempt Primary Live Exchange Provider (Real-Time Exchange Rates)
+        try:
+            quote = await self.live_provider.get_quote(symbol, exchange)
+        except Exception as e:
+            logger.debug(f"LiveExchangeProvider get_quote failed for {symbol}: {e}")
+
+        # 4. Attempt Secondary Commercial Provider (Twelve Data)
+        if not quote and self.twelve_provider.api_key:
             try:
                 quote = await self.twelve_provider.get_quote(symbol, exchange)
             except Exception as e:
                 logger.warning(f"TwelveData get_quote failed for {symbol}: {e}")
 
-        # 4. Attempt Secondary Provider (FMP)
+        # 5. Attempt Tertiary Provider (FMP)
         if not quote and self.fmp_provider.api_key:
             try:
                 quote = await self.fmp_provider.get_quote(symbol, exchange)
             except Exception as e:
                 logger.warning(f"FMP get_quote failed for {symbol}: {e}")
 
-        # 5. Deterministic Fallback if external providers unavailable
+        # 6. Calibrated Deterministic Fallback if external providers unavailable
         if not quote:
             quote = await self.fallback_provider.get_quote(symbol, exchange)
 
@@ -289,6 +297,20 @@ class MarketDataService:
         us_session = get_us_session_state()
         ticker_items = await self.get_ticker_feed()
 
+        mcap_map = {
+            "RELIANCE": 1991200.0,
+            "TCS": 1492500.0,
+            "HDFCBANK": 1334000.0,
+            "BHARTIARTL": 1224000.0,
+            "ICICIBANK": 1148000.0,
+            "INFY": 912000.0,
+            "LT": 578000.0,
+            "TATAMOTORS": 298500.0,
+            "AAPL": 4978000.0,
+            "NVDA": 3580000.0,
+            "MSFT": 3620000.0,
+        }
+
         # Build top companies
         top_companies: list[TopCompanyItem] = []
         for sym, name, exch, sector, curr, is_global in CANONICAL_EQUITIES:
@@ -301,7 +323,7 @@ class MarketDataService:
                     sector=sector,
                     price=q.price,
                     change_pct=q.change_pct,
-                    market_cap_cr=1991200.0 if sym == "RELIANCE" else (1492500.0 if sym == "TCS" else 889200.0),
+                    market_cap_cr=mcap_map.get(sym, 500000.0),
                     volume=q.volume or 5000000,
                     currency=curr,
                     is_global=is_global,
@@ -386,11 +408,12 @@ class MarketDataService:
 
     async def get_data_quality_report(self) -> DataQualityReport:
         # Check providers
+        live_health = await self.live_provider.health_check()
         twelve_health = await self.twelve_provider.health_check()
         fmp_health = await self.fmp_provider.health_check()
         fallback_health = await self.fallback_provider.health_check()
 
-        providers = [twelve_health, fmp_health, fallback_health]
+        providers = [live_health, twelve_health, fmp_health, fallback_health]
 
         # Scan cache for freshness counts
         live_cnt = sum(1 for c in self._l1_cache.values() if c.quote.data_status == "LIVE")
@@ -424,8 +447,8 @@ class MarketDataService:
                     currency="INR" if exch in ("NSE", "BSE", "MCX", "RBI") else "USD",
                     isin=None,
                     bse_scrip_code=None,
-                    primary_vendor="twelvedata",
-                    supported_vendors=["twelvedata", "fmp", "synthetic_dev"],
+                    primary_vendor="live_exchange",
+                    supported_vendors=["live_exchange", "twelvedata", "fmp", "synthetic_dev"],
                 )
             )
         for sym, name, exch, sector, curr, _ in CANONICAL_EQUITIES:
@@ -439,8 +462,8 @@ class MarketDataService:
                     currency=curr,
                     isin="INE002A01018" if sym == "RELIANCE" else ("INE467B01029" if sym == "TCS" else None),
                     bse_scrip_code="500325" if sym == "RELIANCE" else ("532540" if sym == "TCS" else None),
-                    primary_vendor="twelvedata",
-                    supported_vendors=["twelvedata", "fmp", "synthetic_dev"],
+                    primary_vendor="live_exchange",
+                    supported_vendors=["live_exchange", "twelvedata", "fmp", "synthetic_dev"],
                 )
             )
         return items

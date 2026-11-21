@@ -18,7 +18,7 @@ const SECTORS_DATA = [
     companiesCount: 12,
     totalCapCr: 2650000,
     leaders: [
-      { symbol: "RELIANCE", name: "Reliance Industries", price: 2942.50, change_pct: 1.45 },
+      { symbol: "RELIANCE", name: "Reliance Industries", price: 1377.50, change_pct: 0.14 },
       { symbol: "BPCL", name: "Bharat Petroleum", price: 312.40, change_pct: -0.25 },
       { symbol: "ONGC", name: "Oil & Natural Gas Corp", price: 264.80, change_pct: 0.85 },
     ],
@@ -28,8 +28,8 @@ const SECTORS_DATA = [
     companiesCount: 18,
     totalCapCr: 4890000,
     leaders: [
-      { symbol: "HDFCBANK", name: "HDFC Bank Ltd", price: 1748.20, change_pct: 0.82 },
-      { symbol: "ICICIBANK", name: "ICICI Bank Ltd", price: 1264.40, change_pct: 1.12 },
+      { symbol: "HDFCBANK", name: "HDFC Bank Ltd", price: 846.00, change_pct: 2.94 },
+      { symbol: "ICICIBANK", name: "ICICI Bank Ltd", price: 1640.00, change_pct: 1.93 },
       { symbol: "SBIN", name: "State Bank of India", price: 824.15, change_pct: 0.65 },
     ],
   },
@@ -38,8 +38,8 @@ const SECTORS_DATA = [
     companiesCount: 14,
     totalCapCr: 3420000,
     leaders: [
-      { symbol: "TCS", name: "Tata Consultancy Services", price: 4125.80, change_pct: -0.38 },
-      { symbol: "INFY", name: "Infosys Ltd", price: 1874.15, change_pct: -0.62 },
+      { symbol: "TCS", name: "Tata Consultancy Services", price: 2376.20, change_pct: 1.43 },
+      { symbol: "INFY", name: "Infosys Ltd", price: 1098.00, change_pct: 0.56 },
       { symbol: "WIPRO", name: "Wipro Ltd", price: 564.20, change_pct: 0.15 },
     ],
   },
@@ -48,7 +48,7 @@ const SECTORS_DATA = [
     companiesCount: 10,
     totalCapCr: 1420000,
     leaders: [
-      { symbol: "TATAMOTORS", name: "Tata Motors Ltd", price: 812.30, change_pct: 2.15 },
+      { symbol: "TATAMOTORS", name: "Tata Motors Ltd", price: 742.50, change_pct: 0.85 },
       { symbol: "M&M", name: "Mahindra & Mahindra", price: 2980.00, change_pct: 1.40 },
       { symbol: "MARUTI", name: "Maruti Suzuki India", price: 11420.00, change_pct: 0.45 },
     ],
@@ -58,9 +58,9 @@ const SECTORS_DATA = [
     companiesCount: 15,
     totalCapCr: 14500000,
     leaders: [
-      { symbol: "NVDA", name: "NVIDIA Corp", price: 146.50, change_pct: 2.85, currency: "USD" },
-      { symbol: "AAPL", name: "Apple Inc.", price: 228.40, change_pct: 0.42, currency: "USD" },
-      { symbol: "MSFT", name: "Microsoft Corp", price: 424.10, change_pct: 0.74, currency: "USD" },
+      { symbol: "NVDA", name: "NVIDIA Corp", price: 125.53, change_pct: -13.93, currency: "USD" },
+      { symbol: "AAPL", name: "Apple Inc.", price: 342.56, change_pct: -2.40, currency: "USD" },
+      { symbol: "MSFT", name: "Microsoft Corp", price: 484.52, change_pct: -2.58, currency: "USD" },
     ],
   },
 ];

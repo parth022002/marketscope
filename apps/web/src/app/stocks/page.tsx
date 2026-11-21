@@ -14,18 +14,18 @@ import {
 import NavigationShell from "@/components/NavigationShell";
 
 const ALL_STOCKS = [
-  { symbol: "RELIANCE", name: "Reliance Industries Limited", exchange: "NSE", sector: "Energy & Conglomerate", price: 2942.50, change_pct: 1.45, market_cap_cr: 1991200, pe: 27.8, roe: 9.8, status: "LIVE" },
-  { symbol: "TCS", name: "Tata Consultancy Services", exchange: "NSE", sector: "Information Technology", price: 4125.80, change_pct: -0.38, market_cap_cr: 1492500, pe: 31.4, roe: 48.2, status: "LIVE" },
-  { symbol: "HDFCBANK", name: "HDFC Bank Limited", exchange: "NSE", sector: "Financial Services", price: 1748.20, change_pct: 0.82, market_cap_cr: 1334000, pe: 19.2, roe: 16.4, status: "LIVE" },
-  { symbol: "ICICIBANK", name: "ICICI Bank Limited", exchange: "NSE", sector: "Financial Services", price: 1264.40, change_pct: 1.12, market_cap_cr: 889200, pe: 18.5, roe: 18.9, status: "LIVE" },
-  { symbol: "INFY", name: "Infosys Limited", exchange: "NSE", sector: "Information Technology", price: 1874.15, change_pct: -0.62, market_cap_cr: 778400, pe: 28.6, roe: 31.5, status: "LIVE" },
-  { symbol: "BHARTIARTL", name: "Bharti Airtel Limited", exchange: "NSE", sector: "Telecommunications", price: 1582.00, change_pct: 0.94, market_cap_cr: 895400, pe: 42.1, roe: 14.8, status: "LIVE" },
-  { symbol: "TATAMOTORS", name: "Tata Motors Limited", exchange: "NSE", sector: "Automobile", price: 812.30, change_pct: 2.15, market_cap_cr: 298500, pe: 9.8, roe: 38.4, status: "LIVE" },
-  { symbol: "LT", name: "Larsen & Toubro Limited", exchange: "NSE", sector: "Infrastructure", price: 3680.00, change_pct: 1.05, market_cap_cr: 505800, pe: 34.2, roe: 15.6, status: "LIVE" },
-  { symbol: "NVDA", name: "NVIDIA Corporation", exchange: "NASDAQ", sector: "Semiconductors", price: 146.50, change_pct: 2.85, market_cap_cr: 3580000, pe: 54.2, roe: 115.0, status: "LIVE", currency: "USD" },
-  { symbol: "AAPL", name: "Apple Inc.", exchange: "NASDAQ", sector: "Consumer Tech", price: 228.40, change_pct: 0.42, market_cap_cr: 3470000, pe: 33.1, roe: 152.0, status: "LIVE", currency: "USD" },
-  { symbol: "MSFT", name: "Microsoft Corporation", exchange: "NASDAQ", sector: "Software & Cloud", price: 424.10, change_pct: 0.74, market_cap_cr: 3150000, pe: 34.8, roe: 38.5, status: "LIVE", currency: "USD" },
-  { symbol: "GOOGL", name: "Alphabet Inc.", exchange: "NASDAQ", sector: "Internet & AI", price: 178.60, change_pct: 1.18, market_cap_cr: 2220000, pe: 24.2, roe: 29.8, status: "LIVE", currency: "USD" },
+  { symbol: "RELIANCE", name: "Reliance Industries Limited", exchange: "NSE", sector: "Energy & Conglomerate", price: 1377.50, change_pct: 0.14, market_cap_cr: 1991200, pe: 27.8, roe: 9.8, status: "LIVE" },
+  { symbol: "TCS", name: "Tata Consultancy Services", exchange: "NSE", sector: "Information Technology", price: 2376.20, change_pct: 1.43, market_cap_cr: 1492500, pe: 31.4, roe: 48.2, status: "LIVE" },
+  { symbol: "HDFCBANK", name: "HDFC Bank Limited", exchange: "NSE", sector: "Financial Services", price: 846.00, change_pct: 2.94, market_cap_cr: 1334000, pe: 19.2, roe: 16.4, status: "LIVE" },
+  { symbol: "ICICIBANK", name: "ICICI Bank Limited", exchange: "NSE", sector: "Financial Services", price: 1640.00, change_pct: 1.93, market_cap_cr: 1148000, pe: 18.5, roe: 18.9, status: "LIVE" },
+  { symbol: "INFY", name: "Infosys Limited", exchange: "NSE", sector: "Information Technology", price: 1098.00, change_pct: 0.56, market_cap_cr: 912000, pe: 28.6, roe: 31.5, status: "LIVE" },
+  { symbol: "BHARTIARTL", name: "Bharti Airtel Limited", exchange: "NSE", sector: "Telecommunications", price: 2161.70, change_pct: 0.83, market_cap_cr: 1224000, pe: 42.1, roe: 14.8, status: "LIVE" },
+  { symbol: "TATAMOTORS", name: "Tata Motors Limited", exchange: "NSE", sector: "Automobile", price: 742.50, change_pct: 0.85, market_cap_cr: 298500, pe: 9.8, roe: 38.4, status: "LIVE" },
+  { symbol: "LT", name: "Larsen & Toubro Limited", exchange: "NSE", sector: "Infrastructure", price: 4209.10, change_pct: -0.05, market_cap_cr: 578000, pe: 34.2, roe: 15.6, status: "LIVE" },
+  { symbol: "NVDA", name: "NVIDIA Corporation", exchange: "NASDAQ", sector: "Semiconductors", price: 125.53, change_pct: -13.93, market_cap_cr: 3580000, pe: 54.2, roe: 115.0, status: "LIVE", currency: "USD" },
+  { symbol: "AAPL", name: "Apple Inc.", exchange: "NASDAQ", sector: "Consumer Tech", price: 342.56, change_pct: -2.40, market_cap_cr: 4978000, pe: 33.1, roe: 152.0, status: "LIVE", currency: "USD" },
+  { symbol: "MSFT", name: "Microsoft Corporation", exchange: "NASDAQ", sector: "Software & Cloud", price: 484.52, change_pct: -2.58, market_cap_cr: 3620000, pe: 34.8, roe: 38.5, status: "LIVE", currency: "USD" },
+  { symbol: "GOOGL", name: "Alphabet Inc.", exchange: "NASDAQ", sector: "Internet & AI", price: 189.40, change_pct: 0.85, market_cap_cr: 2360000, pe: 24.2, roe: 29.8, status: "LIVE", currency: "USD" },
 ];
 
 export default function StocksPage() {

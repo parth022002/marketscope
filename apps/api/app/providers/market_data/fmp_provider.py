@@ -15,7 +15,7 @@ from app.engine.market_calendar import resolve_session_state_for_exchange
 
 logger = logging.getLogger(__name__)
 
-FMP_BASE_URL = "https://financialmodelingprep.com/api/v3"
+FMP_BASE_URL = "https://financialmodelingprep.com/stable"
 
 
 class FMPDataProvider(BaseMarketDataProvider):
@@ -35,8 +35,8 @@ class FMPDataProvider(BaseMarketDataProvider):
         elif exchange and exchange.upper() == "BSE" and not symbol.endswith(".BO"):
             fmp_sym = f"{symbol}.BO"
 
-        url = f"{FMP_BASE_URL}/quote/{fmp_sym}"
-        params = {"apikey": self.api_key}
+        url = f"{FMP_BASE_URL}/quote"
+        params = {"symbol": fmp_sym, "apikey": self.api_key}
 
         try:
             async with httpx.AsyncClient(timeout=4.5) as client:
@@ -58,8 +58,8 @@ class FMPDataProvider(BaseMarketDataProvider):
             return []
 
         joined_symbols = ",".join(symbols[:30])
-        url = f"{FMP_BASE_URL}/quote/{joined_symbols}"
-        params = {"apikey": self.api_key}
+        url = f"{FMP_BASE_URL}/quote"
+        params = {"symbol": joined_symbols, "apikey": self.api_key}
 
         quotes: list[MarketQuote] = []
         try:
@@ -119,8 +119,8 @@ class FMPDataProvider(BaseMarketDataProvider):
         try:
             async with httpx.AsyncClient(timeout=3.5) as client:
                 res = await client.get(
-                    f"{FMP_BASE_URL}/quote/AAPL",
-                    params={"apikey": self.api_key},
+                    f"{FMP_BASE_URL}/quote",
+                    params={"symbol": "AAPL", "apikey": self.api_key},
                 )
                 latency = round((time.perf_counter() - t0) * 1000, 2)
                 if res.status_code == 200 and isinstance(res.json(), list):

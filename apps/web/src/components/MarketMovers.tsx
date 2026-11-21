@@ -21,10 +21,10 @@ export default function MarketMovers({
   const defaultActive: MarketMoverItem[] = mostActive && mostActive.length > 0
     ? mostActive
     : [
-        { symbol: "TCS", name: "Tata Consultancy Services", exchange: "NSE", price: 4120.50, change: 35.10, change_pct: 0.85, volume: 4200000, week52_high: 4500, week52_low: 3400, currency: "INR" },
-        { symbol: "RELIANCE", name: "Reliance Industries", exchange: "NSE", price: 2980.40, change: 42.60, change_pct: 1.45, volume: 6800000, week52_high: 3200, week52_low: 2220, currency: "INR" },
-        { symbol: "HDFCBANK", name: "HDFC Bank", exchange: "NSE", price: 1740.10, change: -6.10, change_pct: -0.35, volume: 9100000, week52_high: 1795, week52_low: 1360, currency: "INR" },
-        { symbol: "INFY", name: "Infosys Limited", exchange: "NSE", price: 1890.30, change: 38.80, change_pct: 2.10, volume: 5400000, week52_high: 1990, week52_low: 1355, currency: "INR" },
+        { symbol: "TCS", name: "Tata Consultancy Services", exchange: "NSE", price: 2376.20, change: 33.50, change_pct: 1.43, volume: 4200000, week52_high: 2600, week52_low: 1950, currency: "INR" },
+        { symbol: "RELIANCE", name: "Reliance Industries", exchange: "NSE", price: 1377.50, change: 1.90, change_pct: 0.14, volume: 6800000, week52_high: 1600, week52_low: 1200, currency: "INR" },
+        { symbol: "HDFCBANK", name: "HDFC Bank", exchange: "NSE", price: 846.00, change: 24.20, change_pct: 2.94, volume: 9100000, week52_high: 950, week52_low: 720, currency: "INR" },
+        { symbol: "INFY", name: "Infosys Limited", exchange: "NSE", price: 1098.00, change: 6.10, change_pct: 0.56, volume: 5400000, week52_high: 1250, week52_low: 950, currency: "INR" },
       ];
 
   const currentList =
