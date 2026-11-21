@@ -7,6 +7,19 @@ from app.core.database import SessionLocal
 from app.core.seed import seed_database
 from app.api.routes import router
 
+# Optional Sentry Error Telemetry Initialization
+sentry_dsn = os.getenv("SENTRY_DSN", "")
+if sentry_dsn:
+    try:
+        import sentry_sdk
+        sentry_sdk.init(
+            dsn=sentry_dsn,
+            environment=settings.app_env,
+            traces_sample_rate=1.0 if settings.app_env == "development" else 0.2,
+        )
+    except Exception:
+        pass
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

@@ -8,3 +8,6 @@ redis>=5.2.0
 httptools>=0.8.0
 watchfiles>=0.20.0
 websockets>=13.0
+httpx>=0.28.0
+yfinance>=0.2.50
+sentry-sdk>=2.20.0
