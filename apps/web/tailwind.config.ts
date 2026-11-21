@@ -31,7 +31,7 @@ const config: Config = {
         mono: ["JetBrains Mono", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"],
       },
       animation: {
-        marquee: "marquee 45s linear infinite",
+        marquee: "marquee 110s linear infinite",
       },
       keyframes: {
         marquee: {

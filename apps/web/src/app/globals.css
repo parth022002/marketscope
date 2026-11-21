@@ -51,7 +51,12 @@ html, body {
 .animate-marquee {
   display: inline-flex;
   width: max-content;
-  animation: marquee 45s linear infinite;
+  animation: marquee 110s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
 }
 
 /* Hide scrollbars for clean terminal ticker ribbons */

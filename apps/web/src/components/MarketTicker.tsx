@@ -241,8 +241,8 @@ export default function MarketTicker() {
         {/* Marquee Container */}
         <div className="overflow-x-auto md:overflow-hidden whitespace-nowrap py-1.5 scrollbar-none flex-1">
           <div
-            className={`inline-flex items-center gap-6 px-4 ${
-              isPaused ? "" : "animate-marquee"
+            className={`inline-flex items-center gap-6 px-4 animate-marquee ${
+              isPaused ? "[animation-play-state:paused]" : ""
             }`}
           >
             {/* Render items twice to create seamless loop */}
