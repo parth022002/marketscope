@@ -331,4 +331,147 @@ class DeepHealthResponse(BaseModel):
     components: list[ServiceComponentHealth] = Field(default_factory=list)
 
 
+# ─── Master Redesign Schemas: Ticker, Market Overview, News & Calendar ────────
+
+class TickerItem(BaseModel):
+    symbol: str
+    name: str
+    category: str  # "indian_index", "global_index", "commodity", "currency", "yield"
+    exchange: str
+    price: float
+    change: float
+    change_pct: float
+    currency: str
+    market_status: str = "OPEN"  # "OPEN", "CLOSED", "PRE_MARKET", "AFTER_HOURS"
+    data_status: str = "LIVE"    # "LIVE", "DELAYED_15M", "EOD", "SYNTHETIC"
+    sparkline: list[float] = Field(default_factory=list)
+
+
+class MarketBreadth(BaseModel):
+    advances: int
+    declines: int
+    unchanged: int
+    advance_decline_ratio: float
+    total_turnover_cr: float
+    exchange_status: str = "OPEN"
+
+
+class MarketMood(BaseModel):
+    score: int          # 0 - 100
+    label: str          # "Extreme Fear", "Fear", "Neutral", "Greed", "Extreme Greed"
+    description: str
+
+
+class TopCompanyItem(BaseModel):
+    symbol: str
+    name: str
+    exchange: str
+    sector: str
+    price: float
+    change_pct: float
+    market_cap_cr: float
+    volume: int
+    currency: str = "INR"
+    is_global: bool = False
+
+
+class MarketMoverItem(BaseModel):
+    symbol: str
+    name: str
+    exchange: str
+    price: float
+    change: float
+    change_pct: float
+    volume: int
+    week52_high: float
+    week52_low: float
+    currency: str = "INR"
+
+
+class SectorPerformanceItem(BaseModel):
+    sector: str
+    change_pct: float
+    market_cap_cr: float
+    leading_stock: str
+    lagging_stock: str
+
+
+class MarketOverviewResponse(BaseModel):
+    indian_market_status: str
+    global_market_status: str
+    as_of: datetime
+    market_breadth: MarketBreadth
+    market_mood: MarketMood
+    indices: list[TickerItem]
+    commodities: list[TickerItem]
+    currencies_and_yields: list[TickerItem]
+    top_companies: list[TopCompanyItem]
+    movers: dict[str, list[MarketMoverItem]]
+    sector_performance: list[SectorPerformanceItem]
+
+
+class MarketHeatmapItem(BaseModel):
+    symbol: str
+    name: str
+    sector: str
+    market_cap: float
+    change_pct: float
+    price: float
+    currency: str
+    exchange: str
+
+
+class NewsEntity(BaseModel):
+    type: str  # "company", "index", "commodity", "currency", "person", "institution"
+    name: str
+    symbol: str | None = None
+
+
+class NewsItem(BaseModel):
+    id: str
+    title: str
+    summary: str
+    publisher: str
+    published_at: datetime
+    updated_at: datetime | None = None
+    url: str
+    category: str      # "Financial Markets", "Company News", "Economy & Central Banks", "Geopolitics", "Industry & Sectors"
+    country: str       # "India", "US", "Global", "Europe", "Asia"
+    priority: str      # "BREAKING", "CRITICAL", "HIGH", "MEDIUM", "GENERAL", "LOW"
+    relevance_score: int  # 0 - 100
+    impact_level: str  # "HIGH", "MEDIUM", "LOW"
+    entities: list[NewsEntity] = Field(default_factory=list)
+    corroborating_sources: list[str] = Field(default_factory=list)
+    cluster_id: str | None = None
+
+
+class TransmissionChannel(BaseModel):
+    channel: str
+    description: str
+    impact_type: str  # "confirmed", "implication"
+
+
+class NewsDetailResponse(NewsItem):
+    key_facts: list[str] = Field(default_factory=list)
+    affected_instruments: list[str] = Field(default_factory=list)
+    affected_sectors: list[str] = Field(default_factory=list)
+    transmission_channels: list[TransmissionChannel] = Field(default_factory=list)
+    historical_context: str | None = None
+
+
+class CalendarEventItem(BaseModel):
+    id: str
+    title: str
+    event_type: str    # "MACRO", "EARNINGS", "CORPORATE_ACTION"
+    country: str       # "India", "United States", "Global"
+    event_date: datetime
+    importance: str    # "HIGH", "MEDIUM", "LOW"
+    actual: str | None = None
+    forecast: str | None = None
+    previous: str | None = None
+    symbol: str | None = None
+    notes: str | None = None
+
+
+
 

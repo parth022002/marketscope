@@ -1,17 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { Show, UserButton } from "@clerk/nextjs";
-import { Search as SearchIcon, ArrowUpRight, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { Search as SearchIcon, ArrowUpRight, AlertTriangle, CheckCircle2, Compass } from "lucide-react";
 import { resolveInstrument, searchInstruments, type Instrument, type ResolveResponse } from "@/lib/api";
-import Footer from "@/components/Footer";
-import BrandLogo from "@/components/BrandLogo";
+import NavigationShell from "@/components/NavigationShell";
 
 const GLOBAL_CHIPS = ["RELIANCE", "TCS", "HDFCBANK", "AAPL", "NVDA", "MSFT", "GOOGL", "TSLA"];
 
-export default function SearchPage() {
-  const [query, setQuery] = useState("");
+function SearchContent() {
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams?.get("q") || "";
+
+  const [query, setQuery] = useState(initialQuery);
   const [items, setItems] = useState<Instrument[]>([]);
   const [resolution, setResolution] = useState<ResolveResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -37,6 +39,12 @@ export default function SearchPage() {
     }
   }
 
+  useEffect(() => {
+    if (initialQuery) {
+      executeSearch(initialQuery);
+    }
+  }, [initialQuery]);
+
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     executeSearch(query);
@@ -48,198 +56,178 @@ export default function SearchPage() {
   }
 
   return (
-    <div className="shell">
-      {/* Sidebar Navigation */}
-      <aside className="sidebar">
-        <div>
-          <BrandLogo variant="full" height={38} />
-        </div>
-
-        <div>
-          <div className="nav-label">RESEARCH WORKSPACE</div>
-          <nav className="nav">
-            <Link href="/">Platform Overview</Link>
-            <Link className="active" href="/search">
-              Discover Companies
-            </Link>
-            <Link href="/compare">Peer Comparison</Link>
-            <Link href="/screener">Fundamental Screener</Link>
-            <Link href="/watchlists">Watchlists</Link>
-            <Link href="/workspace">Workspace &amp; Privacy</Link>
-          </nav>
-        </div>
-
-        <div className="sidebar-note">
-          Evidence-first research workspace. Strictly read-only; no trade execution or broker routing.
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="main">
-        <header className="topbar">
-          <div className="flex items-center gap-2">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-icon.png" alt="MarketScope" className="w-5 h-5 rounded object-contain shadow-sm" />
-            <strong>Discover Companies</strong>
-            <small className="text-slate-400 font-mono">· GLOBAL LIVE UNIVERSE (NSE, BSE, NASDAQ, NYSE, LSE)</small>
+    <NavigationShell activePath="/stocks">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-[#132B4F]">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-wider text-[#16C8D5] uppercase">
+              <Compass size={14} /> Canonical Identity &amp; Resolution
+            </div>
+            <h1 className="text-2xl md:text-3xl font-extrabold text-white mt-1">
+              Search &amp; Resolve Listed Companies
+            </h1>
+            <p className="text-xs text-slate-400 mt-1 max-w-2xl">
+              Search live across Indian (NSE, BSE) and Global exchanges (NASDAQ, NYSE). Deterministic symbol resolution, disambiguation checks, and direct dossier navigation.
+            </p>
           </div>
+        </div>
 
-          <div className="flex items-center gap-3">
-            <span className="tag text-[#39E85B] border-[#39E85B]/30 bg-[#39E85B]/10 flex items-center gap-1.5 font-semibold">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#39E85B] animate-pulse"></span>
-              LIVE MULTI-EXCHANGE
-            </span>
-            <Show when="signed-in">
-              <div className="flex items-center gap-2 pl-3 border-l border-[#132B4F]">
-                <UserButton />
-              </div>
-            </Show>
-            <Show when="signed-out">
-              <Link
-                href="/sign-in"
-                className="text-xs px-3 py-1.5 rounded-lg bg-[#132B4F] text-slate-200 hover:text-white transition font-medium"
-              >
-                Sign In
-              </Link>
-            </Show>
-          </div>
-        </header>
-
-        <div className="content">
-          <div className="eyebrow">GLOBAL EQUITY SEARCH & RESOLUTION</div>
-          <h1 className="text-3xl font-extrabold text-white mt-1">Research any listed company in the world.</h1>
-          <p className="subtitle mt-1">
-            Search live across Indian (NSE, BSE) and Global exchanges (NASDAQ, NYSE, LSE). Real-time quotes, audited filings, and deterministic financial metrics.
-          </p>
-
-          {/* Search Input Bar */}
-          <form className="search-row my-6" onSubmit={handleSubmit}>
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search any global or Indian ticker (e.g. RELIANCE, TCS, AAPL, NVDA, MSFT, TSLA)"
-              aria-label="Company search"
-              className="w-full px-4 py-3 rounded-xl bg-[#0B1D38] border border-[#132B4F] text-white placeholder-slate-500 text-sm focus:outline-none focus:border-[#087BEE]"
-            />
-            <button className="btn" type="submit" disabled={loading}>
-              <SearchIcon size={15} /> {loading ? "Resolving..." : "Search"}
+        {/* Search Input Bar */}
+        <form className="p-4 md:p-5 rounded-2xl bg-[#0B1D38] border border-[#132B4F] space-y-3" onSubmit={handleSubmit}>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <SearchIcon size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search any global or Indian ticker (e.g. RELIANCE, TCS, AAPL, NVDA, MSFT, TSLA)..."
+                aria-label="Company search"
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-[#07152B] border border-[#132B4F] text-white placeholder-slate-500 text-xs focus:outline-none focus:border-[#087BEE]"
+              />
+            </div>
+            <button
+              className="px-5 py-2.5 rounded-xl bg-[#087BEE] hover:bg-[#0769cc] text-white text-xs font-bold transition shadow-sm shrink-0"
+              type="submit"
+              disabled={loading}
+            >
+              {loading ? "Resolving..." : "Search"}
             </button>
-          </form>
+          </div>
 
           {/* Quick Filter Chips */}
-          <div className="flex items-center gap-2 mb-6">
-            <span className="text-xs text-slate-400 font-medium">Global Leaders:</span>
+          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#132B4F]/60">
+            <span className="text-[11px] font-mono text-slate-400 uppercase">Global Leaders:</span>
             {GLOBAL_CHIPS.map((chip) => (
               <button
                 key={chip}
+                type="button"
                 onClick={() => handleChipClick(chip)}
-                className="text-xs px-2.5 py-1 rounded-lg bg-[#0B1D38] border border-[#132B4F] text-slate-300 hover:text-white hover:border-[#087BEE] transition"
+                className="text-[11px] font-mono font-semibold px-2.5 py-1 rounded-lg bg-[#07152B] border border-[#132B4F] text-slate-300 hover:text-white hover:border-[#087BEE] transition"
               >
                 {chip}
               </button>
             ))}
           </div>
+        </form>
 
-          {error && <p className="notice mb-6">{error}</p>}
+        {error && <p className="p-4 rounded-xl bg-red-950/40 border border-red-800 text-[#F06464] text-xs">{error}</p>}
 
-          {/* Disambiguation Banner when multiple listings match */}
-          {resolution?.requires_disambiguation && (
-            <div className="my-6 p-5 rounded-2xl bg-[#0B1D38] border border-amber-500/40 space-y-3">
-              <div className="flex items-center gap-2 text-amber-400 text-sm font-bold">
-                <AlertTriangle size={18} />
-                <span>Multiple Listings Found — Disambiguation Required</span>
-              </div>
-              <p className="text-xs text-slate-300">
-                {resolution.resolution_message} MarketScope.io never auto-guesses ticker collisions. Please select your target listing:
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
-                {resolution.candidates.map((cand) => (
-                  <Link
-                    key={`${cand.symbol}-${cand.exchange_code}`}
-                    href={`/company/${cand.symbol.toLowerCase()}`}
-                    className="p-3.5 rounded-xl bg-[#07152B] border border-[#132B4F] hover:border-[#087BEE] transition flex items-center justify-between group"
-                  >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <strong className="text-white text-sm group-hover:text-[#16C8D5] transition">
-                          {cand.symbol}
-                        </strong>
-                        <span className="text-[11px] px-2 py-0.5 rounded bg-[#132B4F] text-slate-300">
-                          {cand.exchange_code}
-                        </span>
-                        <span className="text-[11px] px-2 py-0.5 rounded bg-blue-950/60 text-[#087BEE]">
-                          {cand.instrument_type}
-                        </span>
-                      </div>
-                      <div className="text-xs text-slate-400 mt-1">{cand.company_name}</div>
-                      {cand.isin && (
-                        <div className="text-[10px] text-slate-400 font-mono mt-0.5">ISIN: {cand.isin}</div>
-                      )}
+        {/* Disambiguation Banner when multiple listings match */}
+        {resolution?.requires_disambiguation && (
+          <div className="p-5 rounded-2xl bg-[#0B1D38] border border-amber-500/40 space-y-3">
+            <div className="flex items-center gap-2 text-amber-400 text-sm font-bold">
+              <AlertTriangle size={18} />
+              <span>Multiple Listings Found — Disambiguation Required</span>
+            </div>
+            <p className="text-xs text-slate-300">
+              {resolution.resolution_message} MarketScope.io never auto-guesses ticker collisions. Please select your target listing:
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+              {resolution.candidates.map((cand) => (
+                <Link
+                  key={`${cand.symbol}-${cand.exchange_code}`}
+                  href={`/company/${cand.symbol.toLowerCase()}`}
+                  className="p-3.5 rounded-xl bg-[#07152B] border border-[#132B4F] hover:border-[#087BEE] transition flex items-center justify-between group"
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <strong className="text-white text-sm group-hover:text-[#16C8D5] transition">
+                        {cand.symbol}
+                      </strong>
+                      <span className="text-[11px] px-2 py-0.5 rounded bg-[#132B4F] text-slate-300 font-mono">
+                        {cand.exchange_code}
+                      </span>
                     </div>
-                    <ArrowUpRight size={16} className="text-slate-500 group-hover:text-white transition" />
-                  </Link>
-                ))}
-              </div>
+                    <div className="text-xs text-slate-400 mt-1">{cand.company_name}</div>
+                    {cand.isin && (
+                      <div className="text-[10px] text-slate-400 font-mono mt-0.5">ISIN: {cand.isin}</div>
+                    )}
+                  </div>
+                  <ArrowUpRight size={16} className="text-slate-500 group-hover:text-white transition" />
+                </Link>
+              ))}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Single Resolution Success Confirmation */}
-          {resolution?.resolved && resolution.instrument && (
-            <div className="my-6 p-4 rounded-xl bg-[#0B1D38] border border-[#39E85B]/40 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-xs text-[#39E85B]">
-                <CheckCircle2 size={16} />
-                <span>{resolution.resolution_message}</span>
-              </div>
-              <Link
-                href={`/company/${resolution.instrument.symbol.toLowerCase()}`}
-                className="text-xs px-3 py-1.5 rounded-lg bg-[#39E85B] text-black font-semibold hover:bg-[#2ecc4c] transition"
-              >
-                Open Dossier →
-              </Link>
+        {/* Single Resolution Success Confirmation */}
+        {resolution?.resolved && resolution.instrument && (
+          <div className="p-4 rounded-xl bg-[#0B1D38] border border-[#39E85B]/40 flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2 text-[#39E85B]">
+              <CheckCircle2 size={16} />
+              <span>{resolution.resolution_message}</span>
             </div>
-          )}
+            <Link
+              href={`/company/${resolution.instrument.symbol.toLowerCase()}`}
+              className="px-3.5 py-1.5 rounded-lg bg-[#39E85B] text-black font-bold hover:bg-[#2ecc4c] transition"
+            >
+              Open Dossier →
+            </Link>
+          </div>
+        )}
 
-          {/* Standard Search Results List */}
-          <div className="section-head flex items-center justify-between mt-8 mb-4">
-            <h2>Available Instruments</h2>
-            <span className="tag amber">Synthetic demo data</span>
+        {/* Available Instruments Grid */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-mono font-bold uppercase text-slate-400">
+              Matching Instruments ({items.length})
+            </h2>
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#16C8D5]/15 text-[#16C8D5] border border-[#16C8D5]/30">
+              LIVE CANONICAL INDEX
+            </span>
           </div>
 
-          <div className="list space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {items.map((item) => (
               <Link
-                className="result p-4 rounded-xl bg-[#0B1D38] border border-[#132B4F] hover:border-[#087BEE] transition flex items-center justify-between group"
                 key={item.instrument_id}
                 href={`/company/${item.symbol.toLowerCase()}`}
+                className="p-4 rounded-xl bg-[#0B1D38] border border-[#132B4F] hover:border-[#087BEE] transition flex items-center justify-between group"
               >
                 <div>
                   <div className="flex items-center gap-2">
-                    <strong className="text-base text-white group-hover:text-[#16C8D5] transition">
+                    <strong className="text-sm text-white group-hover:text-[#16C8D5] transition">
                       {item.symbol}
                     </strong>
-                    <span className="text-xs px-2 py-0.5 rounded bg-[#132B4F] text-slate-300">
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#07152B] text-slate-300 border border-[#132B4F]">
                       {item.exchange}
                     </span>
                   </div>
-                  <div className="text-sm text-slate-300 mt-0.5">{item.company_name}</div>
-                  <small className="muted text-xs text-slate-400 block mt-1">
-                    Sector: {item.sector} · Base: {item.currency}
-                  </small>
+                  <div className="text-xs text-slate-300 mt-1">{item.company_name}</div>
+                  <div className="text-[11px] text-slate-400 font-mono mt-0.5">
+                    Sector: {item.sector} · Base Currency: {item.currency}
+                  </div>
                 </div>
-                <ArrowUpRight size={18} className="text-slate-500 group-hover:text-white transition" />
+                <ArrowUpRight size={16} className="text-slate-500 group-hover:text-white transition" />
               </Link>
             ))}
 
             {items.length === 0 && !loading && (
-              <div className="card subtitle p-8 rounded-xl bg-[#0B1D38] border border-dashed border-[#132B4F] text-center text-slate-400">
-                Search for an Indian equity symbol (e.g. RELIANCE, TCS, INFY) to inspect its dossier, deterministic metrics, and filing lineage.
+              <div className="col-span-2 p-12 rounded-2xl bg-[#0B1D38] border border-dashed border-[#132B4F] text-center text-slate-400 text-xs">
+                Search for an Indian or global equity symbol (e.g. RELIANCE, TCS, INFY, AAPL, NVDA) to inspect its dossier, deterministic metrics, and filing lineage.
               </div>
             )}
           </div>
-
-          <Footer />
         </div>
-      </main>
-    </div>
+      </div>
+    </NavigationShell>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense
+      fallback={
+        <NavigationShell activePath="/stocks">
+          <div className="flex items-center justify-center min-h-[50vh] text-slate-400">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-[#087BEE] border-t-transparent mr-2" />
+            Loading Search...
+          </div>
+        </NavigationShell>
+      }
+    >
+      <SearchContent />
+    </Suspense>
   );
 }

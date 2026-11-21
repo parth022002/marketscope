@@ -51,8 +51,22 @@ from app.domain.schemas import (
     AISynthesisResponse,
     DeepHealthResponse,
     ServiceComponentHealth,
+    TickerItem,
+    MarketOverviewResponse,
+    MarketHeatmapItem,
+    NewsItem,
+    NewsDetailResponse,
+    CalendarEventItem,
 )
 from app.engine.ai_synthesis import generate_ai_synthesis
+from app.engine.market_intelligence import (
+    get_global_ticker_feed,
+    get_market_overview_data,
+    get_market_heatmap_data,
+    get_news_feed,
+    get_news_detail,
+    get_calendar_events,
+)
 from app.core.rate_limiter import rate_limit_dependency
 from app.core.config import settings
 import time
@@ -1316,5 +1330,96 @@ def get_deep_health(db: Session = Depends(get_db)):
         timestamp=datetime.now(timezone.utc),
         components=components,
     )
+
+
+# ─── Master Redesign Endpoints: Ticker, Overview, News & Calendar ─────────────
+
+@router.get(
+    "/market/ticker",
+    response_model=list[TickerItem],
+    summary="Continuous Global Market Ticker Feed",
+    dependencies=[Depends(rate_limit_dependency)],
+)
+def get_market_ticker():
+    """Returns continuous multi-asset quotes for Indian & Global indices, commodities, currencies, and yields."""
+    return get_global_ticker_feed()
+
+
+@router.get(
+    "/market/overview",
+    response_model=MarketOverviewResponse,
+    summary="Unified Market Pulse & Overview Dashboard",
+    dependencies=[Depends(rate_limit_dependency)],
+)
+def get_market_overview():
+    """Returns market breadth, market mood sentiment, top companies, market movers, and sector performance."""
+    return get_market_overview_data()
+
+
+@router.get(
+    "/market/heatmap",
+    response_model=list[MarketHeatmapItem],
+    summary="Interactive Sector Heatmap Data",
+    dependencies=[Depends(rate_limit_dependency)],
+)
+def get_market_heatmap(
+    universe: str = Query("all", description="Filter universe: all, nse, us"),
+):
+    """Returns sector tree-map items sized by market cap and colored by percentage change."""
+    return get_market_heatmap_data(universe=universe)
+
+
+@router.get(
+    "/news",
+    response_model=list[NewsDetailResponse],
+    summary="News Intelligence Centre Feed",
+    dependencies=[Depends(rate_limit_dependency)],
+)
+def get_news(
+    category: str | None = Query(None, description="Category filter"),
+    priority: str | None = Query(None, description="Priority filter"),
+    country: str | None = Query(None, description="Country filter"),
+    query: str | None = Query(None, description="Search term or entity name"),
+    symbol: str | None = Query(None, description="Filter news mentioning ticker symbol"),
+):
+    """Returns categorized, relevance-ranked news articles with entity tags and impact levels."""
+    return get_news_feed(
+        category=category,
+        priority=priority,
+        country=country,
+        query=query,
+        symbol=symbol,
+    )
+
+
+@router.get(
+    "/news/{news_id}",
+    response_model=NewsDetailResponse,
+    summary="News Story Detail & Transmission Channels",
+    dependencies=[Depends(rate_limit_dependency)],
+)
+def get_news_story(news_id: str):
+    """Returns detailed news story breakdown with market transmission channels and corroborating sources."""
+    story = get_news_detail(news_id)
+    if not story:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"News story with ID '{news_id}' not found.",
+        )
+    return story
+
+
+@router.get(
+    "/calendar/events",
+    response_model=list[CalendarEventItem],
+    summary="Economic Indicators & Corporate Actions Calendar",
+    dependencies=[Depends(rate_limit_dependency)],
+)
+def get_calendar(
+    event_type: str | None = Query(None, description="Filter: MACRO, EARNINGS, CORPORATE_ACTION"),
+):
+    """Returns economic indicator release dates, corporate earnings calls, and corporate actions."""
+    return get_calendar_events(event_type=event_type)
+
 
 

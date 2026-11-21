@@ -390,3 +390,28 @@ h2 {
   .grid-2 { grid-template-columns: 1fr; }
   h1 { font-size: 26px; }
 }
+
+/* ─── Global Market Ticker Marquee Animation ────────────────────────────── */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: inline-flex;
+  width: max-content;
+  animation: marquee 45s linear infinite;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+

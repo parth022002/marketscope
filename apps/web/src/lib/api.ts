@@ -547,3 +547,211 @@ export async function getDeepHealth(): Promise<DeepHealthResponse> {
   return response.json();
 }
 
+// ─── Master Redesign: Ticker, Market Overview, News & Calendar ───────────────
+
+export type TickerItem = {
+  symbol: string;
+  name: string;
+  category: "indian_index" | "global_index" | "commodity" | "currency" | "yield";
+  exchange: string;
+  price: number;
+  change: number;
+  change_pct: number;
+  currency: string;
+  market_status: "OPEN" | "CLOSED" | "PRE_MARKET" | "AFTER_HOURS";
+  data_status: "LIVE" | "DELAYED_15M" | "EOD" | "SYNTHETIC";
+  sparkline: number[];
+};
+
+export type MarketBreadth = {
+  advances: number;
+  declines: number;
+  unchanged: number;
+  advance_decline_ratio: number;
+  total_turnover_cr: number;
+  exchange_status: string;
+};
+
+export type MarketMood = {
+  score: number;
+  label: "Extreme Fear" | "Fear" | "Neutral" | "Greed" | "Extreme Greed";
+  description: string;
+};
+
+export type TopCompanyItem = {
+  symbol: string;
+  name: string;
+  exchange: string;
+  sector: string;
+  price: number;
+  change_pct: number;
+  market_cap_cr: number;
+  volume: number;
+  currency: string;
+  is_global: boolean;
+};
+
+export type MarketMoverItem = {
+  symbol: string;
+  name: string;
+  exchange: string;
+  price: number;
+  change: number;
+  change_pct: number;
+  volume: number;
+  week52_high: number;
+  week52_low: number;
+  currency: string;
+};
+
+export type SectorPerformanceItem = {
+  sector: string;
+  change_pct: number;
+  market_cap_cr: number;
+  leading_stock: string;
+  lagging_stock: string;
+};
+
+export type MarketOverview = {
+  indian_market_status: string;
+  global_market_status: string;
+  as_of: string;
+  market_breadth: {
+    advances: number;
+    declines: number;
+    unchanged: number;
+    advance_decline_ratio: number;
+    total_turnover_cr: number;
+    exchange_status: string;
+  };
+  market_mood: MarketMood;
+  indices: TickerItem[];
+  commodities: TickerItem[];
+  currencies_and_yields: TickerItem[];
+  top_companies: TopCompanyItem[];
+  movers: {
+    top_gainers: MarketMoverItem[];
+    top_losers: MarketMoverItem[];
+    most_active: MarketMoverItem[];
+    week52_highs: MarketMoverItem[];
+  };
+  sector_performance: SectorPerformanceItem[];
+};
+
+export type MarketHeatmapItem = {
+  symbol: string;
+  name: string;
+  sector: string;
+  market_cap: number;
+  change_pct: number;
+  price: number;
+  currency: string;
+  exchange: string;
+};
+
+export type NewsEntity = {
+  type: string;
+  name: string;
+  symbol: string | null;
+};
+
+export type NewsTransmissionChannel = {
+  channel: string;
+  description: string;
+  impact_type: "confirmed" | "implication";
+};
+
+export type NewsItem = {
+  id: string;
+  title: string;
+  summary: string;
+  publisher: string;
+  published_at: string;
+  updated_at: string | null;
+  url: string;
+  category: string;
+  country: string;
+  priority: "BREAKING" | "CRITICAL" | "HIGH" | "MEDIUM" | "GENERAL" | "LOW";
+  relevance_score: number;
+  impact_level: "HIGH" | "MEDIUM" | "LOW";
+  entities: NewsEntity[];
+  corroborating_sources: string[];
+  cluster_id: string | null;
+  key_facts?: string[];
+  affected_instruments?: string[];
+  affected_sectors?: string[];
+  transmission_channels?: NewsTransmissionChannel[];
+  historical_context?: string | null;
+};
+
+export type CalendarEvent = {
+  id: string;
+  title: string;
+  event_type: "MACRO" | "EARNINGS" | "CORPORATE_ACTION";
+  country: string;
+  event_date: string;
+  importance: "HIGH" | "MEDIUM" | "LOW";
+  actual: string | null;
+  forecast: string | null;
+  previous: string | null;
+  symbol: string | null;
+  notes: string | null;
+};
+
+export async function getMarketTicker(): Promise<TickerItem[]> {
+  const response = await fetch(`${getApiBase()}/api/v1/market/ticker`, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to retrieve global market ticker feed");
+  return response.json();
+}
+
+export async function getMarketOverview(): Promise<MarketOverview> {
+  const response = await fetch(`${getApiBase()}/api/v1/market/overview`, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to retrieve market overview");
+  return response.json();
+}
+
+export async function getMarketHeatmap(universe: string = "all"): Promise<MarketHeatmapItem[]> {
+  const response = await fetch(`${getApiBase()}/api/v1/market/heatmap?universe=${encodeURIComponent(universe)}`, {
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Unable to retrieve market heatmap data");
+  return response.json();
+}
+
+export async function getNewsFeed(params?: {
+  category?: string;
+  priority?: string;
+  country?: string;
+  query?: string;
+  symbol?: string;
+}): Promise<NewsItem[]> {
+  const query = new URLSearchParams();
+  if (params?.category) query.set("category", params.category);
+  if (params?.priority) query.set("priority", params.priority);
+  if (params?.country) query.set("country", params.country);
+  if (params?.query) query.set("query", params.query);
+  if (params?.symbol) query.set("symbol", params.symbol);
+
+  const url = `${getApiBase()}/api/v1/news?${query.toString()}`;
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to retrieve news intelligence feed");
+  return response.json();
+}
+
+export async function getNewsStory(id: string): Promise<NewsItem> {
+  const response = await fetch(`${getApiBase()}/api/v1/news/${encodeURIComponent(id)}`, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to retrieve news story");
+  return response.json();
+}
+
+export async function getCalendarEvents(eventType?: string): Promise<CalendarEvent[]> {
+  const query = new URLSearchParams();
+  if (eventType) query.set("event_type", eventType);
+
+  const url = `${getApiBase()}/api/v1/calendar/events?${query.toString()}`;
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to retrieve calendar events");
+  return response.json();
+}
+
+

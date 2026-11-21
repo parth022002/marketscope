@@ -2,15 +2,29 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Show, UserButton } from "@clerk/nextjs";
-import { Filter, SlidersHorizontal, ArrowUpRight, CheckCircle2, RotateCcw } from "lucide-react";
-import { runScreener, getScreenerPresets, type ScreenerResultItem, type ScreenerPreset } from "@/lib/api";
-import Footer from "@/components/Footer";
-import BrandLogo from "@/components/BrandLogo";
+import {
+  Filter,
+  SlidersHorizontal,
+  ArrowUpRight,
+  CheckCircle2,
+  RotateCcw,
+  Layers,
+  Table as TableIcon,
+  Download,
+} from "lucide-react";
+import {
+  runScreener,
+  getScreenerPresets,
+  type ScreenerResultItem,
+  type ScreenerPreset,
+} from "@/lib/api";
+import NavigationShell from "@/components/NavigationShell";
+import MarketHeatmap from "@/components/MarketHeatmap";
 
 export default function ScreenerPage() {
   const [presets, setPresets] = useState<ScreenerPreset[]>([]);
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"table" | "heatmap">("table");
 
   // Filter States
   const [sector, setSector] = useState("");
@@ -101,226 +115,229 @@ export default function ScreenerPage() {
   }
 
   return (
-    <div className="shell">
-      {/* Sidebar Navigation */}
-      <aside className="sidebar">
-        <div>
-          <BrandLogo variant="full" height={38} />
-        </div>
-
-        <div>
-          <div className="nav-label">RESEARCH WORKSPACE</div>
-          <nav className="nav">
-            <Link href="/">Platform Overview</Link>
-            <Link href="/search">Discover Companies</Link>
-            <Link href="/compare">Peer Comparison</Link>
-            <Link className="active" href="/screener">
-              Fundamental Screener
-            </Link>
-            <Link href="/watchlists">Watchlists</Link>
-            <Link href="/workspace">Workspace &amp; Privacy</Link>
-          </nav>
-        </div>
-
-        <div className="sidebar-note">
-          Evidence-first research workspace. Strictly read-only; no trade execution or broker routing.
-        </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <main className="main">
-        <header className="topbar">
-          <div className="flex items-center gap-2">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-icon.png" alt="MarketScope" className="w-5 h-5 rounded object-contain shadow-sm" />
-            <strong>Fundamental Stock Screener</strong>
-            <small className="text-slate-400 font-mono">· PHASE 3 QUERY ENGINE</small>
+    <NavigationShell activePath="/screener">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-[#132B4F]">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-wider text-[#16C8D5] uppercase">
+              <Filter size={14} /> Fundamental Query Engine
+            </div>
+            <h1 className="text-2xl md:text-3xl font-extrabold text-white mt-1">
+              Fundamental Stock Screener
+            </h1>
+            <p className="text-xs text-slate-400 mt-1 max-w-2xl">
+              Filter Indian and global equities across canonical golden ratios, profitability metrics, and balance sheet solvency.
+            </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <span className="tag text-[#39E85B] border-[#39E85B]/30 bg-[#39E85B]/10">
-              Deterministic Filters
-            </span>
-            <Show when="signed-in">
-              <div className="flex items-center gap-2 pl-3 border-l border-[#132B4F]">
-                <UserButton />
-              </div>
-            </Show>
-            <Show when="signed-out">
-              <Link
-                href="/sign-in"
-                className="text-xs px-3 py-1.5 rounded-lg bg-[#132B4F] text-slate-200 hover:text-white transition font-medium"
-              >
-                Sign In
-              </Link>
-            </Show>
+          {/* View Mode Toggle */}
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#0B1D38] border border-[#132B4F] text-xs">
+            <button
+              onClick={() => setViewMode("table")}
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg font-semibold transition ${
+                viewMode === "table" ? "bg-[#087BEE] text-white" : "text-slate-400 hover:text-white"
+              }`}
+            >
+              <TableIcon size={13} /> Table View
+            </button>
+            <button
+              onClick={() => setViewMode("heatmap")}
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg font-semibold transition ${
+                viewMode === "heatmap" ? "bg-[#087BEE] text-white" : "text-slate-400 hover:text-white"
+              }`}
+            >
+              <Layers size={13} /> Heatmap View
+            </button>
           </div>
-        </header>
+        </div>
 
-        <div className="content">
-          <div className="eyebrow flex items-center gap-1.5">
-            <Filter size={14} className="text-[#39E85B]" /> Quantitative Fundamental Screening
-          </div>
-          <h1 className="text-3xl font-extrabold text-white mt-1">
-            Filter the Indian Equity Universe
-          </h1>
-          <p className="subtitle mt-1">
-            Screen companies using verified balance sheet, return on capital, and valuation thresholds.
-          </p>
+        {/* Thematic Presets */}
+        <div className="space-y-2">
+          <span className="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider block">
+            PRE-BUILT THEMATIC SCREENS (TICKERTAPE BENCHMARK)
+          </span>
 
-          {/* Screener Presets */}
-          <div className="my-6">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2.5">
-              Curated Screening Presets:
-            </span>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {presets.map((preset) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {presets.map((preset) => {
+              const isSelected = activePresetId === preset.id;
+              return (
                 <button
                   key={preset.id}
                   onClick={() => applyPreset(preset)}
-                  className={`p-4 rounded-xl text-left border transition ${
-                    activePresetId === preset.id
-                      ? "bg-[#0B1D38] border-[#087BEE] shadow-lg ring-1 ring-[#087BEE]"
-                      : "bg-[#0B1D38]/60 border-[#132B4F] hover:border-slate-500"
+                  className={`p-3.5 rounded-xl border text-left transition flex flex-col justify-between ${
+                    isSelected
+                      ? "bg-[#087BEE]/15 border-[#087BEE] text-white shadow-sm"
+                      : "bg-[#0B1D38] border-[#132B4F] text-slate-300 hover:border-slate-500"
                   }`}
                 >
-                  <div className="flex items-center justify-between">
-                    <strong className="text-sm text-white font-bold">{preset.name}</strong>
-                    {activePresetId === preset.id && <CheckCircle2 size={15} className="text-[#087BEE]" />}
+                  <div className="flex items-start justify-between w-full">
+                    <span className="font-bold text-xs">{preset.name}</span>
+                    {isSelected && <CheckCircle2 size={14} className="text-[#16C8D5] shrink-0" />}
                   </div>
-                  <p className="text-xs text-slate-400 mt-1 leading-relaxed">{preset.description}</p>
+                  <p className="text-[11px] text-slate-400 mt-1 line-clamp-2 leading-relaxed">
+                    {preset.description}
+                  </p>
                 </button>
-              ))}
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Custom Quantitative Sliders Form */}
+        <form onSubmit={handleFilterSubmit} className="p-5 rounded-2xl bg-[#0B1D38] border border-[#132B4F] space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-[#132B4F]">
+            <span className="text-xs font-mono font-bold uppercase text-white flex items-center gap-1.5">
+              <SlidersHorizontal size={14} className="text-[#087BEE]" /> Custom Metric Criteria
+            </span>
+            <button
+              type="button"
+              onClick={handleReset}
+              className="text-xs text-slate-400 hover:text-white flex items-center gap-1 font-semibold"
+            >
+              <RotateCcw size={12} /> Reset Filters
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3.5">
+            <div>
+              <label className="text-[11px] font-mono font-semibold text-slate-400 block mb-1">
+                SECTOR
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. Energy, IT"
+                value={sector}
+                onChange={(e) => setSector(e.target.value)}
+                className="w-full bg-[#07152B] border border-[#132B4F] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-[#087BEE]"
+              />
+            </div>
+
+            <div>
+              <label className="text-[11px] font-mono font-semibold text-slate-400 block mb-1">
+                MIN ROE (%)
+              </label>
+              <input
+                type="number"
+                placeholder="e.g. 15"
+                value={minRoe}
+                onChange={(e) => setMinRoe(e.target.value === "" ? "" : Number(e.target.value))}
+                className="w-full bg-[#07152B] border border-[#132B4F] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-[#087BEE]"
+              />
+            </div>
+
+            <div>
+              <label className="text-[11px] font-mono font-semibold text-slate-400 block mb-1">
+                MAX P/E RATIO
+              </label>
+              <input
+                type="number"
+                placeholder="e.g. 30"
+                value={maxPe}
+                onChange={(e) => setMaxPe(e.target.value === "" ? "" : Number(e.target.value))}
+                className="w-full bg-[#07152B] border border-[#132B4F] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-[#087BEE]"
+              />
+            </div>
+
+            <div>
+              <label className="text-[11px] font-mono font-semibold text-slate-400 block mb-1">
+                MAX DEBT / EQUITY
+              </label>
+              <input
+                type="number"
+                step="0.1"
+                placeholder="e.g. 1.0"
+                value={maxDebtEquity}
+                onChange={(e) => setMaxDebtEquity(e.target.value === "" ? "" : Number(e.target.value))}
+                className="w-full bg-[#07152B] border border-[#132B4F] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-[#087BEE]"
+              />
+            </div>
+
+            <div>
+              <label className="text-[11px] font-mono font-semibold text-slate-400 block mb-1">
+                MIN OPM (%)
+              </label>
+              <input
+                type="number"
+                placeholder="e.g. 12"
+                value={minOpm}
+                onChange={(e) => setMinOpm(e.target.value === "" ? "" : Number(e.target.value))}
+                className="w-full bg-[#07152B] border border-[#132B4F] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-[#087BEE]"
+              />
             </div>
           </div>
 
-          {/* Interactive Filter Form */}
-          <form onSubmit={handleFilterSubmit} className="my-6 p-5 rounded-2xl bg-[#0B1D38] border border-[#132B4F] space-y-4">
+          <div className="pt-2 flex justify-end">
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-4 py-2 rounded-xl bg-[#087BEE] hover:bg-[#0769cc] text-white text-xs font-bold transition shadow-sm"
+            >
+              {loading ? "Running Query..." : "Execute Screen"}
+            </button>
+          </div>
+        </form>
+
+        {/* Results View (Table or Heatmap) */}
+        {viewMode === "heatmap" ? (
+          <div className="space-y-3">
+            <MarketHeatmap initialUniverse="all" />
+          </div>
+        ) : (
+          <div className="p-5 rounded-2xl bg-[#0B1D38] border border-[#132B4F] overflow-x-auto">
             <div className="flex items-center justify-between pb-3 border-b border-[#132B4F]">
-              <div className="text-xs font-bold uppercase tracking-wider text-[#16C8D5] flex items-center gap-1.5">
-                <SlidersHorizontal size={14} /> Custom Fundamental Parameters
-              </div>
-              <button
-                type="button"
-                onClick={handleReset}
-                className="text-xs text-slate-400 hover:text-white flex items-center gap-1"
-              >
-                <RotateCcw size={12} /> Reset Filters
-              </button>
+              <span className="text-xs font-mono font-semibold text-slate-400">
+                Found <strong>{results.length}</strong> matching companies
+              </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Min ROE (%)</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  value={minRoe}
-                  onChange={(e) => setMinRoe(e.target.value === "" ? "" : Number(e.target.value))}
-                  placeholder="e.g. 15.0"
-                  className="w-full px-3 py-2 rounded-lg bg-[#07152B] border border-[#132B4F] text-white text-xs focus:outline-none focus:border-[#087BEE]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Max P/E Multiple</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  value={maxPe}
-                  onChange={(e) => setMaxPe(e.target.value === "" ? "" : Number(e.target.value))}
-                  placeholder="e.g. 35.0"
-                  className="w-full px-3 py-2 rounded-lg bg-[#07152B] border border-[#132B4F] text-white text-xs focus:outline-none focus:border-[#087BEE]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Max Debt / Equity (x)</label>
-                <input
-                  type="number"
-                  step="0.05"
-                  value={maxDebtEquity}
-                  onChange={(e) => setMaxDebtEquity(e.target.value === "" ? "" : Number(e.target.value))}
-                  placeholder="e.g. 0.50"
-                  className="w-full px-3 py-2 rounded-lg bg-[#07152B] border border-[#132B4F] text-white text-xs focus:outline-none focus:border-[#087BEE]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Min Operating Margin (%)</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  value={minOpm}
-                  onChange={(e) => setMinOpm(e.target.value === "" ? "" : Number(e.target.value))}
-                  placeholder="e.g. 15.0"
-                  className="w-full px-3 py-2 rounded-lg bg-[#07152B] border border-[#132B4F] text-white text-xs focus:outline-none focus:border-[#087BEE]"
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-2">
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-5 py-2 rounded-lg bg-[#087BEE] hover:bg-[#0769cc] text-white text-xs font-semibold transition"
-              >
-                {loading ? "Running Screen..." : "Apply Screen Filters"}
-              </button>
-            </div>
-          </form>
-
-          {error && <div className="p-4 rounded-xl bg-red-950/40 border border-red-800/60 text-[#F06464] text-xs">{error}</div>}
-
-          {/* Results Table */}
-          <div className="section-head flex items-center justify-between mt-8 mb-4">
-            <h2>Matching Candidates ({results.length})</h2>
-            <span className="tag amber">Ind AS Verified Universe</span>
-          </div>
-
-          <div className="overflow-x-auto rounded-2xl border border-[#132B4F] bg-[#07152B] shadow-2xl">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-[#0B1D38] border-b border-[#132B4F] text-xs uppercase tracking-wider text-slate-400">
-                <tr>
-                  <th className="py-3 px-4">Company / Symbol</th>
-                  <th className="py-3 px-4">Sector</th>
-                  <th className="py-3 px-4 text-right">Market Cap</th>
-                  <th className="py-3 px-4 text-right">P/E Multiple</th>
-                  <th className="py-3 px-4 text-right">ROE (%)</th>
-                  <th className="py-3 px-4 text-right">Operating Margin</th>
-                  <th className="py-3 px-4 text-right">Debt / Equity</th>
-                  <th className="py-3 px-4 text-center">Action</th>
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-[#132B4F] text-slate-400 font-mono text-[11px]">
+                  <th className="py-3 px-3">SYMBOL &amp; COMPANY</th>
+                  <th className="py-3 px-3">SECTOR</th>
+                  <th className="py-3 px-3 text-right">MARKET CAP</th>
+                  <th className="py-3 px-3 text-right">P/E RATIO</th>
+                  <th className="py-3 px-3 text-right">ROE (%)</th>
+                  <th className="py-3 px-3 text-right">OPM (%)</th>
+                  <th className="py-3 px-3 text-right">DEBT/EQUITY</th>
+                  <th className="py-3 px-3 text-center">ACTION</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#132B4F]/60 text-slate-300">
+              <tbody className="divide-y divide-[#132B4F]/50">
                 {results.map((item) => (
-                  <tr key={item.symbol} className="hover:bg-[#0B1D38]/50 transition">
-                    <td className="py-3.5 px-4">
-                      <strong className="text-white block text-sm">{item.symbol}</strong>
-                      <span className="text-xs text-slate-400">{item.company_name}</span>
-                    </td>
-                    <td className="py-3.5 px-4 text-xs text-slate-300">{item.sector}</td>
-                    <td className="py-3.5 px-4 text-right tabular-nums text-white font-medium">
-                      ₹{item.market_cap.toLocaleString("en-IN")} Cr
-                    </td>
-                    <td className="py-3.5 px-4 text-right tabular-nums">
-                      {item.pe_ratio !== null ? `${item.pe_ratio}x` : "—"}
-                    </td>
-                    <td className="py-3.5 px-4 text-right tabular-nums font-bold text-[#39E85B]">
-                      {item.roe}%
-                    </td>
-                    <td className="py-3.5 px-4 text-right tabular-nums text-slate-200">
-                      {item.operating_margin}%
-                    </td>
-                    <td className="py-3.5 px-4 text-right tabular-nums text-slate-200">
-                      {item.debt_to_equity}x
-                    </td>
-                    <td className="py-3.5 px-4 text-center">
+                  <tr key={item.symbol} className="hover:bg-[#102547]/50 transition group">
+                    <td className="py-3 px-3">
                       <Link
                         href={`/company/${item.symbol.toLowerCase()}`}
-                        className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-md bg-[#132B4F] text-[#16C8D5] hover:text-white transition font-medium"
+                        className="font-bold text-white group-hover:text-[#16C8D5] flex items-center gap-1.5"
                       >
-                        Inspect <ArrowUpRight size={12} />
+                        {item.symbol}
+                      </Link>
+                      <span className="text-[11px] text-slate-400">{item.company_name}</span>
+                    </td>
+                    <td className="py-3 px-3 text-slate-300 text-[11px]">{item.sector}</td>
+                    <td className="py-3 px-3 text-right font-mono font-medium text-white">
+                      ₹{item.market_cap.toLocaleString("en-IN")} Cr
+                    </td>
+                    <td className="py-3 px-3 text-right font-mono text-slate-200">
+                      {item.pe_ratio !== null ? `${item.pe_ratio}x` : "—"}
+                    </td>
+                    <td className="py-3 px-3 text-right font-mono font-bold text-[#39E85B]">
+                      {item.roe}%
+                    </td>
+                    <td className="py-3 px-3 text-right font-mono text-slate-200">
+                      {item.operating_margin}%
+                    </td>
+                    <td className="py-3 px-3 text-right font-mono text-slate-200">
+                      {item.debt_to_equity}x
+                    </td>
+                    <td className="py-3 px-3 text-center">
+                      <Link
+                        href={`/company/${item.symbol.toLowerCase()}`}
+                        className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-md bg-[#087BEE]/15 hover:bg-[#087BEE] text-white transition font-semibold"
+                      >
+                        Inspect <ArrowUpRight size={11} />
                       </Link>
                     </td>
                   </tr>
@@ -328,7 +345,7 @@ export default function ScreenerPage() {
 
                 {results.length === 0 && !loading && (
                   <tr>
-                    <td colSpan={8} className="py-12 text-center text-slate-400 text-sm">
+                    <td colSpan={8} className="py-12 text-center text-slate-400 text-xs">
                       No companies match the specified criteria. Try loosening the filter thresholds.
                     </td>
                   </tr>
@@ -336,10 +353,8 @@ export default function ScreenerPage() {
               </tbody>
             </table>
           </div>
-
-          <Footer />
-        </div>
-      </main>
-    </div>
+        )}
+      </div>
+    </NavigationShell>
   );
 }

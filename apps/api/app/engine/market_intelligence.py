@@ -1,0 +1,1071 @@
+import uuid
+from datetime import datetime, timezone, timedelta
+from app.domain.schemas import (
+    TickerItem,
+    MarketBreadth,
+    MarketMood,
+    TopCompanyItem,
+    MarketMoverItem,
+    SectorPerformanceItem,
+    MarketOverviewResponse,
+    MarketHeatmapItem,
+    NewsEntity,
+    NewsItem,
+    NewsDetailResponse,
+    TransmissionChannel,
+    CalendarEventItem,
+)
+
+# ─── 1. Canonical Global Ticker Universe ──────────────────────────────────────
+
+CANONICAL_TICKER_ITEMS: list[TickerItem] = [
+    # Indian Indices
+    TickerItem(
+        symbol="NIFTY 50",
+        name="Nifty 50 Index",
+        category="indian_index",
+        exchange="NSE",
+        price=24480.20,
+        change=112.40,
+        change_pct=0.46,
+        currency="INR",
+        market_status="OPEN",
+        data_status="LIVE",
+        sparkline=[24360, 24390, 24410, 24450, 24480.20],
+    ),
+    TickerItem(
+        symbol="SENSEX",
+        name="BSE SENSEX 30",
+        category="indian_index",
+        exchange="BSE",
+        price=80365.10,
+        change=320.15,
+        change_pct=0.40,
+        currency="INR",
+        market_status="OPEN",
+        data_status="LIVE",
+        sparkline=[80050, 80120, 80210, 80290, 80365.10],
+    ),
+    TickerItem(
+        symbol="NIFTY BANK",
+        name="Nifty Bank Index",
+        category="indian_index",
+        exchange="NSE",
+        price=52180.50,
+        change=245.80,
+        change_pct=0.47,
+        currency="INR",
+        market_status="OPEN",
+        data_status="LIVE",
+        sparkline=[51920, 52010, 52090, 52140, 52180.50],
+    ),
+    TickerItem(
+        symbol="NIFTY IT",
+        name="Nifty IT Sector",
+        category="indian_index",
+        exchange="NSE",
+        price=41920.00,
+        change=-185.30,
+        change_pct=-0.44,
+        currency="INR",
+        market_status="OPEN",
+        data_status="LIVE",
+        sparkline=[42150, 42100, 42020, 41960, 41920.00],
+    ),
+    TickerItem(
+        symbol="NIFTY MIDCAP 100",
+        name="Nifty Midcap 100",
+        category="indian_index",
+        exchange="NSE",
+        price=56840.10,
+        change=412.30,
+        change_pct=0.73,
+        currency="INR",
+        market_status="OPEN",
+        data_status="LIVE",
+        sparkline=[56420, 56550, 56680, 56790, 56840.10],
+    ),
+    TickerItem(
+        symbol="BSE 500",
+        name="S&P BSE 500",
+        category="indian_index",
+        exchange="BSE",
+        price=37410.25,
+        change=188.40,
+        change_pct=0.51,
+        currency="INR",
+        market_status="OPEN",
+        data_status="LIVE",
+        sparkline=[37210, 37280, 37340, 37390, 37410.25],
+    ),
+    # US & Global Benchmarks
+    TickerItem(
+        symbol="NASDAQ 100",
+        name="NASDAQ 100 Futures",
+        category="global_index",
+        exchange="NASDAQ",
+        price=20890.40,
+        change=142.60,
+        change_pct=0.69,
+        currency="USD",
+        market_status="PRE_MARKET",
+        data_status="DELAYED_15M",
+        sparkline=[20710, 20750, 20810, 20860, 20890.40],
+    ),
+    TickerItem(
+        symbol="S&P 500",
+        name="S&P 500 Index",
+        category="global_index",
+        exchange="NYSE",
+        price=5910.80,
+        change=22.40,
+        change_pct=0.38,
+        currency="USD",
+        market_status="PRE_MARKET",
+        data_status="DELAYED_15M",
+        sparkline=[5880, 5890, 5900, 5905, 5910.80],
+    ),
+    TickerItem(
+        symbol="DOW JONES",
+        name="Dow Jones Industrial",
+        category="global_index",
+        exchange="NYSE",
+        price=43870.20,
+        change=-35.10,
+        change_pct=-0.08,
+        currency="USD",
+        market_status="PRE_MARKET",
+        data_status="DELAYED_15M",
+        sparkline=[43920, 43900, 43880, 43860, 43870.20],
+    ),
+    TickerItem(
+        symbol="FTSE 100",
+        name="FTSE 100 Index",
+        category="global_index",
+        exchange="LSE",
+        price=8280.15,
+        change=48.20,
+        change_pct=0.59,
+        currency="GBP",
+        market_status="OPEN",
+        data_status="DELAYED_15M",
+        sparkline=[8230, 8245, 8260, 8275, 8280.15],
+    ),
+    TickerItem(
+        symbol="DAX 40",
+        name="DAX Index Germany",
+        category="global_index",
+        exchange="XETRA",
+        price=19420.50,
+        change=92.30,
+        change_pct=0.48,
+        currency="EUR",
+        market_status="OPEN",
+        data_status="DELAYED_15M",
+        sparkline=[19320, 19350, 19380, 19410, 19420.50],
+    ),
+    TickerItem(
+        symbol="NIKKEI 225",
+        name="Nikkei 225 Tokyo",
+        category="global_index",
+        exchange="TSE",
+        price=38640.20,
+        change=-120.40,
+        change_pct=-0.31,
+        currency="JPY",
+        market_status="CLOSED",
+        data_status="EOD",
+        sparkline=[38820, 38780, 38710, 38660, 38640.20],
+    ),
+    # Commodities
+    TickerItem(
+        symbol="BRENT CRUDE",
+        name="Brent Crude Oil",
+        category="commodity",
+        exchange="ICE",
+        price=74.65,
+        change=1.25,
+        change_pct=1.70,
+        currency="USD",
+        market_status="OPEN",
+        data_status="LIVE",
+        sparkline=[73.20, 73.60, 74.00, 74.40, 74.65],
+    ),
+    TickerItem(
+        symbol="WTI CRUDE",
+        name="Crude Oil WTI",
+        category="commodity",
+        exchange="NYMEX",
+        price=70.35,
+        change=1.15,
+        change_pct=1.66,
+        currency="USD",
+        market_status="OPEN",
+        data_status="LIVE",
+        sparkline=[69.10, 69.45, 69.85, 70.15, 70.35],
+    ),
+    TickerItem(
+        symbol="GOLD SPOT",
+        name="Gold Spot (oz)",
+        category="commodity",
+        exchange="COMEX",
+        price=2684.50,
+        change=-8.20,
+        change_pct=-0.30,
+        currency="USD",
+        market_status="OPEN",
+        data_status="LIVE",
+        sparkline=[2695, 2692, 2689, 2686, 2684.50],
+    ),
+    TickerItem(
+        symbol="GOLD MCX",
+        name="Gold 24K (10g)",
+        category="commodity",
+        exchange="MCX",
+        price=77450.00,
+        change=180.00,
+        change_pct=0.23,
+        currency="INR",
+        market_status="OPEN",
+        data_status="LIVE",
+        sparkline=[77210, 77290, 77360, 77410, 77450.00],
+    ),
+    TickerItem(
+        symbol="SILVER",
+        name="Silver Spot (oz)",
+        category="commodity",
+        exchange="COMEX",
+        price=31.45,
+        change=0.35,
+        change_pct=1.13,
+        currency="USD",
+        market_status="OPEN",
+        data_status="LIVE",
+        sparkline=[31.05, 31.18, 31.28, 31.39, 31.45],
+    ),
+    TickerItem(
+        symbol="NATURAL GAS",
+        name="Natural Gas Henry Hub",
+        category="commodity",
+        exchange="NYMEX",
+        price=2.98,
+        change=0.06,
+        change_pct=2.05,
+        currency="USD",
+        market_status="OPEN",
+        data_status="LIVE",
+        sparkline=[2.91, 2.93, 2.95, 2.97, 2.98],
+    ),
+    # Currencies & Yields
+    TickerItem(
+        symbol="USD/INR",
+        name="US Dollar / Indian Rupee",
+        category="currency",
+        exchange="FOREX",
+        price=84.42,
+        change=0.08,
+        change_pct=0.09,
+        currency="INR",
+        market_status="OPEN",
+        data_status="LIVE",
+        sparkline=[84.32, 84.36, 84.39, 84.41, 84.42],
+    ),
+    TickerItem(
+        symbol="EUR/INR",
+        name="Euro / Indian Rupee",
+        category="currency",
+        exchange="FOREX",
+        price=89.15,
+        change=-0.12,
+        change_pct=-0.13,
+        currency="INR",
+        market_status="OPEN",
+        data_status="LIVE",
+        sparkline=[89.32, 89.28, 89.22, 89.18, 89.15],
+    ),
+    TickerItem(
+        symbol="DXY",
+        name="US Dollar Index",
+        category="currency",
+        exchange="ICE",
+        price=106.85,
+        change=0.22,
+        change_pct=0.21,
+        currency="USD",
+        market_status="OPEN",
+        data_status="LIVE",
+        sparkline=[106.55, 106.65, 106.74, 106.81, 106.85],
+    ),
+    TickerItem(
+        symbol="US 10Y YIELD",
+        name="US 10-Year Treasury",
+        category="yield",
+        exchange="BOND",
+        price=4.42,
+        change=0.03,
+        change_pct=0.68,
+        currency="USD",
+        market_status="OPEN",
+        data_status="LIVE",
+        sparkline=[4.38, 4.39, 4.40, 4.41, 4.42],
+    ),
+    TickerItem(
+        symbol="INDIA 10Y YIELD",
+        name="India 10-Year Benchmark G-Sec",
+        category="yield",
+        exchange="RBI",
+        price=6.82,
+        change=-0.01,
+        change_pct=-0.15,
+        currency="INR",
+        market_status="OPEN",
+        data_status="LIVE",
+        sparkline=[6.84, 6.83, 6.83, 6.82, 6.82],
+    ),
+]
+
+
+# ─── 2. Top Companies (Indian Blue Chips & Global Tech Leaders) ───────────────
+
+CANONICAL_TOP_COMPANIES: list[TopCompanyItem] = [
+    # Indian Corporates
+    TopCompanyItem(
+        symbol="RELIANCE",
+        name="Reliance Industries Limited",
+        exchange="NSE",
+        sector="Energy & Conglomerate",
+        price=2942.50,
+        change_pct=1.45,
+        market_cap_cr=1991200.0,
+        volume=6420000,
+        currency="INR",
+        is_global=False,
+    ),
+    TopCompanyItem(
+        symbol="TCS",
+        name="Tata Consultancy Services",
+        exchange="NSE",
+        sector="Information Technology",
+        price=4125.80,
+        change_pct=-0.38,
+        market_cap_cr=1492500.0,
+        volume=2180000,
+        currency="INR",
+        is_global=False,
+    ),
+    TopCompanyItem(
+        symbol="HDFCBANK",
+        name="HDFC Bank Limited",
+        exchange="NSE",
+        sector="Financial Services",
+        price=1748.20,
+        change_pct=0.82,
+        market_cap_cr=1334000.0,
+        volume=14200000,
+        currency="INR",
+        is_global=False,
+    ),
+    TopCompanyItem(
+        symbol="INFY",
+        name="Infosys Limited",
+        exchange="NSE",
+        sector="Information Technology",
+        price=1874.15,
+        change_pct=-0.62,
+        market_cap_cr=778400.0,
+        volume=4850000,
+        currency="INR",
+        is_global=False,
+    ),
+    TopCompanyItem(
+        symbol="ICICIBANK",
+        name="ICICI Bank Limited",
+        exchange="NSE",
+        sector="Financial Services",
+        price=1264.40,
+        change_pct=1.12,
+        market_cap_cr=889200.0,
+        volume=8900000,
+        currency="INR",
+        is_global=False,
+    ),
+    TopCompanyItem(
+        symbol="BHARTIARTL",
+        name="Bharti Airtel Limited",
+        exchange="NSE",
+        sector="Telecommunications",
+        price=1582.00,
+        change_pct=0.94,
+        market_cap_cr=895400.0,
+        volume=3200000,
+        currency="INR",
+        is_global=False,
+    ),
+    TopCompanyItem(
+        symbol="TATAMOTORS",
+        name="Tata Motors Limited",
+        exchange="NSE",
+        sector="Automobile",
+        price=812.30,
+        change_pct=2.15,
+        market_cap_cr=298500.0,
+        volume=9840000,
+        currency="INR",
+        is_global=False,
+    ),
+    TopCompanyItem(
+        symbol="LT",
+        name="Larsen & Toubro Limited",
+        exchange="NSE",
+        sector="Infrastructure & Engineering",
+        price=3680.00,
+        change_pct=1.05,
+        market_cap_cr=505800.0,
+        volume=1920000,
+        currency="INR",
+        is_global=False,
+    ),
+    # Global Titans
+    TopCompanyItem(
+        symbol="NVDA",
+        name="NVIDIA Corporation",
+        exchange="NASDAQ",
+        sector="Semiconductors",
+        price=146.50,
+        change_pct=2.85,
+        market_cap_cr=3580000.0,  # Scaled for USD representation in billion equivalent
+        volume=42500000,
+        currency="USD",
+        is_global=True,
+    ),
+    TopCompanyItem(
+        symbol="AAPL",
+        name="Apple Inc.",
+        exchange="NASDAQ",
+        sector="Consumer Electronics",
+        price=228.40,
+        change_pct=0.42,
+        market_cap_cr=3470000.0,
+        volume=38200000,
+        currency="USD",
+        is_global=True,
+    ),
+    TopCompanyItem(
+        symbol="MSFT",
+        name="Microsoft Corporation",
+        exchange="NASDAQ",
+        sector="Software & Cloud",
+        price=424.10,
+        change_pct=0.74,
+        market_cap_cr=3150000.0,
+        volume=18400000,
+        currency="USD",
+        is_global=True,
+    ),
+    TopCompanyItem(
+        symbol="GOOGL",
+        name="Alphabet Inc.",
+        exchange="NASDAQ",
+        sector="Internet & AI",
+        price=178.60,
+        change_pct=1.18,
+        market_cap_cr=2220000.0,
+        volume=16900000,
+        currency="USD",
+        is_global=True,
+    ),
+]
+
+
+# ─── 3. Market Movers ─────────────────────────────────────────────────────────
+
+CANONICAL_MOVERS: dict[str, list[MarketMoverItem]] = {
+    "top_gainers": [
+        MarketMoverItem(
+            symbol="TATAMOTORS",
+            name="Tata Motors Ltd",
+            exchange="NSE",
+            price=812.30,
+            change=17.10,
+            change_pct=2.15,
+            volume=9840000,
+            week52_high=1179.0,
+            week52_low=665.0,
+        ),
+        MarketMoverItem(
+            symbol="RELIANCE",
+            name="Reliance Industries",
+            exchange="NSE",
+            price=2942.50,
+            change=42.10,
+            change_pct=1.45,
+            volume=6420000,
+            week52_high=3217.9,
+            week52_low=2221.0,
+        ),
+        MarketMoverItem(
+            symbol="ICICIBANK",
+            name="ICICI Bank Ltd",
+            exchange="NSE",
+            price=1264.40,
+            change=14.00,
+            change_pct=1.12,
+            volume=8900000,
+            week52_high=1310.0,
+            week52_low=915.0,
+        ),
+        MarketMoverItem(
+            symbol="LT",
+            name="Larsen & Toubro",
+            exchange="NSE",
+            price=3680.00,
+            change=38.20,
+            change_pct=1.05,
+            volume=1920000,
+            week52_high=3919.0,
+            week52_low=2900.0,
+        ),
+    ],
+    "top_losers": [
+        MarketMoverItem(
+            symbol="INFY",
+            name="Infosys Ltd",
+            exchange="NSE",
+            price=1874.15,
+            change=-11.70,
+            change_pct=-0.62,
+            volume=4850000,
+            week52_high=1991.0,
+            week52_low=1358.0,
+        ),
+        MarketMoverItem(
+            symbol="TCS",
+            name="Tata Consultancy",
+            exchange="NSE",
+            price=4125.80,
+            change=-15.70,
+            change_pct=-0.38,
+            volume=2180000,
+            week52_high=4585.0,
+            week52_low=3313.0,
+        ),
+        MarketMoverItem(
+            symbol="HINDUNILVR",
+            name="Hindustan Unilever",
+            exchange="NSE",
+            price=2410.50,
+            change=-8.20,
+            change_pct=-0.34,
+            volume=1420000,
+            week52_high=3035.0,
+            week52_low=2172.0,
+        ),
+    ],
+    "most_active": [
+        MarketMoverItem(
+            symbol="HDFCBANK",
+            name="HDFC Bank Ltd",
+            exchange="NSE",
+            price=1748.20,
+            change=14.20,
+            change_pct=0.82,
+            volume=14200000,
+            week52_high=1794.0,
+            week52_low=1363.0,
+        ),
+        MarketMoverItem(
+            symbol="TATAMOTORS",
+            name="Tata Motors Ltd",
+            exchange="NSE",
+            price=812.30,
+            change=17.10,
+            change_pct=2.15,
+            volume=9840000,
+            week52_high=1179.0,
+            week52_low=665.0,
+        ),
+        MarketMoverItem(
+            symbol="ICICIBANK",
+            name="ICICI Bank Ltd",
+            exchange="NSE",
+            price=1264.40,
+            change=14.00,
+            change_pct=1.12,
+            volume=8900000,
+            week52_high=1310.0,
+            week52_low=915.0,
+        ),
+    ],
+    "week52_highs": [
+        MarketMoverItem(
+            symbol="BHARTIARTL",
+            name="Bharti Airtel",
+            exchange="NSE",
+            price=1582.00,
+            change=14.80,
+            change_pct=0.94,
+            volume=3200000,
+            week52_high=1598.0,
+            week52_low=948.0,
+        ),
+        MarketMoverItem(
+            symbol="SUNPHARMA",
+            name="Sun Pharma Industries",
+            exchange="NSE",
+            price=1894.00,
+            change=21.00,
+            change_pct=1.12,
+            volume=1640000,
+            week52_high=1910.0,
+            week52_low=1210.0,
+        ),
+    ],
+}
+
+
+# ─── 4. Sector Performance ───────────────────────────────────────────────────
+
+CANONICAL_SECTORS: list[SectorPerformanceItem] = [
+    SectorPerformanceItem(
+        sector="Energy & Oil",
+        change_pct=1.42,
+        market_cap_cr=2650000.0,
+        leading_stock="RELIANCE (+1.45%)",
+        lagging_stock="BPCL (-0.25%)",
+    ),
+    SectorPerformanceItem(
+        sector="Automobile",
+        change_pct=1.18,
+        market_cap_cr=1420000.0,
+        leading_stock="TATAMOTORS (+2.15%)",
+        lagging_stock="BAJAJ-AUTO (+0.12%)",
+    ),
+    SectorPerformanceItem(
+        sector="Banking & Financials",
+        change_pct=0.88,
+        market_cap_cr=4890000.0,
+        leading_stock="ICICIBANK (+1.12%)",
+        lagging_stock="KOTAKBANK (+0.15%)",
+    ),
+    SectorPerformanceItem(
+        sector="Infrastructure & Capital Goods",
+        change_pct=0.75,
+        market_cap_cr=1280000.0,
+        leading_stock="LT (+1.05%)",
+        lagging_stock="SIEMENS (+0.30%)",
+    ),
+    SectorPerformanceItem(
+        sector="Pharmaceuticals",
+        change_pct=0.62,
+        market_cap_cr=1650000.0,
+        leading_stock="SUNPHARMA (+1.12%)",
+        lagging_stock="CIPLA (+0.10%)",
+    ),
+    SectorPerformanceItem(
+        sector="Information Technology",
+        change_pct=-0.52,
+        market_cap_cr=3420000.0,
+        leading_stock="WIPRO (+0.15%)",
+        lagging_stock="INFY (-0.62%)",
+    ),
+]
+
+
+# ─── 5. News Intelligence Core Database ───────────────────────────────────────
+
+CANONICAL_NEWS_ITEMS: list[NewsDetailResponse] = [
+    NewsDetailResponse(
+        id="news-001",
+        title="RBI Monetary Policy Committee Maintains Repo Rate at 6.50%; Retains 'Neutral' Stance",
+        summary="The Reserve Bank of India MPC voted unanimously to keep the policy benchmark repo rate unchanged at 6.50%, emphasizing continued disinflation while citing resilient domestic economic momentum.",
+        publisher="Reserve Bank of India & Press Information Bureau",
+        published_at=datetime.now(timezone.utc) - timedelta(minutes=45),
+        updated_at=datetime.now(timezone.utc) - timedelta(minutes=15),
+        url="https://rbi.org.in/scripts/BS_PressReleaseDisplay.aspx",
+        category="Economy & Central Banks",
+        country="India",
+        priority="BREAKING",
+        relevance_score=96,
+        impact_level="HIGH",
+        entities=[
+            NewsEntity(type="institution", name="Reserve Bank of India", symbol="RBI"),
+            NewsEntity(type="person", name="Shaktikanta Das", symbol=None),
+            NewsEntity(type="index", name="NIFTY Bank", symbol="NSE:BANKNIFTY"),
+            NewsEntity(type="currency", name="Indian Rupee", symbol="USD/INR"),
+            NewsEntity(type="index", name="NIFTY 50", symbol="NSE:NIFTY50"),
+        ],
+        corroborating_sources=["RBI Official Gazette", "Mint", "Business Standard", "Reuters"],
+        cluster_id="cluster-rbi-policy-nov2026",
+        key_facts=[
+            "Benchmark repo rate maintained at 6.50% for the eleventh consecutive meeting.",
+            "FY27 GDP growth forecast pegged at a robust 7.2%, driven by manufacturing and rural consumption.",
+            "CPI headline inflation projected at 4.5% for the current fiscal year.",
+            "Liquidity conditions in the banking system categorized as comfortably surplus.",
+        ],
+        affected_instruments=["NSE:BANKNIFTY", "USD/INR", "INDIA 10Y YIELD", "NSE:NIFTY50"],
+        affected_sectors=["Banking & Financial Services", "Housing & Real Estate", "Automobile Lending"],
+        transmission_channels=[
+            TransmissionChannel(
+                channel="Sovereign Bond Yields",
+                description="Neutral stance stabilizes the 10-year G-Sec yield around 6.82%, anchoring corporate borrowing spreads.",
+                impact_type="confirmed",
+            ),
+            TransmissionChannel(
+                channel="Bank Net Interest Margins (NIM)",
+                description="Status quo prevents immediate lending rate adjustments, protecting bank margins over the near term.",
+                impact_type="confirmed",
+            ),
+            TransmissionChannel(
+                channel="Consumer & Retail Credit Growth",
+                description="Unchanged rates maintain steady vehicle and home loan disbursement momentum heading into year-end.",
+                impact_type="implication",
+            ),
+        ],
+        historical_context="RBI transitioned its stance from 'Withdrawal of Accommodation' to 'Neutral' in late 2024, creating room for calibrated monetary adjustments.",
+    ),
+    NewsDetailResponse(
+        id="news-002",
+        title="Middle East Oil Pipeline Disruption Triggers 1.7% Surge in Global Brent Crude Benchmarks",
+        summary="A pipeline interruption in the Arabian Gulf has temporarily curbed 850,000 bpd of crude exports, lifting international Brent above $74.60 per barrel and pressuring Asian import currencies.",
+        publisher="Reuters Financial Wire & Bloomberg",
+        published_at=datetime.now(timezone.utc) - timedelta(hours=2, minutes=10),
+        updated_at=datetime.now(timezone.utc) - timedelta(hours=1),
+        url="https://reuters.com/markets/commodities/crude-supply-gulf",
+        category="Geopolitics",
+        country="Global",
+        priority="CRITICAL",
+        relevance_score=91,
+        impact_level="HIGH",
+        entities=[
+            NewsEntity(type="commodity", name="Brent Crude", symbol="BRENT"),
+            NewsEntity(type="commodity", name="WTI Crude", symbol="WTI"),
+            NewsEntity(type="company", name="Reliance Industries", symbol="NSE:RELIANCE"),
+            NewsEntity(type="currency", name="US Dollar / Indian Rupee", symbol="USD/INR"),
+        ],
+        corroborating_sources=["Reuters", "Bloomberg", "Financial Times"],
+        cluster_id="cluster-mideast-crude-supply",
+        key_facts=[
+            "850,000 bpd halted following pipeline valve maintenance malfunction in the Gulf region.",
+            "Brent Crude December contracts advanced +$1.25 to trade at $74.65/bbl.",
+            "Indian crude import bill sensitivity stands at ~$1.5B per $1/bbl annual increase.",
+        ],
+        affected_instruments=["BRENT", "WTI", "USD/INR", "NSE:RELIANCE", "NSE:BPCL"],
+        affected_sectors=["Oil Marketing & Refining", "Aviation & Logistics", "Paints & Specialty Chemicals"],
+        transmission_channels=[
+            TransmissionChannel(
+                channel="Import Bill & Trade Deficit",
+                description="Elevated crude imports directly widen India's trade deficit, placing modest depreciation pressure on USD/INR.",
+                impact_type="confirmed",
+            ),
+            TransmissionChannel(
+                channel="Refining GRMs vs OMC Margins",
+                description="Upstream integrated refiners (RIL) benefit from improved complex refining margins, while retail OMCs face short-term marketing lag.",
+                impact_type="implication",
+            ),
+            TransmissionChannel(
+                channel="Aviation Turbine Fuel (ATF)",
+                description="Jet fuel cost spikes elevate operating cost ratios for domestic airlines like InterGlobe Aviation (IndiGo).",
+                impact_type="implication",
+            ),
+        ],
+        historical_context="Regional logistics disruptions historically see diplomatic de-escalation and buffer inventory drawdowns within 10 to 14 days.",
+    ),
+    NewsDetailResponse(
+        id="news-003",
+        title="Reliance Industries Commissioning World's Largest Green Energy Giga-Complex in Gujarat",
+        summary="Reliance Industries announced the completion of Phase 1 mechanical testing for its integrated 20GW solar module and electrolyzer manufacturing facility at Jamnagar, accelerating renewable integration.",
+        publisher="BSE Corporate Disclosures & Mint",
+        published_at=datetime.now(timezone.utc) - timedelta(hours=3, minutes=30),
+        updated_at=None,
+        url="https://bseindia.com/corporates/ann.html",
+        category="Company News",
+        country="India",
+        priority="HIGH",
+        relevance_score=85,
+        impact_level="MEDIUM",
+        entities=[
+            NewsEntity(type="company", name="Reliance Industries Limited", symbol="NSE:RELIANCE"),
+            NewsEntity(type="person", name="Mukesh Ambani", symbol=None),
+            NewsEntity(type="index", name="NIFTY 50", symbol="NSE:NIFTY50"),
+        ],
+        corroborating_sources=["BSE Statutory Filing", "Mint", "Economic Times"],
+        cluster_id="cluster-reliance-solar-giga",
+        key_facts=[
+            "Phase 1 solar cell and module production line completed mechanical test run.",
+            "Total planned capital expenditure of ₹75,000 Crore across green hydrogen, fuel cells, and energy storage.",
+            "Commercial dispatches scheduled to commence in Q1 FY27.",
+        ],
+        affected_instruments=["NSE:RELIANCE", "NSE:NIFTY50"],
+        affected_sectors=["Clean Energy", "Conglomerate", "Chemicals"],
+        transmission_channels=[
+            TransmissionChannel(
+                channel="Capital Expenditure & Balance Sheet",
+                description="Capex funded through internal operating cash flows from O2C and Jio/Retail, preserving conservative net-debt ratios.",
+                impact_type="confirmed",
+            ),
+            TransmissionChannel(
+                channel="Valuation Multiple Rerating",
+                description="Gradual transition of revenue mix toward green energy enhances ESG tiering and institutional foreign capital inflows.",
+                impact_type="implication",
+            ),
+        ],
+        historical_context="RIL unveiled its New Energy roadmap at its 2021 AGM, targeting net-zero carbon operations by 2035.",
+    ),
+    NewsDetailResponse(
+        id="news-004",
+        title="US Federal Reserve Chair Signals Measured Rate Easing Ahead of Jackson Hole Symposium",
+        summary="Federal Reserve Chair Jerome Powell indicated that while inflation is tracking closer to the 2% target, the Federal Open Market Committee will maintain data dependency without committing to pre-set rate paths.",
+        publisher="Dow Jones Newswires & Wall Street Journal",
+        published_at=datetime.now(timezone.utc) - timedelta(hours=5),
+        updated_at=None,
+        url="https://wsj.com/economy/central-banking/fed-powell-rate-outlook",
+        category="Economy & Central Banks",
+        country="US",
+        priority="HIGH",
+        relevance_score=82,
+        impact_level="MEDIUM",
+        entities=[
+            NewsEntity(type="institution", name="Federal Reserve", symbol="FED"),
+            NewsEntity(type="person", name="Jerome Powell", symbol=None),
+            NewsEntity(type="index", name="S&P 500", symbol="S&P 500"),
+            NewsEntity(type="currency", name="US Dollar Index", symbol="DXY"),
+            NewsEntity(type="yield", name="US 10Y Yield", symbol="US 10Y YIELD"),
+        ],
+        corroborating_sources=["WSJ", "Reuters", "Bloomberg"],
+        cluster_id="cluster-fed-powell-guidance",
+        key_facts=[
+            "Core PCE inflation printed at 2.7% annualized, within expected consensus ranges.",
+            "Futures markets price in an 82% probability of a 25 bps policy rate trim at next FOMC.",
+            "Labor market indicators show balanced normalization without sharp layoffs.",
+        ],
+        affected_instruments=["S&P 500", "NASDAQ 100", "DXY", "US 10Y YIELD", "NSE:NIFTYIT"],
+        affected_sectors=["Global Technology", "Emerging Market Equities", "US Treasuries"],
+        transmission_channels=[
+            TransmissionChannel(
+                channel="Global Cost of Capital",
+                description="Easing US Treasury yields lower global discount rates, boosting valuation multiples for long-duration growth assets.",
+                impact_type="confirmed",
+            ),
+            TransmissionChannel(
+                channel="Foreign Institutional Inflows (FII)",
+                description="A stable dollar index prompts foreign portfolio investors to allocate surplus capital into Indian large-caps.",
+                impact_type="implication",
+            ),
+        ],
+        historical_context="The Federal Reserve initiated its rate-cutting cycle in September 2024 with a 50 bps reduction.",
+    ),
+    NewsDetailResponse(
+        id="news-005",
+        title="Global Semiconductor Equipment Shipments Hit Record High on Generative AI Infrastructure Demand",
+        summary="Worldwide silicon wafer and lithography equipment shipments reached $31.2 Billion in the past quarter, driven by aggressive data center accelerator investments across North America and Asia.",
+        publisher="SEMI Trade Association & Nikkei Asia",
+        published_at=datetime.now(timezone.utc) - timedelta(hours=7),
+        updated_at=None,
+        url="https://semi.org/en/news-resources/market-data",
+        category="Industry & Sectors",
+        country="Global",
+        priority="MEDIUM",
+        relevance_score=78,
+        impact_level="MEDIUM",
+        entities=[
+            NewsEntity(type="company", name="NVIDIA Corporation", symbol="NASDAQ:NVDA"),
+            NewsEntity(type="company", name="Tata Consultancy Services", symbol="NSE:TCS"),
+            NewsEntity(type="index", name="NASDAQ 100", symbol="NASDAQ 100"),
+        ],
+        corroborating_sources=["SEMI Association", "Nikkei Asia", "Financial Times"],
+        cluster_id="cluster-semiconductor-shipments-q4",
+        key_facts=[
+            "Quarterly equipment billings grew 19% year-on-year to $31.2 Billion.",
+            "Leading-edge 3nm and 2nm foundry equipment dominated advanced bookings.",
+            "India's semiconductor mission (ISM) reported construction milestones at Dholera and Sanand fabs.",
+        ],
+        affected_instruments=["NASDAQ:NVDA", "NASDAQ:ASML", "NSE:TCS", "NSE:INFY"],
+        affected_sectors=["Semiconductors", "Information Technology Services", "Data Center Hardware"],
+        transmission_channels=[
+            TransmissionChannel(
+                channel="Hardware Capex to Software Enterprise Rollout",
+                description="Infrastructure buildouts precede enterprise AI software adoption, creating deal pipeline for Indian IT majors.",
+                impact_type="implication",
+            ),
+        ],
+        historical_context="Global chip demand has decoupled from traditional PC/mobile cycles, anchored by enterprise hyperscale AI clusters.",
+    ),
+]
+
+
+# ─── 6. Calendar & Economic Events ────────────────────────────────────────────
+
+CANONICAL_CALENDAR_EVENTS: list[CalendarEventItem] = [
+    CalendarEventItem(
+        id="cal-001",
+        title="RBI Monetary Policy Committee Outcome",
+        event_type="MACRO",
+        country="India",
+        event_date=datetime.now(timezone.utc) + timedelta(days=2, hours=4),
+        importance="HIGH",
+        actual="6.50%",
+        forecast="6.50%",
+        previous="6.50%",
+        symbol="NSE:BANKNIFTY",
+        notes="Bi-monthly monetary policy decision announced by Governor.",
+    ),
+    CalendarEventItem(
+        id="cal-002",
+        title="US Federal Reserve FOMC Interest Rate Decision",
+        event_type="MACRO",
+        country="United States",
+        event_date=datetime.now(timezone.utc) + timedelta(days=5, hours=18),
+        importance="HIGH",
+        actual=None,
+        forecast="4.50% - 4.75%",
+        previous="4.75% - 5.00%",
+        symbol="S&P 500",
+        notes="Federal funds rate projection and press conference.",
+    ),
+    CalendarEventItem(
+        id="cal-003",
+        title="India CPI Inflation (YoY)",
+        event_type="MACRO",
+        country="India",
+        event_date=datetime.now(timezone.utc) + timedelta(days=8),
+        importance="HIGH",
+        actual=None,
+        forecast="4.60%",
+        previous="4.85%",
+        symbol="USD/INR",
+        notes="Headline consumer price inflation index released by MoSPI.",
+    ),
+    CalendarEventItem(
+        id="cal-004",
+        title="Tata Consultancy Services (TCS) Q3 Financial Results",
+        event_type="EARNINGS",
+        country="India",
+        event_date=datetime.now(timezone.utc) + timedelta(days=12),
+        importance="HIGH",
+        actual=None,
+        forecast="₹12,450 Cr Net Profit",
+        previous="₹11,909 Cr Net Profit",
+        symbol="NSE:TCS",
+        notes="Q3 audited financial statements and interim dividend declaration.",
+    ),
+    CalendarEventItem(
+        id="cal-005",
+        title="Reliance Industries Q3 Earnings Call",
+        event_type="EARNINGS",
+        country="India",
+        event_date=datetime.now(timezone.utc) + timedelta(days=15),
+        importance="HIGH",
+        actual=None,
+        forecast="₹19,800 Cr Net Profit",
+        previous="₹19,323 Cr Net Profit",
+        symbol="NSE:RELIANCE",
+        notes="Consolidated earnings covering O2C, Jio Infocomm, and Retail.",
+    ),
+]
+
+
+# ─── 7. Engine Query Functions ────────────────────────────────────────────────
+
+def get_global_ticker_feed() -> list[TickerItem]:
+    """Returns the continuous multi-asset ticker universe."""
+    return CANONICAL_TICKER_ITEMS
+
+
+def get_market_overview_data() -> MarketOverviewResponse:
+    """Returns unified market snapshot, breadth, movers, top companies, and sectors."""
+    return MarketOverviewResponse(
+        indian_market_status="OPEN",
+        global_market_status="PRE_MARKET",
+        as_of=datetime.now(timezone.utc),
+        market_breadth=MarketBreadth(
+            advances=34,
+            declines=16,
+            unchanged=0,
+            advance_decline_ratio=2.12,
+            total_turnover_cr=84250.0,
+            exchange_status="OPEN",
+        ),
+        market_mood=MarketMood(
+            score=64,
+            label="Greed",
+            description="Market sentiment is in Greed territory, driven by robust domestic institutional liquidity and steady corporate earnings momentum.",
+        ),
+        indices=[item for item in CANONICAL_TICKER_ITEMS if "index" in item.category],
+        commodities=[item for item in CANONICAL_TICKER_ITEMS if item.category == "commodity"],
+        currencies_and_yields=[
+            item for item in CANONICAL_TICKER_ITEMS if item.category in ("currency", "yield")
+        ],
+        top_companies=CANONICAL_TOP_COMPANIES,
+        movers=CANONICAL_MOVERS,
+        sector_performance=CANONICAL_SECTORS,
+    )
+
+
+def get_market_heatmap_data(universe: str = "all") -> list[MarketHeatmapItem]:
+    """Returns sector tree-map items sized by market cap and colored by performance."""
+    items: list[MarketHeatmapItem] = []
+    for company in CANONICAL_TOP_COMPANIES:
+        if universe == "nse" and company.exchange != "NSE":
+            continue
+        if universe == "us" and company.exchange != "NASDAQ":
+            continue
+        items.append(
+            MarketHeatmapItem(
+                symbol=company.symbol,
+                name=company.name,
+                sector=company.sector,
+                market_cap=company.market_cap_cr,
+                change_pct=company.change_pct,
+                price=company.price,
+                currency=company.currency,
+                exchange=company.exchange,
+            )
+        )
+    return items
+
+
+def get_news_feed(
+    category: str | None = None,
+    priority: str | None = None,
+    country: str | None = None,
+    query: str | None = None,
+    symbol: str | None = None,
+) -> list[NewsDetailResponse]:
+    """Filters news stories by category, priority, country, search query, or symbol."""
+    results = CANONICAL_NEWS_ITEMS
+    if category and category.lower() != "all":
+        results = [n for n in results if n.category.lower() == category.lower()]
+    if priority and priority.lower() != "all":
+        results = [n for n in results if n.priority.lower() == priority.lower()]
+    if country and country.lower() != "all":
+        results = [n for n in results if n.country.lower() == country.lower()]
+    if symbol:
+        s_upper = symbol.upper()
+        results = [
+            n for n in results if any(e.symbol and s_upper in e.symbol.upper() for e in n.entities)
+        ]
+    if query:
+        q_lower = query.lower()
+        results = [
+            n
+            for n in results
+            if q_lower in n.title.lower()
+            or q_lower in n.summary.lower()
+            or any(q_lower in e.name.lower() for e in n.entities)
+        ]
+    return results
+
+
+def get_news_detail(news_id: str) -> NewsDetailResponse | None:
+    """Returns full news story detail with transmission channels and sources."""
+    for n in CANONICAL_NEWS_ITEMS:
+        if n.id == news_id:
+            return n
+    return None
+
+
+def get_calendar_events(event_type: str | None = None) -> list[CalendarEventItem]:
+    """Returns economic events and corporate actions."""
+    if event_type and event_type.lower() != "all":
+        return [e for e in CANONICAL_CALENDAR_EVENTS if e.event_type.lower() == event_type.lower()]
+    return CANONICAL_CALENDAR_EVENTS

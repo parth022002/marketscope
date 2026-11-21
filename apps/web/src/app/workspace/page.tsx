@@ -19,8 +19,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { exportUserData, purgeUserData, type DPDPDataExportResponse, type DPDPPurgeResponse } from "@/lib/api";
-import Footer from "@/components/Footer";
-import BrandLogo from "@/components/BrandLogo";
+import NavigationShell from "@/components/NavigationShell";
 
 const PRIMARY_WORKSPACE_ID = "11111111-1111-1111-1111-111111111111";
 
@@ -76,70 +75,19 @@ export default function WorkspacePage() {
   }
 
   return (
-    <div className="shell">
-      {/* Sidebar Navigation */}
-      <aside className="sidebar">
+    <NavigationShell activePath="/workspace">
+      <div className="space-y-6">
         <div>
-          <BrandLogo variant="full" height={38} className="mb-2" />
-        </div>
-
-        <div>
-          <div className="nav-label">RESEARCH WORKSPACE</div>
-          <nav className="nav">
-            <Link href="/">Platform Overview</Link>
-            <Link href="/search">Discover Companies</Link>
-            <Link href="/compare">Peer Comparison</Link>
-            <Link href="/screener">Fundamental Screener</Link>
-            <Link href="/watchlists">Watchlists</Link>
-            <Link className="active" href="/workspace">Workspace &amp; Privacy</Link>
-          </nav>
-        </div>
-
-        <div className="sidebar-note">
-          <div style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 600, color: "var(--accent-cyan)", marginBottom: 4 }}>
-            <ShieldCheck size={14} /> DPDP Act 2023 Ready
+          <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-wider text-[#16C8D5] uppercase">
+            <ShieldCheck size={14} /> Data Rights &amp; Governance
           </div>
-          Evidence-first research workspace. Strict multi-tenant isolation, cryptographic snapshot immutability, and full DPDP Right to Erasure controls.
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="main">
-        <header className="topbar">
-          <div className="flex items-center gap-2.5">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-icon.png" alt="MarketScope" className="w-5 h-5 rounded object-contain shadow-sm" />
-            <strong>Workspace Settings &amp; Data Rights</strong>
-            <small className="text-slate-400 font-mono">· DPDP COMPLIANCE ACTIVE</small>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="tag text-[#39E85B] border-[#39E85B]/30 bg-[#39E85B]/10 flex items-center gap-1.5 font-semibold text-xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#39E85B] animate-pulse"></span>
-              ALL PROVIDERS OPERATIONAL
-            </span>
-            <Show when="signed-in">
-              <div className="flex items-center gap-2 pl-3 border-l border-[#132B4F]">
-                <UserButton />
-              </div>
-            </Show>
-            <Show when="signed-out">
-              <Link
-                href="/sign-in"
-                className="text-xs px-3 py-1.5 rounded-lg bg-[#132B4F] text-slate-200 hover:text-white transition font-medium"
-              >
-                Sign In
-              </Link>
-            </Show>
-          </div>
-        </header>
-
-        <div className="content">
-          <div className="eyebrow">WORKSPACE &amp; DATA GOVERNANCE</div>
-          <h1 className="text-3xl font-extrabold text-white mt-1">Research Workspace &amp; Privacy Controls</h1>
-          <p className="subtitle mt-1">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-white mt-1">
+            Research Workspace &amp; Privacy Controls
+          </h1>
+          <p className="text-xs text-slate-400 mt-1 max-w-2xl">
             Manage your workspace tenancy, verify live data provider feeds, and exercise your statutory data privacy rights under India&apos;s Digital Personal Data Protection (DPDP) Act 2023.
           </p>
+        </div>
 
           {message && (
             <div
@@ -301,56 +249,53 @@ export default function WorkspacePage() {
             </div>
           </div>
 
-          <Footer />
-        </div>
-      </main>
+        {/* DPDP Cascade Purge Confirmation Modal */}
+        {showPurgeModal && (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-[#0B1D38] border border-red-500/40 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+              <div className="flex items-center gap-2.5 text-red-400 font-bold text-base">
+                <AlertTriangle size={20} />
+                <span>Confirm Irreversible Data Erasure</span>
+              </div>
 
-      {/* DPDP Cascade Purge Confirmation Modal */}
-      {showPurgeModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#0B1D38] border border-red-500/40 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center gap-2.5 text-red-400 font-bold text-base">
-              <AlertTriangle size={20} />
-              <span>Confirm Irreversible Data Erasure</span>
-            </div>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                This action will permanently and irreversibly delete all research notes, cryptographic snapshots, and watchlists belonging to this workspace from Neon PostgreSQL. An immutable audit record will be logged with zero personally identifiable information (PII).
+              </p>
 
-            <p className="text-xs text-slate-300 leading-relaxed">
-              This action will permanently and irreversibly delete all research notes, cryptographic snapshots, and watchlists belonging to this workspace from Neon PostgreSQL. An immutable audit record will be logged with zero personally identifiable information (PII).
-            </p>
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-slate-300">
+                  To confirm permanent deletion, type <code className="text-red-400 font-bold">PURGE_ALL_DATA</code> below:
+                </label>
+                <input
+                  value={purgeInput}
+                  onChange={(e) => setPurgeInput(e.target.value)}
+                  placeholder="PURGE_ALL_DATA"
+                  className="w-full px-3.5 py-2 rounded-xl bg-[#07152B] border border-[#132B4F] text-white font-mono text-xs focus:outline-none focus:border-red-500"
+                />
+              </div>
 
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold text-slate-300">
-                To confirm permanent deletion, type <code className="text-red-400 font-bold">PURGE_ALL_DATA</code> below:
-              </label>
-              <input
-                value={purgeInput}
-                onChange={(e) => setPurgeInput(e.target.value)}
-                placeholder="PURGE_ALL_DATA"
-                className="w-full px-3.5 py-2 rounded-xl bg-[#07152B] border border-[#132B4F] text-white font-mono text-xs focus:outline-none focus:border-red-500"
-              />
-            </div>
-
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#132B4F]">
-              <button
-                onClick={() => {
-                  setShowPurgeModal(false);
-                  setPurgeInput("");
-                }}
-                className="px-4 py-2 rounded-lg bg-[#132B4F] text-slate-300 hover:text-white text-xs font-semibold transition"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handlePurge}
-                disabled={purging || purgeInput !== "PURGE_ALL_DATA"}
-                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-md"
-              >
-                <Trash2 size={13} /> {purging ? "Purging Records..." : "Permanently Erase Everything"}
-              </button>
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#132B4F]">
+                <button
+                  onClick={() => {
+                    setShowPurgeModal(false);
+                    setPurgeInput("");
+                  }}
+                  className="px-4 py-2 rounded-lg bg-[#132B4F] text-slate-300 hover:text-white text-xs font-semibold transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handlePurge}
+                  disabled={purging || purgeInput !== "PURGE_ALL_DATA"}
+                  className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-md"
+                >
+                  <Trash2 size={13} /> {purging ? "Purging Records..." : "Permanently Erase Everything"}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </NavigationShell>
   );
 }
