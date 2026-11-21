@@ -48,37 +48,37 @@ export default function StocksPage() {
 
   return (
     <NavigationShell activePath="/stocks">
-      <div className="space-y-6">
+      <div className="space-y-6 w-full">
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-[#132B4F]">
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-[#162C4E]">
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-wider text-[#16C8D5] uppercase">
-              <Building2 size={14} /> Equities Intelligence
+            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-wider text-cyan-400 uppercase">
+              <Building2 size={14} /> Equities Intelligence Directory
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-white mt-1">
+            <h1 className="text-2xl md:text-3xl font-black text-white mt-1 tracking-tight">
               Stocks Discovery &amp; Directory
             </h1>
-            <p className="text-xs text-slate-400 mt-1 max-w-2xl">
-              Discover and inspect companies across Indian and global equity universes with direct access to canonical financial statements and 15 golden ratios.
+            <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed font-sans">
+              Discover and inspect companies across Indian and global equity universes with direct access to canonical financial statements, 15 golden ratios, and evidence lineage.
             </p>
           </div>
         </div>
 
         {/* Search & Filter Controls */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-[#0B1D38] border border-[#132B4F]">
-          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#07152B] border border-[#132B4F] text-xs">
+        <div className="flex flex-wrap items-center justify-between gap-3 p-4 md:p-5 rounded-2xl bg-[#0B1930] border border-[#162C4E] shadow-lg">
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#071426] border border-[#162C4E] text-xs">
             <button
               onClick={() => setExchangeFilter("all")}
               className={`px-3 py-1.5 rounded-lg font-semibold transition ${
-                exchangeFilter === "all" ? "bg-[#087BEE] text-white" : "text-slate-400"
+                exchangeFilter === "all" ? "bg-blue-600 text-white shadow-sm" : "text-slate-400 hover:text-white"
               }`}
             >
-              All Equities
+              All Equities ({ALL_STOCKS.length})
             </button>
             <button
               onClick={() => setExchangeFilter("nse")}
               className={`px-3 py-1.5 rounded-lg font-semibold transition ${
-                exchangeFilter === "nse" ? "bg-[#087BEE] text-white" : "text-slate-400"
+                exchangeFilter === "nse" ? "bg-blue-600 text-white shadow-sm" : "text-slate-400 hover:text-white"
               }`}
             >
               NSE India
@@ -86,71 +86,71 @@ export default function StocksPage() {
             <button
               onClick={() => setExchangeFilter("us")}
               className={`px-3 py-1.5 rounded-lg font-semibold transition ${
-                exchangeFilter === "us" ? "bg-[#087BEE] text-white" : "text-slate-400"
+                exchangeFilter === "us" ? "bg-blue-600 text-white shadow-sm" : "text-slate-400 hover:text-white"
               }`}
             >
               US Markets
             </button>
           </div>
 
-          <div className="relative min-w-[240px]">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <div className="relative min-w-[260px]">
+            <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Filter by company, symbol or sector..."
-              className="w-full bg-[#07152B] border border-[#132B4F] rounded-xl pl-9 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#087BEE]"
+              className="w-full bg-[#071426] border border-[#162C4E] rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 transition shadow-inner font-sans"
             />
           </div>
         </div>
 
         {/* Equities Table */}
-        <div className="p-5 rounded-2xl bg-[#0B1D38] border border-[#132B4F] overflow-x-auto">
+        <div className="p-5 rounded-2xl bg-[#0B1930] border border-[#162C4E] overflow-x-auto shadow-xl scrollbar-none">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-[#132B4F] text-slate-400 font-mono text-[11px]">
-                <th className="pb-3">SYMBOL &amp; COMPANY</th>
+              <tr className="border-b border-[#162C4E] text-slate-400 font-mono text-[11px]">
+                <th className="pb-3 pl-2">SYMBOL &amp; COMPANY</th>
                 <th className="pb-3">EXCHANGE</th>
                 <th className="pb-3">SECTOR</th>
                 <th className="pb-3 text-right">PRICE</th>
                 <th className="pb-3 text-right">DAY CHANGE</th>
                 <th className="pb-3 text-right">P/E RATIO</th>
                 <th className="pb-3 text-right">ROE (%)</th>
-                <th className="pb-3 text-right">ACTION</th>
+                <th className="pb-3 text-right pr-2">ACTION</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#132B4F]/50">
+            <tbody className="divide-y divide-[#162C4E]/60">
               {filtered.map((stock) => {
                 const isPositive = stock.change_pct >= 0;
                 const isUsd = stock.currency === "USD";
                 return (
-                  <tr key={stock.symbol} className="hover:bg-[#102547]/50 transition group">
-                    <td className="py-3">
+                  <tr key={stock.symbol} className="hover:bg-[#10223B]/60 transition group cursor-pointer">
+                    <td className="py-3.5 pl-2">
                       <Link
                         href={`/company/${stock.symbol.toLowerCase()}`}
-                        className="font-bold text-white group-hover:text-[#16C8D5] flex items-center gap-1.5"
+                        className="font-bold text-white group-hover:text-cyan-400 flex items-center gap-1.5 transition"
                       >
                         {stock.symbol}
                       </Link>
                       <div className="text-[11px] text-slate-400">{stock.name}</div>
                     </td>
-                    <td className="py-3 font-mono text-[11px] text-slate-400">
-                      <span className="px-1.5 py-0.5 rounded bg-[#07152B] border border-[#132B4F]">
+                    <td className="py-3.5 font-mono text-[11px] text-slate-400">
+                      <span className="px-2 py-0.5 rounded bg-[#071426] border border-[#162C4E]">
                         {stock.exchange}
                       </span>
                     </td>
-                    <td className="py-3 text-slate-300 text-[11px]">{stock.sector}</td>
-                    <td className="py-3 text-right font-mono font-bold text-white">
+                    <td className="py-3.5 text-slate-300 text-[11px]">{stock.sector}</td>
+                    <td className="py-3.5 text-right font-mono font-bold text-white tabular-nums">
                       {isUsd ? "$" : "₹"}
-                      {stock.price.toFixed(2)}
+                      {stock.price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
-                    <td className="py-3 text-right font-mono font-bold">
+                    <td className="py-3.5 text-right font-mono font-bold">
                       <span
-                        className={`px-1.5 py-0.5 rounded text-[11px] inline-flex items-center gap-0.5 ${
+                        className={`px-2 py-0.5 rounded text-[11px] inline-flex items-center gap-0.5 ${
                           isPositive
-                            ? "text-[#39E85B] bg-[#39E85B]/10"
-                            : "text-[#F06464] bg-[#F06464]/10"
+                            ? "text-emerald-400 bg-emerald-500/10"
+                            : "text-red-400 bg-red-500/10"
                         }`}
                       >
                         {isPositive ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
@@ -158,12 +158,12 @@ export default function StocksPage() {
                         {stock.change_pct.toFixed(2)}%
                       </span>
                     </td>
-                    <td className="py-3 text-right font-mono text-slate-200">{stock.pe}x</td>
-                    <td className="py-3 text-right font-mono text-slate-200">{stock.roe}%</td>
-                    <td className="py-3 text-right">
+                    <td className="py-3.5 text-right font-mono text-slate-300 tabular-nums">{stock.pe}x</td>
+                    <td className="py-3.5 text-right font-mono text-emerald-400 font-bold tabular-nums">{stock.roe}%</td>
+                    <td className="py-3.5 text-right pr-2">
                       <Link
                         href={`/company/${stock.symbol.toLowerCase()}`}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#087BEE]/15 hover:bg-[#087BEE] text-white text-[11px] font-semibold transition"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600/15 hover:bg-blue-600 text-white text-[11px] font-bold transition shadow-sm"
                       >
                         Dossier <ArrowRight size={11} />
                       </Link>

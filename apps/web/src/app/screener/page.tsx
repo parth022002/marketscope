@@ -116,27 +116,27 @@ export default function ScreenerPage() {
 
   return (
     <NavigationShell activePath="/screener">
-      <div className="space-y-6">
+      <div className="space-y-6 w-full">
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-[#132B4F]">
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-[#162C4E]">
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-wider text-[#16C8D5] uppercase">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-wider text-cyan-400 uppercase">
               <Filter size={14} /> Fundamental Query Engine
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-white mt-1">
+            <h1 className="text-2xl md:text-3xl font-black text-white mt-1 tracking-tight">
               Fundamental Stock Screener
             </h1>
-            <p className="text-xs text-slate-400 mt-1 max-w-2xl">
-              Filter Indian and global equities across canonical golden ratios, profitability metrics, and balance sheet solvency.
+            <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed font-sans">
+              Filter Indian and global equities across canonical golden ratios, profitability metrics, cash flow conversion, and balance sheet solvency.
             </p>
           </div>
 
           {/* View Mode Toggle */}
-          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#0B1D38] border border-[#132B4F] text-xs">
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#0B1930] border border-[#162C4E] text-xs">
             <button
               onClick={() => setViewMode("table")}
               className={`flex items-center gap-1 px-3 py-1.5 rounded-lg font-semibold transition ${
-                viewMode === "table" ? "bg-[#087BEE] text-white" : "text-slate-400 hover:text-white"
+                viewMode === "table" ? "bg-blue-600 text-white shadow-sm" : "text-slate-400 hover:text-white"
               }`}
             >
               <TableIcon size={13} /> Table View
@@ -144,7 +144,7 @@ export default function ScreenerPage() {
             <button
               onClick={() => setViewMode("heatmap")}
               className={`flex items-center gap-1 px-3 py-1.5 rounded-lg font-semibold transition ${
-                viewMode === "heatmap" ? "bg-[#087BEE] text-white" : "text-slate-400 hover:text-white"
+                viewMode === "heatmap" ? "bg-blue-600 text-white shadow-sm" : "text-slate-400 hover:text-white"
               }`}
             >
               <Layers size={13} /> Heatmap View
@@ -158,22 +158,22 @@ export default function ScreenerPage() {
             PRE-BUILT THEMATIC SCREENS (TICKERTAPE BENCHMARK)
           </span>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
             {presets.map((preset) => {
               const isSelected = activePresetId === preset.id;
               return (
                 <button
                   key={preset.id}
                   onClick={() => applyPreset(preset)}
-                  className={`p-3.5 rounded-xl border text-left transition flex flex-col justify-between ${
+                  className={`p-4 rounded-xl border text-left transition flex flex-col justify-between ${
                     isSelected
-                      ? "bg-[#087BEE]/15 border-[#087BEE] text-white shadow-sm"
-                      : "bg-[#0B1D38] border-[#132B4F] text-slate-300 hover:border-slate-500"
+                      ? "bg-blue-600/15 border-blue-500 text-white shadow-sm"
+                      : "bg-[#0B1930] border-[#162C4E] text-slate-300 hover:border-slate-500 hover:bg-[#10223B]"
                   }`}
                 >
                   <div className="flex items-start justify-between w-full">
                     <span className="font-bold text-xs">{preset.name}</span>
-                    {isSelected && <CheckCircle2 size={14} className="text-[#16C8D5] shrink-0" />}
+                    {isSelected && <CheckCircle2 size={14} className="text-cyan-400 shrink-0" />}
                   </div>
                   <p className="text-[11px] text-slate-400 mt-1 line-clamp-2 leading-relaxed">
                     {preset.description}
@@ -185,17 +185,17 @@ export default function ScreenerPage() {
         </div>
 
         {/* Custom Quantitative Sliders Form */}
-        <form onSubmit={handleFilterSubmit} className="p-5 rounded-2xl bg-[#0B1D38] border border-[#132B4F] space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-[#132B4F]">
+        <form onSubmit={handleFilterSubmit} className="p-5 rounded-2xl bg-[#0B1930] border border-[#162C4E] space-y-4 shadow-lg">
+          <div className="flex items-center justify-between pb-3 border-b border-[#162C4E]">
             <span className="text-xs font-mono font-bold uppercase text-white flex items-center gap-1.5">
-              <SlidersHorizontal size={14} className="text-[#087BEE]" /> Custom Metric Criteria
+              <SlidersHorizontal size={14} className="text-blue-500" /> Custom Metric Thresholds
             </span>
             <button
               type="button"
               onClick={handleReset}
               className="text-xs text-slate-400 hover:text-white flex items-center gap-1 font-semibold"
             >
-              <RotateCcw size={12} /> Reset Filters
+              <RotateCcw size={12} /> Reset Criteria
             </button>
           </div>
 
@@ -209,7 +209,7 @@ export default function ScreenerPage() {
                 placeholder="e.g. Energy, IT"
                 value={sector}
                 onChange={(e) => setSector(e.target.value)}
-                className="w-full bg-[#07152B] border border-[#132B4F] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-[#087BEE]"
+                className="w-full bg-[#071426] border border-[#162C4E] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
               />
             </div>
 
@@ -222,7 +222,7 @@ export default function ScreenerPage() {
                 placeholder="e.g. 15"
                 value={minRoe}
                 onChange={(e) => setMinRoe(e.target.value === "" ? "" : Number(e.target.value))}
-                className="w-full bg-[#07152B] border border-[#132B4F] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-[#087BEE]"
+                className="w-full bg-[#071426] border border-[#162C4E] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
               />
             </div>
 
@@ -235,7 +235,7 @@ export default function ScreenerPage() {
                 placeholder="e.g. 30"
                 value={maxPe}
                 onChange={(e) => setMaxPe(e.target.value === "" ? "" : Number(e.target.value))}
-                className="w-full bg-[#07152B] border border-[#132B4F] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-[#087BEE]"
+                className="w-full bg-[#071426] border border-[#162C4E] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
               />
             </div>
 
@@ -249,7 +249,7 @@ export default function ScreenerPage() {
                 placeholder="e.g. 1.0"
                 value={maxDebtEquity}
                 onChange={(e) => setMaxDebtEquity(e.target.value === "" ? "" : Number(e.target.value))}
-                className="w-full bg-[#07152B] border border-[#132B4F] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-[#087BEE]"
+                className="w-full bg-[#071426] border border-[#162C4E] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
               />
             </div>
 
@@ -262,7 +262,7 @@ export default function ScreenerPage() {
                 placeholder="e.g. 12"
                 value={minOpm}
                 onChange={(e) => setMinOpm(e.target.value === "" ? "" : Number(e.target.value))}
-                className="w-full bg-[#07152B] border border-[#132B4F] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-[#087BEE]"
+                className="w-full bg-[#071426] border border-[#162C4E] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
               />
             </div>
           </div>
@@ -271,7 +271,7 @@ export default function ScreenerPage() {
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 rounded-xl bg-[#087BEE] hover:bg-[#0769cc] text-white text-xs font-bold transition shadow-sm"
+              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition shadow-sm"
             >
               {loading ? "Running Query..." : "Execute Screen"}
             </button>
@@ -284,16 +284,16 @@ export default function ScreenerPage() {
             <MarketHeatmap initialUniverse="all" />
           </div>
         ) : (
-          <div className="p-5 rounded-2xl bg-[#0B1D38] border border-[#132B4F] overflow-x-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-[#132B4F]">
+          <div className="p-5 rounded-2xl bg-[#0B1930] border border-[#162C4E] overflow-x-auto shadow-xl scrollbar-none">
+            <div className="flex items-center justify-between pb-3 border-b border-[#162C4E]">
               <span className="text-xs font-mono font-semibold text-slate-400">
-                Found <strong>{results.length}</strong> matching companies
+                Found <strong className="text-white">{results.length}</strong> matching companies
               </span>
             </div>
 
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-[#132B4F] text-slate-400 font-mono text-[11px]">
+                <tr className="border-b border-[#162C4E] text-slate-400 font-mono text-[11px]">
                   <th className="py-3 px-3">SYMBOL &amp; COMPANY</th>
                   <th className="py-3 px-3">SECTOR</th>
                   <th className="py-3 px-3 text-right">MARKET CAP</th>
@@ -304,38 +304,38 @@ export default function ScreenerPage() {
                   <th className="py-3 px-3 text-center">ACTION</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#132B4F]/50">
+              <tbody className="divide-y divide-[#162C4E]/60">
                 {results.map((item) => (
-                  <tr key={item.symbol} className="hover:bg-[#102547]/50 transition group">
+                  <tr key={item.symbol} className="hover:bg-[#10223B]/60 transition group cursor-pointer">
                     <td className="py-3 px-3">
                       <Link
                         href={`/company/${item.symbol.toLowerCase()}`}
-                        className="font-bold text-white group-hover:text-[#16C8D5] flex items-center gap-1.5"
+                        className="font-bold text-white group-hover:text-cyan-400 flex items-center gap-1.5 transition"
                       >
                         {item.symbol}
                       </Link>
                       <span className="text-[11px] text-slate-400">{item.company_name}</span>
                     </td>
                     <td className="py-3 px-3 text-slate-300 text-[11px]">{item.sector}</td>
-                    <td className="py-3 px-3 text-right font-mono font-medium text-white">
+                    <td className="py-3 px-3 text-right font-mono font-medium text-white tabular-nums">
                       ₹{item.market_cap.toLocaleString("en-IN")} Cr
                     </td>
-                    <td className="py-3 px-3 text-right font-mono text-slate-200">
+                    <td className="py-3 px-3 text-right font-mono text-slate-200 tabular-nums">
                       {item.pe_ratio !== null ? `${item.pe_ratio}x` : "—"}
                     </td>
-                    <td className="py-3 px-3 text-right font-mono font-bold text-[#39E85B]">
+                    <td className="py-3 px-3 text-right font-mono font-bold text-emerald-400 tabular-nums">
                       {item.roe}%
                     </td>
-                    <td className="py-3 px-3 text-right font-mono text-slate-200">
+                    <td className="py-3 px-3 text-right font-mono text-slate-200 tabular-nums">
                       {item.operating_margin}%
                     </td>
-                    <td className="py-3 px-3 text-right font-mono text-slate-200">
+                    <td className="py-3 px-3 text-right font-mono text-slate-200 tabular-nums">
                       {item.debt_to_equity}x
                     </td>
                     <td className="py-3 px-3 text-center">
                       <Link
                         href={`/company/${item.symbol.toLowerCase()}`}
-                        className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-md bg-[#087BEE]/15 hover:bg-[#087BEE] text-white transition font-semibold"
+                        className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-md bg-blue-600/15 hover:bg-blue-600 text-white transition font-semibold"
                       >
                         Inspect <ArrowUpRight size={11} />
                       </Link>

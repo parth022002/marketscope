@@ -1,0 +1,101 @@
+"use client";
+
+import Link from "next/link";
+import { TrendingUp, TrendingDown } from "lucide-react";
+import MarketSparkline from "./MarketSparkline";
+
+interface MarketOverviewCardProps {
+  symbol: string;
+  name?: string;
+  price: number;
+  change: number;
+  change_pct: number;
+  currency?: string;
+  exchange: string;
+  sparkline?: number[];
+}
+
+export default function MarketOverviewCard({
+  symbol,
+  name,
+  price,
+  change,
+  change_pct,
+  currency = "INR",
+  exchange,
+  sparkline,
+}: MarketOverviewCardProps) {
+  const isPositive = change_pct >= 0;
+
+  const formatPrice = (val: number, cur: string) => {
+    if (cur === "INR") {
+      return `₹${val.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+    return `$${val.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
+  const defaultSparkline = sparkline && sparkline.length > 1
+    ? sparkline
+    : isPositive
+    ? [price * 0.985, price * 0.992, price * 0.998, price * 1.004, price]
+    : [price * 1.015, price * 1.008, price * 1.002, price * 0.995, price];
+
+  return (
+    <Link
+      href={
+        symbol === "RELIANCE" || symbol === "TCS" || symbol === "INFY" || symbol === "TATAMOTORS"
+          ? `/company/${symbol.toLowerCase()}`
+          : "/markets"
+      }
+      className="p-4 rounded-2xl bg-[#0B1930] hover:bg-[#10223B] border border-[#162C4E] hover:border-blue-500/50 transition-all duration-200 flex flex-col justify-between group shadow-sm hover:shadow-lg hover:-translate-y-0.5"
+    >
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-bold text-white group-hover:text-cyan-400 transition">
+              {symbol}
+            </span>
+            <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#071426] text-slate-400 border border-[#162C4E]">
+              {exchange}
+            </span>
+          </div>
+          {name && (
+            <p className="text-[10px] text-slate-400 truncate max-w-[120px] mt-0.5">
+              {name}
+            </p>
+          )}
+        </div>
+
+        <div
+          className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold flex items-center gap-0.5 ${
+            isPositive
+              ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+              : "bg-red-500/15 text-red-400 border border-red-500/30"
+          }`}
+        >
+          {isPositive ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+          {isPositive ? "+" : ""}
+          {change_pct.toFixed(2)}%
+        </div>
+      </div>
+
+      <div className="flex items-end justify-between mt-3 pt-2 border-t border-[#162C4E]/60">
+        <div>
+          <div className="text-base font-extrabold font-mono text-white tabular-nums">
+            {formatPrice(price, currency)}
+          </div>
+          <div className="text-[10px] font-mono text-slate-400">
+            {isPositive ? "+" : ""}{change.toFixed(2)} pts
+          </div>
+        </div>
+
+        <MarketSparkline
+          data={defaultSparkline}
+          isPositive={isPositive}
+          width={80}
+          height={28}
+        />
+      </div>
+    </Link>
+  );
+}

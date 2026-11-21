@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import NavigationShell from "@/components/NavigationShell";
 import MarketHeatmap from "@/components/MarketHeatmap";
+import MarketOverviewCard from "@/components/MarketOverviewCard";
+import IndexPerformanceChart from "@/components/IndexPerformanceChart";
 import { getMarketTicker, type TickerItem } from "@/lib/api";
 
 export default function MarketsPage() {
@@ -30,7 +32,7 @@ export default function MarketsPage() {
   const categories = [
     { id: "all", label: "All Instruments" },
     { id: "indian_index", label: "Indian Indices" },
-    { id: "global_index", label: "Global Indices" },
+    { id: "global_index", label: "Global Benchmarks" },
     { id: "commodity", label: "Commodities & Energy" },
     { id: "currency", label: "Currencies & FX" },
     { id: "yield", label: "Sovereign Bond Yields" },
@@ -43,18 +45,18 @@ export default function MarketsPage() {
 
   return (
     <NavigationShell activePath="/markets">
-      <div className="space-y-6">
+      <div className="space-y-8 w-full">
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-[#132B4F]">
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-[#162C4E]">
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-wider text-[#16C8D5] uppercase">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-wider text-cyan-400 uppercase">
               <Globe size={14} /> Multi-Asset Intelligence
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-white mt-1">
+            <h1 className="text-2xl md:text-3xl font-black text-white mt-1 tracking-tight">
               Global Financial Markets Hub
             </h1>
-            <p className="text-xs text-slate-400 mt-1 max-w-2xl">
-              Track domestic Indian indices, major international benchmarks, precious metals, energy commodities, foreign exchange rates, and sovereign debt yields.
+            <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed font-sans">
+              Track domestic Indian indices, major international benchmarks, precious metals, energy commodities, foreign exchange rates, and sovereign debt yields in real-time.
             </p>
           </div>
         </div>
@@ -65,10 +67,10 @@ export default function MarketsPage() {
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${
                 selectedCategory === cat.id
-                  ? "bg-[#087BEE] text-white shadow-sm"
-                  : "bg-[#0B1D38] text-slate-300 hover:text-white border border-[#132B4F]"
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : "bg-[#0B1930] text-slate-300 hover:text-white border border-[#162C4E]"
               }`}
             >
               {cat.label}
@@ -77,60 +79,41 @@ export default function MarketsPage() {
         </div>
 
         {/* Instruments Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5">
-          {filteredTickers.map((item) => {
-            const isPositive = item.change >= 0;
-            return (
-              <div
-                key={item.symbol}
-                className="p-4 rounded-2xl bg-[#0B1D38] border border-[#132B4F] hover:border-[#087BEE]/60 transition flex flex-col justify-between space-y-3"
-              >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="font-extrabold text-sm text-white tracking-tight">
-                      {item.symbol}
-                    </div>
-                    <div className="text-[11px] text-slate-400 truncate max-w-[150px]">
-                      {item.name}
-                    </div>
-                  </div>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#07152B] text-slate-300 border border-[#132B4F]">
-                    {item.exchange}
-                  </span>
-                </div>
-
-                <div className="flex items-baseline justify-between pt-1 border-t border-[#132B4F]/60">
-                  <div className="text-base font-bold font-mono text-white">
-                    {item.category === "yield"
-                      ? `${item.price.toFixed(2)}%`
-                      : item.currency === "INR"
-                      ? `₹${item.price.toLocaleString("en-IN")}`
-                      : `$${item.price.toLocaleString("en-US")}`}
-                  </div>
-
-                  <span
-                    className={`font-mono text-xs font-bold px-2 py-0.5 rounded flex items-center gap-0.5 ${
-                      isPositive
-                        ? "text-[#39E85B] bg-[#39E85B]/10"
-                        : "text-[#F06464] bg-[#F06464]/10"
-                    }`}
-                  >
-                    {isPositive ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
-                    {isPositive ? "+" : ""}
-                    {item.change_pct.toFixed(2)}%
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {filteredTickers.map((item) => (
+            <MarketOverviewCard
+              key={item.symbol}
+              symbol={item.symbol}
+              name={item.name}
+              price={item.price}
+              change={item.change}
+              change_pct={item.change_pct}
+              currency={item.currency}
+              exchange={item.exchange}
+              sparkline={item.sparkline}
+            />
+          ))}
         </div>
 
-        {/* Sector Heatmap Section */}
-        <div className="pt-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <Layers size={18} className="text-[#16C8D5]" /> Sector Performance Tree-Map
-            </h2>
+        {/* Benchmark Charting Section */}
+        <div>
+          <h2 className="text-lg font-black text-white tracking-tight mb-3">
+            Benchmark Technical Overview
+          </h2>
+          <IndexPerformanceChart selectedIndex="NIFTY 50" />
+        </div>
+
+        {/* Full Interactive Heatmap */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h2 className="text-lg font-black text-white tracking-tight flex items-center gap-2">
+                <Layers size={18} className="text-cyan-400" /> Sector Market Tree-Map
+              </h2>
+              <p className="text-xs text-slate-400">
+                Visualizing sector breadth and capitalization weights across domestic and international exchanges.
+              </p>
+            </div>
           </div>
           <MarketHeatmap initialUniverse="all" />
         </div>

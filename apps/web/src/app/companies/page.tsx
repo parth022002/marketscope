@@ -81,18 +81,18 @@ export default function CompaniesDirectoryPage() {
 
   return (
     <NavigationShell activePath="/companies">
-      <div className="space-y-6">
+      <div className="space-y-6 w-full">
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-[#132B4F]">
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-[#162C4E]">
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-wider text-[#16C8D5] uppercase">
-              <Building2 size={14} /> Taxonomy &amp; Directory
+            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-wider text-cyan-400 uppercase">
+              <Building2 size={14} /> Taxonomy &amp; Industry Classification
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-white mt-1">
+            <h1 className="text-2xl md:text-3xl font-black text-white mt-1 tracking-tight">
               Company Directory by Sector
             </h1>
-            <p className="text-xs text-slate-400 mt-1 max-w-2xl">
-              Explore companies categorized by macroeconomic sector, capital scale, and competitive peer groupings.
+            <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed font-sans">
+              Explore companies categorized by macroeconomic sector, capital scale, and competitive peer groupings across Indian and global capital markets.
             </p>
           </div>
 
@@ -103,7 +103,7 @@ export default function CompaniesDirectoryPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search sector or company..."
-              className="w-full bg-[#0B1D38] border border-[#132B4F] rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#087BEE]"
+              className="w-full bg-[#0B1930] border border-[#162C4E] rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 transition shadow-inner font-sans"
             />
           </div>
         </div>
@@ -113,12 +113,12 @@ export default function CompaniesDirectoryPage() {
           {filteredSectors.map((sector) => (
             <div
               key={sector.name}
-              className="p-5 rounded-2xl bg-[#0B1D38] border border-[#132B4F] space-y-4 flex flex-col justify-between"
+              className="p-5 rounded-2xl bg-[#0B1930] border border-[#162C4E] space-y-4 flex flex-col justify-between shadow-lg"
             >
               <div>
-                <div className="flex items-center justify-between pb-2 border-b border-[#132B4F]">
+                <div className="flex items-center justify-between pb-3 border-b border-[#162C4E]">
                   <h3 className="text-base font-bold text-white flex items-center gap-2">
-                    <Layers size={16} className="text-[#087BEE]" /> {sector.name}
+                    <Layers size={16} className="text-blue-500" /> {sector.name}
                   </h3>
                   <span className="text-[11px] font-mono text-slate-400">
                     {sector.companiesCount} Constituents
@@ -134,29 +134,29 @@ export default function CompaniesDirectoryPage() {
                       <Link
                         key={co.symbol}
                         href={`/company/${co.symbol.toLowerCase()}`}
-                        className="p-2.5 rounded-xl bg-[#07152B] border border-[#132B4F] hover:border-[#087BEE] transition flex items-center justify-between text-xs group"
+                        className="p-3 rounded-xl bg-[#071426] border border-[#162C4E] hover:border-blue-500/50 hover:bg-[#10223B] transition flex items-center justify-between text-xs group"
                       >
                         <div>
-                          <strong className="text-white group-hover:text-[#16C8D5]">
+                          <strong className="text-white group-hover:text-cyan-400 transition">
                             {co.symbol}
                           </strong>
                           <span className="text-slate-400 text-[11px] ml-2">{co.name}</span>
                         </div>
 
                         <div className="flex items-center gap-3">
-                          <span className="font-mono font-bold text-white">
+                          <span className="font-mono font-bold text-white tabular-nums">
                             {isUsd ? "$" : "₹"}
-                            {co.price.toFixed(2)}
+                            {co.price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                           <span
                             className={`font-mono text-[11px] font-bold ${
-                              isPositive ? "text-[#39E85B]" : "text-[#F06464]"
+                              isPositive ? "text-emerald-400" : "text-red-400"
                             }`}
                           >
                             {isPositive ? "+" : ""}
                             {co.change_pct.toFixed(2)}%
                           </span>
-                          <ChevronRight size={14} className="text-slate-500 group-hover:text-white" />
+                          <ChevronRight size={14} className="text-slate-500 group-hover:text-white transition" />
                         </div>
                       </Link>
                     );
@@ -167,7 +167,7 @@ export default function CompaniesDirectoryPage() {
               <div className="pt-2 text-right">
                 <Link
                   href="/screener"
-                  className="text-xs font-semibold text-[#087BEE] hover:text-[#16C8D5] inline-flex items-center gap-1"
+                  className="text-xs font-semibold text-blue-400 hover:text-cyan-400 inline-flex items-center gap-1 transition"
                 >
                   Screen this Sector <ArrowRight size={12} />
                 </Link>

@@ -86,31 +86,31 @@ export default function WatchlistsPage() {
 
   return (
     <NavigationShell activePath="/watchlists">
-      <div className="space-y-6">
+      <div className="space-y-6 w-full">
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-[#132B4F]">
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-[#162C4E]">
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-wider text-[#16C8D5] uppercase">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-wider text-cyan-400 uppercase">
               <Bookmark size={14} /> Multi-Tenant Portfolios
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-white mt-1">
+            <h1 className="text-2xl md:text-3xl font-black text-white mt-1 tracking-tight">
               Custom Research Watchlists
             </h1>
-            <p className="text-xs text-slate-400 mt-1 max-w-2xl">
+            <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed font-sans">
               Organize tracked equities, monitor live price movements, and receive contextual news alerts directly tied to your coverage universe.
             </p>
           </div>
 
           <button
             onClick={() => setIsCreating((prev) => !prev)}
-            className="flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-xl bg-[#087BEE] hover:bg-[#0769cc] text-white transition shadow-sm shrink-0"
+            className="flex items-center gap-1.5 text-xs font-bold px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition shadow-sm shrink-0"
           >
             <Plus size={15} /> {isCreating ? "Cancel" : "New Watchlist"}
           </button>
         </div>
 
         {error && (
-          <div className="p-4 rounded-xl bg-red-950/40 border border-red-800/60 text-[#F06464] text-xs">
+          <div className="p-4 rounded-xl bg-red-950/40 border border-red-800/60 text-red-400 text-xs">
             {error}
           </div>
         )}
@@ -119,10 +119,10 @@ export default function WatchlistsPage() {
         {isCreating && (
           <form
             onSubmit={handleCreateWatchlist}
-            className="p-5 rounded-2xl bg-[#0B1D38] border border-[#132B4F] space-y-3"
+            className="p-5 rounded-2xl bg-[#0B1930] border border-[#162C4E] space-y-3 shadow-lg"
           >
             <h3 className="text-xs font-mono font-bold text-white uppercase tracking-wider">
-              Create New Watchlist
+              Create New Research Watchlist
             </h3>
             <div>
               <label className="block text-xs font-medium text-slate-300 mb-1">
@@ -134,7 +134,7 @@ export default function WatchlistsPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. FY27 High Return Compounders"
-                className="w-full px-3 py-2 rounded-xl bg-[#07152B] border border-[#132B4F] text-white text-xs focus:outline-none focus:border-[#087BEE]"
+                className="w-full px-3 py-2 rounded-xl bg-[#071426] border border-[#162C4E] text-white text-xs focus:outline-none focus:border-blue-500 font-sans shadow-inner"
               />
             </div>
             <div>
@@ -144,21 +144,21 @@ export default function WatchlistsPage() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Thesis context or monitoring triggers..."
-                className="w-full px-3 py-2 rounded-xl bg-[#07152B] border border-[#132B4F] text-white text-xs focus:outline-none focus:border-[#087BEE]"
+                className="w-full px-3 py-2 rounded-xl bg-[#071426] border border-[#162C4E] text-white text-xs focus:outline-none focus:border-blue-500 font-sans shadow-inner"
               />
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setIsCreating(false)}
-                className="px-4 py-1.5 rounded-lg bg-[#132B4F] text-slate-300 hover:text-white text-xs font-medium transition"
+                className="px-4 py-2 rounded-lg bg-[#162C4E] text-slate-300 hover:text-white text-xs font-medium transition"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={saving}
-                className="px-4 py-1.5 rounded-lg bg-[#39E85B] text-black font-semibold text-xs hover:bg-[#2ecc4c] transition"
+                className="px-4 py-2 rounded-lg bg-emerald-500 text-black font-bold text-xs hover:bg-emerald-400 transition shadow-sm"
               >
                 {saving ? "Creating..." : "Save Watchlist"}
               </button>
@@ -168,15 +168,15 @@ export default function WatchlistsPage() {
 
         {/* Watchlist Tabs */}
         {watchlists.length > 0 && (
-          <div className="flex items-center gap-2 border-b border-[#132B4F] pb-3 overflow-x-auto">
+          <div className="flex items-center gap-2 border-b border-[#162C4E] pb-3 overflow-x-auto scrollbar-none">
             {watchlists.map((wl) => (
               <button
                 key={wl.id}
                 onClick={() => setActiveWlId(wl.id)}
-                className={`text-xs px-3.5 py-1.5 rounded-xl font-bold transition border flex items-center gap-1.5 whitespace-nowrap ${
+                className={`text-xs px-4 py-2 rounded-xl font-bold transition border flex items-center gap-1.5 whitespace-nowrap ${
                   activeWlId === wl.id
-                    ? "bg-[#087BEE] border-[#087BEE] text-white shadow-sm"
-                    : "bg-[#0B1D38] border-[#132B4F] text-slate-300 hover:text-white"
+                    ? "bg-blue-600 border-blue-500 text-white shadow-sm"
+                    : "bg-[#0B1930] border-[#162C4E] text-slate-300 hover:text-white"
                 }`}
               >
                 <Bookmark size={13} /> {wl.name} ({wl.items.length})
@@ -190,45 +190,45 @@ export default function WatchlistsPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-white">{activeWatchlist.name}</h3>
+                <h3 className="text-base font-extrabold text-white tracking-tight">{activeWatchlist.name}</h3>
                 {activeWatchlist.description && (
-                  <p className="text-xs text-slate-400">{activeWatchlist.description}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">{activeWatchlist.description}</p>
                 )}
               </div>
-              <span className="text-[11px] font-mono text-[#39E85B] flex items-center gap-1">
+              <span className="text-[11px] font-mono text-emerald-400 flex items-center gap-1">
                 <CheckCircle2 size={12} /> Neon Cluster Verified
               </span>
             </div>
 
-            <div className="p-5 rounded-2xl border border-[#132B4F] bg-[#0B1D38] overflow-x-auto">
+            <div className="p-5 rounded-2xl border border-[#162C4E] bg-[#0B1930] overflow-x-auto shadow-xl scrollbar-none">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="border-b border-[#132B4F] text-[11px] font-mono uppercase tracking-wider text-slate-400">
+                  <tr className="border-b border-[#162C4E] text-[11px] font-mono uppercase tracking-wider text-slate-400">
                     <th className="py-3 px-3">Symbol</th>
                     <th className="py-3 px-3">Company Name</th>
                     <th className="py-3 px-3">Added Date</th>
                     <th className="py-3 px-3 text-center">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#132B4F]/60 text-slate-300">
+                <tbody className="divide-y divide-[#162C4E]/60 text-slate-300">
                   {activeWatchlist.items.map((item) => (
-                    <tr key={item.id} className="hover:bg-[#102547]/50 transition">
-                      <td className="py-3 px-3 font-bold text-white font-mono">{item.symbol}</td>
-                      <td className="py-3 px-3 text-slate-300">{item.company_name}</td>
-                      <td className="py-3 px-3 text-slate-400 font-mono text-[11px]">
+                    <tr key={item.id} className="hover:bg-[#10223B]/60 transition">
+                      <td className="py-3.5 px-3 font-bold text-white font-mono">{item.symbol}</td>
+                      <td className="py-3.5 px-3 text-slate-300">{item.company_name}</td>
+                      <td className="py-3.5 px-3 text-slate-400 font-mono text-[11px]">
                         {new Date(item.added_at).toLocaleDateString()}
                       </td>
-                      <td className="py-3 px-3 text-center">
+                      <td className="py-3.5 px-3 text-center">
                         <div className="flex items-center justify-center gap-2">
                           <Link
                             href={`/company/${item.symbol.toLowerCase()}`}
-                            className="text-xs px-2.5 py-1 rounded-md bg-[#087BEE]/15 hover:bg-[#087BEE] text-white transition flex items-center gap-1 font-semibold"
+                            className="text-xs px-3 py-1.5 rounded-lg bg-blue-600/15 hover:bg-blue-600 text-white transition flex items-center gap-1 font-semibold"
                           >
                             Dossier <ArrowUpRight size={11} />
                           </Link>
                           <button
                             onClick={() => handleDeleteItem(activeWatchlist.id, item.id)}
-                            className="p-1 rounded text-slate-500 hover:text-[#F06464] transition"
+                            className="p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition"
                             title="Remove ticker"
                           >
                             <Trash2 size={13} />

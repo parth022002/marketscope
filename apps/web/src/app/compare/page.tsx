@@ -37,24 +37,24 @@ export default function ComparePage() {
 
   return (
     <NavigationShell activePath="/compare">
-      <div className="space-y-6">
+      <div className="space-y-6 w-full">
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-[#132B4F]">
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-[#162C4E]">
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-wider text-[#16C8D5] uppercase">
-              <Scale size={14} /> Competitive Benchmarking
+            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-wider text-cyan-400 uppercase">
+              <Scale size={14} /> Competitive Multiples Benchmarking
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-white mt-1">
+            <h1 className="text-2xl md:text-3xl font-black text-white mt-1 tracking-tight">
               Peer Comparison Matrix
             </h1>
-            <p className="text-xs text-slate-400 mt-1 max-w-2xl">
+            <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed font-sans">
               Evaluate direct sector rivals side-by-side across deterministic valuation multiples, capital efficiency, and solvency metrics.
             </p>
           </div>
         </div>
 
         {/* Anchor Selector */}
-        <div className="p-4 rounded-2xl bg-[#0B1D38] border border-[#132B4F] flex flex-wrap items-center gap-3 text-xs">
+        <div className="p-5 rounded-2xl bg-[#0B1930] border border-[#162C4E] flex flex-wrap items-center gap-3 text-xs shadow-md">
           <span className="text-slate-400 font-mono font-bold uppercase">
             Benchmark Anchor Company:
           </span>
@@ -63,10 +63,10 @@ export default function ComparePage() {
               <button
                 key={sym}
                 onClick={() => setSelectedSymbol(sym)}
-                className={`px-3 py-1.5 rounded-xl font-bold transition border ${
+                className={`px-3.5 py-1.5 rounded-xl font-bold transition border ${
                   selectedSymbol === sym
-                    ? "bg-[#087BEE] border-[#087BEE] text-white shadow-sm"
-                    : "bg-[#07152B] border-[#132B4F] text-slate-300 hover:text-white"
+                    ? "bg-blue-600 border-blue-500 text-white shadow-sm"
+                    : "bg-[#071426] border-[#162C4E] text-slate-300 hover:text-white hover:bg-[#10223B]"
                 }`}
               >
                 {sym}
@@ -76,19 +76,19 @@ export default function ComparePage() {
         </div>
 
         {error && (
-          <div className="p-4 rounded-xl bg-red-950/40 border border-red-800/60 text-[#F06464] text-xs">
+          <div className="p-4 rounded-xl bg-red-950/40 border border-red-800/60 text-red-400 text-xs">
             {error}
           </div>
         )}
 
         {/* Alignment Warnings */}
         {data && data.alignment_warnings.length > 0 && (
-          <div className="p-4 rounded-2xl bg-[#0B1D38] border border-blue-800/40 text-blue-200 text-xs flex items-start gap-2.5">
-            <AlertCircle size={16} className="text-[#16C8D5] shrink-0 mt-0.5" />
+          <div className="p-4 rounded-2xl bg-[#0B1930] border border-blue-800/40 text-blue-200 text-xs flex items-start gap-2.5">
+            <AlertCircle size={16} className="text-cyan-400 shrink-0 mt-0.5" />
             <div>
               <strong className="block text-white mb-0.5">Period &amp; Accounting Basis Alignment Notice</strong>
               {data.alignment_warnings.map((w, i) => (
-                <p key={i} className="text-slate-300 leading-relaxed">
+                <p key={i} className="text-slate-300 leading-relaxed font-sans">
                   {w}
                 </p>
               ))}
@@ -98,24 +98,24 @@ export default function ComparePage() {
 
         {/* Loading Spinner */}
         {loading && (
-          <div className="py-20 text-center text-slate-400">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-[#087BEE] border-t-transparent mb-3" />
+          <div className="py-20 text-center text-slate-400 flex flex-col items-center justify-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-blue-500 border-t-transparent mb-3" />
             <p className="text-xs">Computing deterministic peer comparative multiples...</p>
           </div>
         )}
 
         {/* Peer Table */}
         {data && !loading && (
-          <div className="overflow-x-auto rounded-2xl border border-[#132B4F] bg-[#0B1D38] shadow-sm p-5">
+          <div className="overflow-x-auto rounded-2xl border border-[#162C4E] bg-[#0B1930] shadow-xl p-5 scrollbar-none">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-[#132B4F] text-[11px] font-mono uppercase tracking-wider text-slate-400">
+              <thead className="border-b border-[#162C4E] text-[11px] font-mono uppercase tracking-wider text-slate-400">
                 <tr>
                   <th className="py-3 px-4">Metric / Dimension</th>
                   {data.peers.map((peer) => (
                     <th key={peer.symbol} className="py-3 px-4 text-right">
                       <Link
                         href={`/company/${peer.symbol.toLowerCase()}`}
-                        className="text-white hover:text-[#16C8D5] inline-flex items-center gap-1 font-bold"
+                        className="text-white hover:text-cyan-400 inline-flex items-center gap-1 font-bold transition"
                       >
                         {peer.symbol} <ArrowUpRight size={12} />
                       </Link>
@@ -126,74 +126,74 @@ export default function ComparePage() {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#132B4F]/60 text-slate-300">
+              <tbody className="divide-y divide-[#162C4E]/60 text-slate-300">
                 <tr>
-                  <td className="py-3 px-4 font-semibold text-white">Market Capitalization</td>
+                  <td className="py-3.5 px-4 font-semibold text-white">Market Capitalization</td>
                   {data.peers.map((p) => (
-                    <td key={p.symbol} className="py-3 px-4 text-right font-mono font-bold text-white">
+                    <td key={p.symbol} className="py-3.5 px-4 text-right font-mono font-bold text-white tabular-nums">
                       ₹{p.market_cap.toLocaleString("en-IN")} Cr
                     </td>
                   ))}
                 </tr>
 
-                <tr className="bg-[#07152B]/40">
-                  <td className="py-3 px-4 font-medium text-slate-300">Trailing P/E Ratio</td>
+                <tr className="bg-[#071426]/40">
+                  <td className="py-3.5 px-4 font-medium text-slate-300">Trailing P/E Ratio</td>
                   {data.peers.map((p) => (
-                    <td key={p.symbol} className="py-3 px-4 text-right font-mono text-slate-200">
+                    <td key={p.symbol} className="py-3.5 px-4 text-right font-mono text-slate-200 tabular-nums">
                       {p.pe_ratio !== null ? `${p.pe_ratio}x` : "—"}
                     </td>
                   ))}
                 </tr>
 
                 <tr>
-                  <td className="py-3 px-4 font-medium text-slate-300">Price to Book (P/B)</td>
+                  <td className="py-3.5 px-4 font-medium text-slate-300">Price to Book (P/B)</td>
                   {data.peers.map((p) => (
-                    <td key={p.symbol} className="py-3 px-4 text-right font-mono text-slate-200">
+                    <td key={p.symbol} className="py-3.5 px-4 text-right font-mono text-slate-200 tabular-nums">
                       {p.pb_ratio}x
                     </td>
                   ))}
                 </tr>
 
-                <tr className="bg-[#07152B]/40">
-                  <td className="py-3 px-4 font-semibold text-[#39E85B]">Return on Equity (ROE)</td>
+                <tr className="bg-[#071426]/40">
+                  <td className="py-3.5 px-4 font-semibold text-emerald-400">Return on Equity (ROE)</td>
                   {data.peers.map((p) => (
-                    <td key={p.symbol} className="py-3 px-4 text-right font-mono font-bold text-[#39E85B]">
+                    <td key={p.symbol} className="py-3.5 px-4 text-right font-mono font-bold text-emerald-400 tabular-nums">
                       {p.roe}%
                     </td>
                   ))}
                 </tr>
 
                 <tr>
-                  <td className="py-3 px-4 font-medium text-slate-300">Return on Capital Employed (ROCE)</td>
+                  <td className="py-3.5 px-4 font-medium text-slate-300">Return on Capital Employed (ROCE)</td>
                   {data.peers.map((p) => (
-                    <td key={p.symbol} className="py-3 px-4 text-right font-mono text-slate-200">
+                    <td key={p.symbol} className="py-3.5 px-4 text-right font-mono text-slate-200 tabular-nums">
                       {p.roce}%
                     </td>
                   ))}
                 </tr>
 
-                <tr className="bg-[#07152B]/40">
-                  <td className="py-3 px-4 font-medium text-slate-300">Operating Profit Margin (OPM)</td>
+                <tr className="bg-[#071426]/40">
+                  <td className="py-3.5 px-4 font-medium text-slate-300">Operating Profit Margin (OPM)</td>
                   {data.peers.map((p) => (
-                    <td key={p.symbol} className="py-3 px-4 text-right font-mono text-slate-200">
+                    <td key={p.symbol} className="py-3.5 px-4 text-right font-mono text-slate-200 tabular-nums">
                       {p.operating_margin}%
                     </td>
                   ))}
                 </tr>
 
                 <tr>
-                  <td className="py-3 px-4 font-medium text-slate-300">Debt to Equity</td>
+                  <td className="py-3.5 px-4 font-medium text-slate-300">Debt to Equity</td>
                   {data.peers.map((p) => (
-                    <td key={p.symbol} className="py-3 px-4 text-right font-mono text-slate-200">
+                    <td key={p.symbol} className="py-3.5 px-4 text-right font-mono text-slate-200 tabular-nums">
                       {p.debt_to_equity}x
                     </td>
                   ))}
                 </tr>
 
-                <tr className="bg-[#07152B]/40">
-                  <td className="py-3 px-4 font-semibold text-[#16C8D5]">Free Cash Flow (FCF)</td>
+                <tr className="bg-[#071426]/40">
+                  <td className="py-3.5 px-4 font-semibold text-cyan-400">Free Cash Flow (FCF)</td>
                   {data.peers.map((p) => (
-                    <td key={p.symbol} className="py-3 px-4 text-right font-mono font-bold text-[#16C8D5]">
+                    <td key={p.symbol} className="py-3.5 px-4 text-right font-mono font-bold text-cyan-400 tabular-nums">
                       ₹{p.fcf.toLocaleString("en-IN")} Cr
                     </td>
                   ))}
