@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Show, UserButton } from "@clerk/nextjs";
 import { Search as SearchIcon, ArrowUpRight, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { resolveInstrument, searchInstruments, type Instrument, type ResolveResponse } from "@/lib/api";
+import Footer from "@/components/Footer";
 
 const GLOBAL_CHIPS = ["RELIANCE", "TCS", "HDFCBANK", "AAPL", "NVDA", "MSFT", "GOOGL", "TSLA"];
 
@@ -235,6 +236,8 @@ export default function SearchPage() {
               </div>
             )}
           </div>
+
+          <Footer />
         </div>
       </main>
     </div>

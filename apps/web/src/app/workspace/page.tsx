@@ -19,6 +19,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { exportUserData, purgeUserData, type DPDPDataExportResponse, type DPDPPurgeResponse } from "@/lib/api";
+import Footer from "@/components/Footer";
 
 const PRIMARY_WORKSPACE_ID = "11111111-1111-1111-1111-111111111111";
 
@@ -299,6 +300,8 @@ export default function WorkspacePage() {
               </button>
             </div>
           </div>
+
+          <Footer />
         </div>
       </main>
 

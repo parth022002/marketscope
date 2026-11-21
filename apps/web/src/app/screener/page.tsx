@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Show, UserButton } from "@clerk/nextjs";
 import { Filter, SlidersHorizontal, ArrowUpRight, CheckCircle2, RotateCcw } from "lucide-react";
 import { runScreener, getScreenerPresets, type ScreenerResultItem, type ScreenerPreset } from "@/lib/api";
+import Footer from "@/components/Footer";
 
 export default function ScreenerPage() {
   const [presets, setPresets] = useState<ScreenerPreset[]>([]);
@@ -335,6 +336,8 @@ export default function ScreenerPage() {
               </tbody>
             </table>
           </div>
+
+          <Footer />
         </div>
       </main>
     </div>

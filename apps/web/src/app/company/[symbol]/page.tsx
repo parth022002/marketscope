@@ -24,6 +24,7 @@ import FinancialStatementsExplorer from "@/components/FinancialStatementsExplore
 import SnapshotModal from "@/components/SnapshotModal";
 import AddToWatchlistModal from "@/components/AddToWatchlistModal";
 import AISynthesisPanel from "@/components/AISynthesisPanel";
+import Footer from "@/components/Footer";
 
 const IDS_MAP: Record<string, string> = {
   reliance: "in-nse-reliance",
@@ -484,6 +485,8 @@ export default function CompanyPage() {
           <div className="notice my-8 p-4 rounded-xl bg-[#0B1D38] border border-amber-800/40 text-amber-200/90 text-xs leading-relaxed">
             {dossier.disclaimer}
           </div>
+
+          <Footer />
         </div>
       </main>
 

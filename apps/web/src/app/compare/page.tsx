@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Show, UserButton } from "@clerk/nextjs";
 import { Scale, AlertCircle, ArrowUpRight } from "lucide-react";
 import { getPeerComparison, type PeerComparisonResponse } from "@/lib/api";
+import Footer from "@/components/Footer";
 
 const QUICK_COMPANIES = ["TCS", "INFY", "RELIANCE", "TATAMOTORS"];
 
@@ -244,6 +245,8 @@ export default function ComparePage() {
               </table>
             </div>
           )}
+
+          <Footer />
         </div>
       </main>
     </div>

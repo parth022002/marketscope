@@ -11,6 +11,7 @@ import {
   deleteWatchlistItem,
   type Watchlist,
 } from "@/lib/api";
+import Footer from "@/components/Footer";
 
 export default function WatchlistsPage() {
   const [watchlists, setWatchlists] = useState<Watchlist[]>([]);
@@ -314,6 +315,8 @@ export default function WatchlistsPage() {
               </button>
             </div>
           )}
+
+          <Footer />
         </div>
       </main>
     </div>
