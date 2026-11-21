@@ -1,15 +1,18 @@
 """
 MarketScope.io — Central Market Data Engine & Service
-Orchestrates multi-provider ingestion, validation rules, L1 in-memory caching,
+Orchestrates multi-provider ingestion, validation rules, L1 in-memory and L2 Redis caching,
 session calendar resolution, and WebSocket broadcasting.
 """
 
 import os
 import time
+import json
 import asyncio
 import logging
 from datetime import datetime, timezone, timedelta
 from typing import Sequence
+
+import redis
 
 from app.domain.schemas import (
     MarketQuote,
@@ -36,24 +39,57 @@ from app.providers.market_data.fallback_provider import FallbackDevProvider, FAL
 
 logger = logging.getLogger(__name__)
 
+# Complete Canonical Universe (51 instruments across 6 asset classes)
 CANONICAL_SYMBOLS = [
+    # ─── 1. Indian Indices ───────────────────────────────────────────────────
     ("NIFTY 50", "NSE", "indian_index"),
-    ("SENSEX", "BSE", "indian_index"),
+    ("NIFTY NEXT 50", "NSE", "indian_index"),
     ("NIFTY BANK", "NSE", "indian_index"),
+    ("NIFTY FINANCIAL SERVICES", "NSE", "indian_index"),
     ("NIFTY IT", "NSE", "indian_index"),
     ("NIFTY MIDCAP 100", "NSE", "indian_index"),
+    ("SENSEX", "BSE", "indian_index"),
+    ("BSE 100", "BSE", "indian_index"),
     ("BSE 500", "BSE", "indian_index"),
+
+    # ─── 2. International Benchmark Indices ──────────────────────────────────
+    ("NASDAQ Composite", "NASDAQ", "global_index"),
     ("NASDAQ 100", "NASDAQ", "global_index"),
     ("S&P 500", "NYSE", "global_index"),
-    ("BRENT CRUDE", "ICE", "commodity"),
-    ("WTI CRUDE", "NYMEX", "commodity"),
+    ("Dow Jones", "NYSE", "global_index"),
+    ("Russell 2000", "NYSE", "global_index"),
+    ("VIX", "CBOE", "global_index"),
+    ("FTSE 100", "LSE", "global_index"),
+    ("DAX 40", "XETRA", "global_index"),
+    ("CAC 40", "EURONEXT", "global_index"),
+    ("EURO STOXX 50", "EURONEXT", "global_index"),
+    ("Nikkei 225", "TSE", "global_index"),
+    ("Hang Seng", "HKEX", "global_index"),
+    ("Shanghai Composite", "SSE", "global_index"),
+    ("KOSPI", "KRX", "global_index"),
+    ("ASX 200", "ASX", "global_index"),
+
+    # ─── 3. Commodities & Energy ──────────────────────────────────────────────
     ("GOLD SPOT", "COMEX", "commodity"),
     ("GOLD MCX", "MCX", "commodity"),
     ("SILVER", "COMEX", "commodity"),
+    ("BRENT CRUDE", "ICE", "commodity"),
+    ("WTI CRUDE", "NYMEX", "commodity"),
     ("NATURAL GAS", "NYMEX", "commodity"),
+    ("COPPER", "COMEX", "commodity"),
+    ("ALUMINIUM", "LME", "commodity"),
+
+    # ─── 4. Foreign Exchange & Dollar Index ──────────────────────────────────
     ("USD/INR", "FOREX", "currency"),
     ("EUR/INR", "FOREX", "currency"),
+    ("GBP/INR", "FOREX", "currency"),
+    ("JPY/INR", "FOREX", "currency"),
+    ("EUR/USD", "FOREX", "currency"),
+    ("GBP/USD", "FOREX", "currency"),
+    ("USD/JPY", "FOREX", "currency"),
     ("DXY", "ICE", "currency"),
+
+    # ─── 5. Sovereign Benchmark Bond Yields ───────────────────────────────────
     ("US 10Y YIELD", "BOND", "yield"),
     ("INDIA 10Y YIELD", "RBI", "yield"),
 ]
@@ -63,6 +99,7 @@ CANONICAL_EQUITIES = [
     ("TCS", "Tata Consultancy Services Limited", "NSE", "Information Technology", "INR", False),
     ("HDFCBANK", "HDFC Bank Limited", "NSE", "Financial Services", "INR", False),
     ("INFY", "Infosys Limited", "NSE", "Information Technology", "INR", False),
+    ("ICICIBANK", "ICICI Bank Limited", "NSE", "Financial Services", "INR", False),
     ("BHARTIARTL", "Bharti Airtel Limited", "NSE", "Telecommunications", "INR", False),
     ("TATAMOTORS", "Tata Motors Limited", "NSE", "Automotive", "INR", False),
     ("LT", "Larsen & Toubro Limited", "NSE", "Infrastructure & Engineering", "INR", False),
@@ -98,6 +135,16 @@ class MarketDataService:
         self._anomaly_log: list[dict] = []
         self._active_ws_connections: int = 0
 
+        # Optional Redis L2 Cache connection
+        redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+        self._redis_client = None
+        try:
+            client = redis.from_url(redis_url, decode_responses=True, socket_connect_timeout=0.2)
+            client.ping()
+            self._redis_client = client
+        except Exception:
+            self._redis_client = None
+
     def register_ws_connection(self):
         self._active_ws_connections += 1
 
@@ -106,33 +153,47 @@ class MarketDataService:
 
     async def get_quote(self, symbol: str, exchange: str | None = None) -> MarketQuote:
         cache_key = f"{symbol.upper()}:{exchange.upper() if exchange else 'DEF'}"
+        
+        # 1. L1 In-Memory Cache Check
         cached = self._l1_cache.get(cache_key)
         if cached and not cached.is_expired:
             return cached.quote
 
+        # 2. L2 Redis Cache Check (if connected)
+        if self._redis_client:
+            try:
+                redis_data = self._redis_client.get(f"marketscope:quote:{cache_key}")
+                if redis_data:
+                    q_dict = json.loads(redis_data)
+                    quote = MarketQuote.model_validate(q_dict)
+                    self._l1_cache[cache_key] = CachedQuote(quote, ttl_seconds=5.0)
+                    return quote
+            except Exception:
+                pass
+
         session = resolve_session_state_for_exchange(exchange or "")
         quote: MarketQuote | None = None
 
-        # 1. Attempt Twelve Data
+        # 3. Attempt Primary Commercial Provider (Twelve Data)
         if self.twelve_provider.api_key:
             try:
                 quote = await self.twelve_provider.get_quote(symbol, exchange)
             except Exception as e:
                 logger.warning(f"TwelveData get_quote failed for {symbol}: {e}")
 
-        # 2. Attempt FMP if Twelve Data returned None
+        # 4. Attempt Secondary Provider (FMP)
         if not quote and self.fmp_provider.api_key:
             try:
                 quote = await self.fmp_provider.get_quote(symbol, exchange)
             except Exception as e:
                 logger.warning(f"FMP get_quote failed for {symbol}: {e}")
 
-        # 3. Deterministic Fallback if external providers unavailable
+        # 5. Deterministic Fallback if external providers unavailable
         if not quote:
             quote = await self.fallback_provider.get_quote(symbol, exchange)
 
         if not quote:
-            # Synthetic emergency fallback for unknown symbols
+            # Fallback for unknown symbols
             now = datetime.now(timezone.utc)
             quote = MarketQuote(
                 instrument_id=f"inst_dev_{symbol}",
@@ -159,10 +220,22 @@ class MarketDataService:
         # TTL determination: 5 seconds if open, 300 seconds if closed
         ttl = 5.0 if session.is_regular_trading else 300.0
         self._l1_cache[cache_key] = CachedQuote(quote, ttl_seconds=ttl)
+
+        # Write through to Redis L2 if active
+        if self._redis_client:
+            try:
+                self._redis_client.setex(
+                    f"marketscope:quote:{cache_key}",
+                    int(ttl),
+                    quote.model_dump_json(),
+                )
+            except Exception:
+                pass
+
         return quote
 
     def _apply_validation_and_session(self, quote: MarketQuote, session) -> MarketQuote:
-        # Validate mathematical change
+        # Validate mathematical change with strict Decimal precision
         change, change_pct = BaseMarketDataProvider.calculate_price_change(
             quote.price, quote.previous_close
         )
@@ -343,7 +416,7 @@ class MarketDataService:
         for sym, exch, category in CANONICAL_SYMBOLS:
             items.append(
                 InstrumentMasterItem(
-                    instrument_id=f"inst_master_{sym.replace(' ', '_')}",
+                    instrument_id=f"inst_master_{sym.replace(' ', '_').replace('/', '_')}",
                     symbol=sym,
                     display_name=sym,
                     exchange=exch,
@@ -364,8 +437,8 @@ class MarketDataService:
                     exchange=exch,
                     asset_class="EQUITY",
                     currency=curr,
-                    isin="INE002A01018" if sym == "RELIANCE" else None,
-                    bse_scrip_code="500325" if sym == "RELIANCE" else None,
+                    isin="INE002A01018" if sym == "RELIANCE" else ("INE467B01029" if sym == "TCS" else None),
+                    bse_scrip_code="500325" if sym == "RELIANCE" else ("532540" if sym == "TCS" else None),
                     primary_vendor="twelvedata",
                     supported_vendors=["twelvedata", "fmp", "synthetic_dev"],
                 )
