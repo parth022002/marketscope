@@ -17,10 +17,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Copy requirements from either context (root or apps/api)
-COPY requirements.txt* apps/api/requirements.txt* ./
-RUN if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; \
-    elif [ -f apps/api/requirements.txt ]; then pip install --no-cache-dir -r apps/api/requirements.txt; fi
+# Copy dependency manifest
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Final Runtime Image
 FROM python:3.12-slim AS runner
@@ -52,4 +51,4 @@ EXPOSE 8000 10000
 HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=3 \
   CMD curl -f http://localhost:${PORT:-8000}/health || exit 1
 
-CMD ["sh", "-c", "if [ -d 'apps/api' ]; then exec uvicorn app.main:app --app-dir apps/api --host 0.0.0.0 --port ${PORT:-8000} --workers 2; else exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 2; fi"]
+CMD ["sh", "-c", "if [ -d 'apps/api' ]; then exec uvicorn app.main:app --app-dir apps/api --host 0.0.0.0 --port ${PORT:-8000} --workers 1; else exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1; fi"]
