@@ -16,10 +16,11 @@ ENV NEXT_TELEMETRY_DISABLED=1 \
     NODE_ENV=production
 
 # Provide build-time fallback keys for static generation
+ARG CLERK_SECRET_KEY="sk_test_placeholder_for_build"
 ENV NEXT_PUBLIC_APP_NAME="MarketScope.io" \
     NEXT_PUBLIC_API_BASE_URL="http://localhost:8000" \
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_c2luZ3VsYXItamVubmV0LTUwMzEuY2xlcmsuYWNjb3VudHMuZGV2JA" \
-    CLERK_SECRET_KEY="sk_test_Hbx0Vx46E7bXlCjV3yrPZat35RKY4fhJxp2oIFuKNT" \
+    CLERK_SECRET_KEY=${CLERK_SECRET_KEY} \
     NEXT_PUBLIC_AI_ENABLED="true"
 
 RUN npm run build

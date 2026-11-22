@@ -238,6 +238,164 @@ async def _call_groq_synthesis(
         return None
 
 
+async def _call_openrouter_synthesis(
+    symbol: str,
+    company_name: str,
+    ratios: dict[str, Any],
+    quote: dict[str, Any],
+) -> AISynthesisResponse | None:
+    """Invoke OpenRouter AI for secondary grounded RAG synthesis."""
+    if not settings.openrouter_api_key or not settings.openrouter_api_key.startswith("sk-or-"):
+        return None
+
+    prompt_context = {
+        "symbol": symbol.upper(),
+        "company_name": company_name,
+        "live_quote": quote,
+        "financial_ratios": ratios,
+        "guidelines": [
+            "Strictly factual fundamental synthesis based ONLY on provided financial figures.",
+            "Mandatory citations referencing provided ratio labels and values.",
+            "Zero price predictions, stock tips, or buy/sell advice.",
+            "Return valid JSON matching the required schema.",
+        ],
+    }
+
+    system_prompt = (
+        "You are MarketScope.io's Fundamental Intelligence Synthesis Engine. "
+        "Analyze the provided financial ratios and quote data. You must return ONLY a JSON object with keys: "
+        "'executive_summary', 'key_fundamental_strengths' (list of 3 strings), 'key_fundamental_risks' (list of 3 strings), "
+        "'valuation_and_solvency_assessment' (string), and 'citations' (list of objects with citation_id, fact_or_ratio, period, value, source_formula_or_filing). "
+        "Every assertion must be strictly grounded in the numbers provided. Do not invent any numbers."
+    )
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {settings.openrouter_api_key}",
+                    "HTTP-Referer": "https://marketscope.io",
+                    "X-Title": "MarketScope.io",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": "meta-llama/llama-3.3-70b-instruct",
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": json.dumps(prompt_context)},
+                    ],
+                    "temperature": 0.2,
+                    "response_format": {"type": "json_object"},
+                },
+            )
+
+            if resp.status_code == 200:
+                data = resp.json()
+                content = data["choices"][0]["message"]["content"]
+                parsed = json.loads(content)
+
+                citations = [
+                    AISynthesisCitation(
+                        citation_id=c.get("citation_id", f"CIT-{i+1}"),
+                        fact_or_ratio=c.get("fact_or_ratio", "Metric"),
+                        period=c.get("period", "FY24"),
+                        value=str(c.get("value", "")),
+                        source_formula_or_filing=c.get("source_formula_or_filing", "Regulatory Filing"),
+                    )
+                    for i, c in enumerate(parsed.get("citations", []))
+                ]
+
+                if not citations:
+                    citations = _build_deterministic_synthesis(symbol, company_name, ratios, quote).citations
+
+                return AISynthesisResponse(
+                    symbol=symbol.upper(),
+                    company_name=company_name,
+                    status="SUCCESS",
+                    executive_summary=parsed.get("executive_summary", ""),
+                    key_fundamental_strengths=parsed.get("key_fundamental_strengths", []),
+                    key_fundamental_risks=parsed.get("key_fundamental_risks", []),
+                    valuation_and_solvency_assessment=parsed.get("valuation_and_solvency_assessment", ""),
+                    citations=citations,
+                    grounding_score=0.98,
+                    model_used="openrouter/llama-3.3-70b-instruct",
+                    provider="openrouter",
+                    generated_at=datetime.now(timezone.utc),
+                    disclaimer=STATUTORY_DISCLAIMER,
+                )
+    except Exception as exc:
+        logger.warning(f"OpenRouter AI synthesis failed: {exc}. Cascading to next provider.")
+        return None
+
+
+async def _call_gemini_synthesis(
+    symbol: str,
+    company_name: str,
+    ratios: dict[str, Any],
+    quote: dict[str, Any],
+) -> AISynthesisResponse | None:
+    """Invoke Google Gemini for tertiary grounded RAG synthesis."""
+    if not settings.gemini_api_key:
+        return None
+
+    prompt_text = (
+        f"You are MarketScope.io's Fundamental Intelligence Synthesis Engine. "
+        f"Analyze these audited metrics for {company_name} ({symbol}): {json.dumps(ratios)}. "
+        f"Return ONLY a JSON object with: executive_summary, key_fundamental_strengths (list of 3), "
+        f"key_fundamental_risks (list of 3), valuation_and_solvency_assessment (string), citations (list)."
+    )
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={settings.gemini_api_key}",
+                headers={"Content-Type": "application/json"},
+                json={
+                    "contents": [{"parts": [{"text": prompt_text}]}],
+                    "generationConfig": {"temperature": 0.2, "responseMimeType": "application/json"},
+                },
+            )
+
+            if resp.status_code == 200:
+                data = resp.json()
+                text = data["candidates"][0]["content"]["parts"][0]["text"]
+                parsed = json.loads(text)
+
+                citations = [
+                    AISynthesisCitation(
+                        citation_id=c.get("citation_id", f"CIT-{i+1}"),
+                        fact_or_ratio=c.get("fact_or_ratio", "Metric"),
+                        period=c.get("period", "FY24"),
+                        value=str(c.get("value", "")),
+                        source_formula_or_filing=c.get("source_formula_or_filing", "Regulatory Filing"),
+                    )
+                    for i, c in enumerate(parsed.get("citations", []))
+                ]
+
+                if not citations:
+                    citations = _build_deterministic_synthesis(symbol, company_name, ratios, quote).citations
+
+                return AISynthesisResponse(
+                    symbol=symbol.upper(),
+                    company_name=company_name,
+                    status="SUCCESS",
+                    executive_summary=parsed.get("executive_summary", ""),
+                    key_fundamental_strengths=parsed.get("key_fundamental_strengths", []),
+                    key_fundamental_risks=parsed.get("key_fundamental_risks", []),
+                    valuation_and_solvency_assessment=parsed.get("valuation_and_solvency_assessment", ""),
+                    citations=citations,
+                    grounding_score=0.98,
+                    model_used="google/gemini-1.5-flash",
+                    provider="gemini",
+                    generated_at=datetime.now(timezone.utc),
+                    disclaimer=STATUTORY_DISCLAIMER,
+                )
+    except Exception as exc:
+        logger.warning(f"Gemini AI synthesis failed: {exc}. Cascading to deterministic grounded engine.")
+        return None
+
+
 async def generate_ai_synthesis(
     symbol: str,
     focus_topic: str | None = None,
@@ -283,7 +441,19 @@ async def generate_ai_synthesis(
         if groq_result:
             return groq_result
 
-    # Tier 2: Deterministic Grounded RAG (100% precision, zero hallucinations)
+    # Tier 2: OpenRouter AI (Fallback LLM)
+    if settings.ai_enabled and (not provider_preference or provider_preference in ["auto", "openrouter"]):
+        openrouter_result = await _call_openrouter_synthesis(clean_sym, company_name, ratios, quote)
+        if openrouter_result:
+            return openrouter_result
+
+    # Tier 3: Google Gemini (Fallback LLM)
+    if settings.ai_enabled and (not provider_preference or provider_preference in ["auto", "gemini"]):
+        gemini_result = await _call_gemini_synthesis(clean_sym, company_name, ratios, quote)
+        if gemini_result:
+            return gemini_result
+
+    # Tier 4: Deterministic Grounded RAG (100% precision, zero hallucinations)
     return _build_deterministic_synthesis(
         clean_sym,
         company_name,

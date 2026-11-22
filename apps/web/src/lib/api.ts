@@ -2404,3 +2404,34 @@ export async function getSearchDiagnostics(): Promise<SearchDiagnosticsResponse>
   return response.json();
 }
 
+export type ConfigDiagnosticsResponse = {
+  app_env: string;
+  total_variables_audited: number;
+  status_distribution: Record<string, number>;
+  is_production_ready: boolean;
+  missing_critical: string[];
+  invalid_critical: string[];
+  records: Array<{
+    name: string;
+    category: string;
+    purpose: string;
+    component: string;
+    required: string;
+    environment: string;
+    deployment_location: string;
+    secret_classification: string;
+    default_behaviour: string;
+    status: string;
+    masked_value: string;
+    validation_message: string;
+  }>;
+};
+
+export async function getConfigDiagnostics(): Promise<ConfigDiagnosticsResponse> {
+  const response = await fetch(`${getApiBase()}/api/v1/admin/config-diagnostics`, {
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Unable to retrieve config diagnostics");
+  return response.json();
+}
+

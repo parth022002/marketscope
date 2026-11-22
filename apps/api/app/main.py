@@ -58,7 +58,7 @@ app.add_middleware(CorrelationIdMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"] if settings.app_env == "development" else settings.cors_origins,
-    allow_origin_regex=r"^https:\/\/.*\.onrender\.com$",
+    allow_origin_regex=r"^https:\/\/.*(\.onrender\.com|\.vercel\.app)$",
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],

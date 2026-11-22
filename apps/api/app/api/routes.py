@@ -2534,5 +2534,16 @@ def trigger_admin_universe_sync():
     return {"status": "success", "report": report}
 
 
+@router.get("/admin/config-diagnostics")
+def get_admin_config_diagnostics():
+    """
+    Returns an audited inventory of all 18 environment variable categories,
+    showing validation status without exposing secret values.
+    """
+    from app.core.environment_validator import environment_validator
+    return environment_validator.get_summary_report()
+
+
+
 
 
