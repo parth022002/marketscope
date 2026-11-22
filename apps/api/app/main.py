@@ -11,6 +11,8 @@ from app.api.routes import router
 from app.api.websocket_routes import ws_router
 from app.api.derivatives_routes import derivatives_router
 from app.api.backtest_routes import backtest_router
+from app.api.chart_routes import chart_router
+from app.api.news_routes import news_router
 
 # Optional Sentry Error Telemetry Initialization
 sentry_dsn = os.getenv("SENTRY_DSN", "")
@@ -55,6 +57,8 @@ app.add_middleware(
 )
 
 app.include_router(router, prefix="/api/v1")
+app.include_router(chart_router, prefix="/api/v1")
+app.include_router(news_router, prefix="/api/v1")
 app.include_router(derivatives_router, prefix="/api/v1")
 app.include_router(backtest_router, prefix="/api/v1")
 app.include_router(ws_router)
