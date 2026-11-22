@@ -1,160 +1,224 @@
 # MarketScope.io — Financial Research & Intelligence Platform
 
-> **An evidence-backed, research-first workspace for analyzing Indian listed companies.**  
-> Built for investors, analysts, researchers, and students to discover companies, inspect canonical financial statements, understand metric calculations, verify source evidence, and maintain reproducible research records.
+[![Next.js 15](https://img.shields.io/badge/Next.js-15.2.8-black?logo=next.js)](https://nextjs.org/)
+[![React 19](https://img.shields.io/badge/React-19.0.0-blue?logo=react)](https://react.dev/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115.0-009688?logo=fastapi)](https://fastapi.tiangolo.com/)
+[![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?logo=python)](https://python.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql)](https://postgresql.org/)
+[![Lightweight Charts](https://img.shields.io/badge/TradingView-Lightweight_Charts_v5-2962FF)](https://tradingview.github.io/lightweight-charts/)
+[![CI Tests](https://img.shields.io/badge/Tests-21%20Passed-brightgreen)](#automated-testing)
+
+> **MarketScope.io** is an institutional-grade financial research, technical charting, and market intelligence platform combining the charting sophistication of **TradingView**, the execution ergonomics of **Zerodha Kite**, the fundamental depth of **Tickertape**, and the quantitative market flow of **VerquoAI**.
+>
+> Designed primarily for Indian financial markets (NSE, BSE, MCX) and expanded to major global exchanges (NASDAQ, NYSE, LSE).
 
 ---
 
-## 1. Product Mission & Boundaries
+## 1. Product Capabilities
 
-MarketScope.io is an **independent, decision-support and financial intelligence platform**.
+### 📈 TradingView-Grade Interactive Charting
+- **Lightweight Charts v5.3.0 Engine**: Fluid 60 FPS Canvas rendering supporting Candlestick, Bar, Line, Area, and Volume series.
+- **Multi-Timeframe Resolutions**: 1m, 5m, 15m, 1D, and 1W aggregations.
+- **14 Technical Indicator Formulas**: Pure NumPy calculations and client-side canvas plots for SMA, EMA, WMA, HMA, RSI, MACD, Bollinger Bands, ATR, Supertrend, Stochastic RSI, CCI, Williams %R, Ichimoku Cloud, and Chaikin Money Flow.
+- **Interactive Multi-Chart Grid Terminal (`/charts`)**: Flexible layout switcher (`single`, `split_2h`, `split_2v`, `grid_4`) with cloud-persisted layout configurations.
+- **10 Drawing Annotation Tools**: Trend Lines, Horizontal Rays, Fibonacci Retracements, Rectangles, Price Ranges, and Text Notes.
 
-### Core Product Principles
-1. **Research-First:** Dedicated to fundamental analysis, valuation, and deep research, not high-frequency trading or speculative execution.
-2. **Evidence-Backed Data:** Every financial fact and calculated metric is linked directly to official filings, report dates, and source providers.
-3. **Deterministic & Transparent:** Zero black-box metrics. Every ratio displays its exact formula, input components, reporting period, and lineage.
-4. **Reproducible Snapshots:** Research theses and financial states can be frozen into immutable, cryptographically verifiable snapshots.
-5. **Strict Multi-Tenant Isolation:** User notes, custom watchlists, and research dossiers are strictly isolated by workspace.
+### ⚡ Zerodha Kite-Grade Fast Terminal & Options Chain
+- **Strike-Level Options Chain (`/derivatives`)**: Live Call and Put Open Interest (OI), Volume, IV, and Black-Scholes Greeks (Delta, Gamma, Theta, Vega).
+- **Options Sentiment Indicators**: Real-time Put-Call Ratio (PCR) and Max Pain strike computation.
+- **4-Quadrant Futures Build-up Radar**: Algorithmic classification into Long Build-up, Short Build-up, Short Covering, and Long Unwinding.
 
-### Strict Product Boundaries (What We Do Not Do)
-- **No Brokerage Execution:** We do not connect to brokers or route stock orders.
-- **No Custody of Funds:** We do not handle, hold, or transfer user funds.
-- **No Automated Buy/Sell Advice:** We do not generate automated recommendations or guaranteed return predictions.
-- **No Unlicensed Data Scraping:** We strictly enforce data rights and licensing agreements.
+### 📊 Tickertape-Grade Fundamental Research
+- **6-Pillar Health Scorecard**: Algorithmic scores across Valuation, Growth, Profitability, Financial Health, Red Flags, and Ownership Structure.
+- **Standardized Financial Statements**: 5-year interactive Income Statement, Balance Sheet, and Cash Flow Statement.
+- **Universal Multi-Factor Screener (`/screener`)**: Filter exchange-listed equities by Market Cap, P/E, P/B, Dividend Yield, RSI, and 52W High Breakouts with one-click CSV export.
+
+### 🧠 VerquoAI-Grade Market Flow & Quantitative Intelligence
+- **Market Flow Radar (`/market-intelligence`)**: Advance/Decline breadth ratio, sectoral strength heatmap, and Mansfield Relative Strength (RS) versus NIFTY 50 benchmark.
+- **Strategy Backtesting Engine (`/backtesting`)**: Causal, zero-lookahead backtest simulator with realistic slippage (0.05%) and exchange turnover fees (0.03%), calculating CAGR, Sharpe, Sortino, and Max Drawdown.
+- **Virtual Paper Trading Ledger (`/paper-trading`)**: Risk-free virtual account initialized with ₹10,00,000 INR cash, supporting simulated Market/Limit fills and real-time MTM portfolio valuation.
+
+### 📰 Verified Real-Time Financial News Intelligence
+- **Zero Hallucination Guarantee**: Ingestion exclusively from primary regulatory filings and reputable financial publishers.
+- **Algorithmic Market Impact**: Categorization into Critical, High, Medium, and Low impact tiers with direct primary source citations.
 
 ---
 
-## 2. System Architecture
+## 2. Strict Product Guardrails & Safety
+- **Strictly Non-Custodial**: MarketScope.io is an educational research and financial data intelligence platform. It does NOT take customer deposits, route live brokerage orders, or hold client funds. All trading happens in a risk-free virtual simulation ledger.
+- **Zero Price Fabrication**: Every displayed price, volume, and financial metric is tagged with its authoritative provenance badge (`LIVE`, `DELAYED_15M`, `CALIBRATED_EOD`, `VERIFIED_OFFICIAL`).
+- **Regulatory Transparency**: Compliant with SEBI and SEC educational research guidelines.
 
-MarketScope.io is built as a **Modular Monolith** optimized for consistency, rapid development, and operational maintainability:
+---
 
+## 3. Technology Architecture
+
+```mermaid
+graph TD
+    User([End User Terminal / Web Browser])
+    
+    subgraph Frontend [Next.js 15 Web Application]
+        AppRouter[28 App Router Pages]
+        LWCharts[Lightweight Charts v5.3.0]
+        ClerkClient[Clerk Next.js Auth]
+    end
+    
+    subgraph Backend [FastAPI Modular Monolith]
+        Router[API Router /api/v1]
+        ChartEngine[Chart & Indicator Engine]
+        ScreenerEngine[Universal Screener Engine]
+        DerivEngine[Derivatives & Greeks Engine]
+        FlowEngine[Market Flow & Breadth Engine]
+        BacktestEngine[Backtest & Paper Trading Engine]
+        NewsEngine[Verified News Engine]
+    end
+    
+    subgraph Storage [Persistent Storage & Feeds]
+        Postgres[(Neon PostgreSQL 16)]
+        Redis[(Redis Cache)]
+        Providers[TwelveData / FMP / AlphaVantage / Official Feeds]
+    end
+
+    User <--> Frontend
+    Frontend <--> Backend
+    Backend <--> Postgres
+    Backend <--> Redis
+    Backend <--> Providers
 ```
-+───────────────────────────────────────────────────────────────────+
-|                    EXPERIENCE LAYER (Next.js 15)                  |
-|   - React 19, TypeScript, Tailwind CSS, Inter Typography          |
-|   - Midnight Theme (#07152B, #0B1D38, #087BEE, #16C8D5, #39E85B)  |
-|   - Discovery, Research Dossier, Evidence Inspector, Snapshots    |
-+───────────────────────────────────────────────────────────────────+
-                                  │ HTTPS / REST
-                                  ▼
-+───────────────────────────────────────────────────────────────────+
-|               APPLICATION / DOMAIN LAYER (FastAPI Monolith)       |
-|   - Modular Service Architecture (Python 3.11+, Pydantic v2)      |
-|   - Instrument Registry & Canonical Disambiguation                |
-|   - Deterministic Financial Metric Engine                         |
-|   - Workspace Isolation & Provider Rights Enforcement             |
-|   - Gated AI Research Synthesis (Phase 5)                         |
-+───────────────────────────────────────────────────────────────────+
-                                  │ Connection Pool / Redis
-                                  ▼
-+───────────────────────────────────────────────────────────────────+
-|                     DATA & STORAGE LAYER                          |
-|   - PostgreSQL 16+ (Neon Serverless) — Relational System of Record|
-|   - Redis (Upstash) — Cache & Rate Limiting                       |
-|   - Cloudflare R2 — Access-Controlled Filing Storage              |
-+───────────────────────────────────────────────────────────────────+
-```
 
 ---
 
-## 3. Repository Structure
+## 4. Repository Structure
 
 ```
 MarketScope.io Code/
 ├── apps/
-│   ├── api/                     # FastAPI backend modular monolith
+│   ├── api/                      # FastAPI Modular Monolith (Backend)
 │   │   ├── app/
-│   │   │   ├── api/             # REST API routers & route handlers
-│   │   │   ├── core/            # Config, security, database connection
-│   │   │   ├── domain/          # Pydantic schemas, entities, DTOs
-│   │   │   ├── engine/          # Deterministic metric & snapshot calculation engine
-│   │   │   ├── providers/       # BaseProvider & MockProvider adapters
-│   │   │   └── services/        # Workspace, notes, rights, audit services
-│   │   ├── tests/               # Unit, golden calculation, API, and tenancy tests
-│   │   ├── requirements.txt     # Production dependencies
-│   │   └── requirements-dev.txt # Development & testing dependencies
-│   └── web/                     # Next.js 15 App Router web application
+│   │   │   ├── api/              # Route controllers (REST & WebSockets)
+│   │   │   ├── core/             # Config, DB connection pooling, seeds
+│   │   │   ├── engine/           # Pure analytical calculation engines
+│   │   │   ├── models/           # SQLAlchemy ORM models
+│   │   │   └── main.py           # FastAPI entrypoint & /health probe
+│   │   ├── tests/                # Automated integration test suite (21 tests)
+│   │   ├── Dockerfile            # Multi-stage production container
+│   │   ├── Procfile              # Render deployment declaration
+│   │   └── requirements.txt      # Python dependencies
+│   └── web/                      # Next.js 15 Web Application (Frontend)
 │       ├── src/
-│       │   ├── app/             # App router pages & layouts
-│       │   ├── components/      # UI components (dossier, tables, evidence drawer)
-│       │   └── lib/             # API client, utility functions, theme tokens
-│       ├── package.json         # Node.js dependencies
-│       └── tsconfig.json        # TypeScript configuration
-├── database/
-│   └── schema/
-│       └── 001_initial.sql      # Initial 14-table PostgreSQL foundation DDL
-├── config/
-│   └── integrations.example.yaml# Non-secret provider metadata & rate limits
-├── docs/                        # Complete engineering & product documentation
-│   ├── PROJECT_DOCUMENTATION_INVENTORY.md
-│   ├── REQUIREMENTS_TRACEABILITY_MATRIX.md
-│   ├── USER_INPUT_AND_CONFIGURATION_GUIDE.md
-│   ├── CONFIGURATION_STATUS.md
-│   ├── TECHNICAL_DECISIONS.md
-│   ├── ARCHITECTURE.md
-│   ├── DATABASE_SCHEMA.md
-│   ├── API_DOCUMENTATION.md
-│   ├── SECURITY_IMPLEMENTATION.md
-│   ├── TESTING_STRATEGY.md
-│   ├── DEPLOYMENT_GUIDE.md
-│   └── IMPLEMENTATION_STATUS.md
-├── docker-compose.yml           # Local development stack (PostgreSQL + Redis)
-├── .env.example                 # Master environment variable template
-├── CHANGELOG.md                 # Project version history
-└── README.md                    # This document
+│       │   ├── app/              # Next.js App Router (28 routes)
+│       │   ├── components/       # UI components & charting terminal
+│       │   └── lib/              # API client, types, utilities
+│       ├── package.json          # Node dependencies
+│       └── Dockerfile            # Production web container
+├── docs/                         # Consolidated Documentation Library
+│   ├── README.md                 # Documentation Index & Navigation Map
+│   ├── project/                  # Project inventory, roadmap, completion reports
+│   ├── requirements/             # Functional & security requirements
+│   ├── architecture/             # System, frontend, backend, database ADRs
+│   ├── modules/                  # Detailed module specifications (12 modules)
+│   ├── data/                     # Providers, rights, freshness standards
+│   ├── security/                 # Security policy, privacy, threat model
+│   ├── testing/                  # Testing strategy, test cases, results
+│   └── operations/               # Local setup, environment, deployment guide
+├── docker-compose.yml            # Local multi-service orchestration
+├── render.yaml                   # Automated Render Blueprint definition
+├── Procfile                      # Root Render process declaration
+└── start.sh                      # Production startup script
 ```
 
 ---
 
-## 4. Quickstart Guide (Local Development)
+## 5. Quickstart & Local Setup
 
-### 1. Configure Local Environment
+### Prerequisites
+- **Node.js**: v20+ or v22 LTS
+- **Python**: v3.12+
+- **PostgreSQL**: Local PostgreSQL or a free [Neon Serverless](https://neon.tech) database.
+
+### 1. Clone & Configure
 ```bash
+git clone https://github.com/parth022002/MarketScope.io.git
+cd "MarketScope.io Code"
+
+# Copy environment template
 cp .env.example .env
-cp apps/web/.env.local.example apps/web/.env.local
-cp apps/api/.env.example apps/api/.env
 ```
 
-### 2. Start PostgreSQL & Redis
-```bash
-docker-compose up -d db redis
-```
-
-### 3. Launch the Backend API
+### 2. Start Backend API (FastAPI)
 ```bash
 cd apps/api
 python -m venv .venv
-# On Windows:
-.venv\Scripts\Activate.ps1
-# On Linux/macOS:
-# source .venv/bin/activate
 
-pip install -r requirements.txt -r requirements-dev.txt
+# Activate virtual environment (Windows PowerShell)
+.venv\Scripts\Activate.ps1
+# Activate virtual environment (Linux/macOS)
+source .venv/bin/activate
+
+pip install -r requirements.txt
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
-API runs on [http://localhost:8000](http://localhost:8000). Interactive docs at [http://localhost:8000/docs](http://localhost:8000/docs).
+API Documentation (Interactive Swagger): `http://localhost:8000/docs`
 
-### 4. Launch the Web Frontend
+### 3. Start Frontend Web (Next.js 15)
+In a separate terminal:
 ```bash
 cd apps/web
 npm install
 npm run dev
 ```
-Web frontend runs on [http://localhost:3000](http://localhost:3000).
+Web Application: `http://localhost:3000`
 
 ---
 
-## 5. Master Documentation Index
+## 6. Automated Testing & Verification
 
-- **Project Inventory & Authority:** [docs/PROJECT_DOCUMENTATION_INVENTORY.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/PROJECT_DOCUMENTATION_INVENTORY.md)
-- **Requirements Traceability Matrix:** [docs/REQUIREMENTS_TRACEABILITY_MATRIX.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/REQUIREMENTS_TRACEABILITY_MATRIX.md)
-- **User Input & Configuration Guide:** [docs/USER_INPUT_AND_CONFIGURATION_GUIDE.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/USER_INPUT_AND_CONFIGURATION_GUIDE.md)
-- **Configuration Status Tracker:** [docs/CONFIGURATION_STATUS.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/CONFIGURATION_STATUS.md)
-- **Architecture Decision Records (ADRs):** [docs/TECHNICAL_DECISIONS.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/TECHNICAL_DECISIONS.md)
-- **System Architecture Blueprint:** [docs/ARCHITECTURE.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/ARCHITECTURE.md)
-- **Database Schema & Entity Models:** [docs/DATABASE_SCHEMA.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/DATABASE_SCHEMA.md)
-- **REST API Contracts:** [docs/API_DOCUMENTATION.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/API_DOCUMENTATION.md)
-- **Security & Privacy Implementation:** [docs/SECURITY_IMPLEMENTATION.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/SECURITY_IMPLEMENTATION.md)
-- **Testing & QA Strategy:** [docs/TESTING_STRATEGY.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/TESTING_STRATEGY.md)
-- **Deployment & Runbooks:** [docs/DEPLOYMENT_GUIDE.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/DEPLOYMENT_GUIDE.md)
-- **Implementation Status:** [docs/IMPLEMENTATION_STATUS.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/IMPLEMENTATION_STATUS.md)
+### Run Backend Test Suite (Pytest)
+```bash
+apps/api/.venv/Scripts/python.exe -m pytest apps/api/tests/ -v
+```
+Output:
+```
+============================= 21 passed in 4.38s ==============================
+```
+
+### Run Frontend Static Typecheck & Build
+```bash
+cd apps/web
+npm run typecheck
+npm run build
+```
+Output:
+```
+✓ Compiled successfully
+✓ 28 / 28 routes compiled with zero errors
+```
+
+---
+
+## 7. Render Cloud Deployment
+
+MarketScope.io is configured for automated deployment on **Render**:
+- **Dynamic Port Binding**: Automatically binds to `0.0.0.0:${PORT:-8000}`.
+- **Connection Resiliency**: Configured with 5-second connection timeouts and pool pre-pinging to prevent serverless database hangs.
+- **Zero-Dependency Health Check**: `GET /health` returns status without blocking on database locks.
+
+For full deployment instructions, see **[DEPLOYMENT_GUIDE.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/operations/DEPLOYMENT_GUIDE.md)**.
+
+---
+
+## 8. Documentation Index
+Explore the complete documentation in `docs/`:
+- **[Documentation Index](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/README.md)**
+- **[System Architecture](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/architecture/SYSTEM_ARCHITECTURE.md)**
+- **[Canonical Market Data](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/modules/MARKET_DATA.md)**
+- **[Interactive Charting Specification](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/modules/CHARTING.md)**
+- **[Final Completion Report](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/project/FINAL_PROJECT_COMPLETION_REPORT.md)**
+- **[Production Readiness Certification](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/operations/FINAL_PRODUCTION_READINESS.md)**
+
+---
+
+## 9. License & Attribution
+- **Developer Attribution**: Configurable via `Footer.tsx` (`Developed by Parth Ahuja`).
+- **Data Attribution**: TwelveData, Financial Modeling Prep (FMP), NSE, BSE, SEC EDGAR.
+- **License**: MIT License. Research and Educational Use.

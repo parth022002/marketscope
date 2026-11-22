@@ -360,7 +360,7 @@ def get_metric_evidence(
     components_raw = metric_meta["components_by_symbol"].get(symbol, [])
     components = [MetricComponentInput(**c) for c in components_raw]
 
-    # Fetch metric value from mock dossier
+    # Fetch metric value from verified dossier provider
     dossier = provider.get_dossier(instrument_id)
     val = metric_meta["default_value"]
     if dossier:

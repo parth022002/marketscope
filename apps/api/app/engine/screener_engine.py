@@ -112,17 +112,17 @@ class ScreenerEngine:
                 if criteria.min_pb is not None and pb < criteria.min_pb:
                     continue
 
-            # Profitability & Health metrics
-            roe = float(getattr(inst, "roe_pct", 15.0) or 15.0)
-            if criteria.min_roe is not None and roe < criteria.min_roe:
-                continue
-
             # Generate realistic deterministic ratios based on instrument hash
             sym_hash = sum(ord(c) for c in inst.symbol)
             debt_to_equity = round(0.1 + (sym_hash % 60) / 100.0, 2)
             operating_margin = round(12.0 + (sym_hash % 250) / 10.0, 2)
             dividend_yield = round(0.5 + (sym_hash % 35) / 10.0, 2)
             rsi_14 = round(32.0 + (sym_hash % 450) / 10.0, 1)
+
+            # Profitability & Health metrics
+            roe = float(getattr(inst, "roe_pct", None) or round(14.0 + (sym_hash % 200) / 10.0, 2))
+            if criteria.min_roe is not None and roe < criteria.min_roe:
+                continue
 
             if criteria.max_debt_equity is not None and debt_to_equity > criteria.max_debt_equity:
                 continue

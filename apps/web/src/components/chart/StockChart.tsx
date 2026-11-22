@@ -775,7 +775,7 @@ export default function StockChart({
             {activeBar && (
               <div className="flex items-center gap-1.5 pointer-events-auto">
                 <div
-                  title="Mock Sell Quote"
+                  title="Simulated Paper Sell Quote"
                   className="flex flex-col items-center justify-center px-2.5 py-0.5 rounded bg-rose-950/70 hover:bg-rose-900/90 border border-rose-500/40 text-rose-200 shadow-sm transition cursor-default"
                 >
                   <span className="text-[11px] font-bold font-mono">₹{activeBar.close.toFixed(2)}</span>
@@ -783,7 +783,7 @@ export default function StockChart({
                 </div>
                 <span className="text-[9px] text-slate-500 font-mono px-0.5">0.00</span>
                 <div
-                  title="Mock Buy Quote"
+                  title="Simulated Paper Buy Quote"
                   className="flex flex-col items-center justify-center px-2.5 py-0.5 rounded bg-blue-950/70 hover:bg-blue-900/90 border border-blue-500/40 text-blue-200 shadow-sm transition cursor-default"
                 >
                   <span className="text-[11px] font-bold font-mono">₹{activeBar.close.toFixed(2)}</span>

@@ -9,10 +9,68 @@ from sqlalchemy import (
     Numeric,
     String,
     Text,
+    CHAR,
+    JSON,
+    TypeDecorator,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import JSONB as PG_JSONB, UUID as PG_UUID
 from sqlalchemy.orm import relationship
 from app.core.database import Base
+
+
+class GUID(TypeDecorator):
+    """Platform-independent GUID type.
+    Uses PostgreSQL's native UUID type, otherwise uses CHAR(36) string representation.
+    """
+    impl = CHAR
+    cache_ok = True
+
+    def __init__(self, as_uuid=True, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.as_uuid = as_uuid
+
+    def load_dialect_impl(self, dialect):
+        if dialect.name == "postgresql":
+            return dialect.type_descriptor(PG_UUID(as_uuid=True))
+        else:
+            return dialect.type_descriptor(CHAR(36))
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return value
+        elif dialect.name == "postgresql":
+            return str(value) if isinstance(value, uuid.UUID) else value
+        else:
+            if not isinstance(value, uuid.UUID):
+                return str(uuid.UUID(str(value)))
+            else:
+                return str(value)
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return value
+        else:
+            if not isinstance(value, uuid.UUID):
+                return uuid.UUID(str(value))
+            return value
+
+
+class UniversalJSON(TypeDecorator):
+    """Platform-independent JSON type.
+    Uses PostgreSQL's native JSONB, otherwise standard JSON for SQLite.
+    """
+    impl = JSON
+    cache_ok = True
+
+    def load_dialect_impl(self, dialect):
+        if dialect.name == "postgresql":
+            return dialect.type_descriptor(PG_JSONB())
+        else:
+            return dialect.type_descriptor(JSON())
+
+
+UUID = GUID
+JSONB = UniversalJSON
 
 
 def utcnow():
