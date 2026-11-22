@@ -22,13 +22,24 @@ import NavigationShell from "@/components/NavigationShell";
 import NewsCard from "@/components/NewsCard";
 import { getNewsFeed, type CanonicalNewsArticle } from "@/lib/api";
 
-const CHANNELS = [
-  { id: "ALL", label: "All News" },
-  { id: "INDIA", label: "India Domestic", country: "India" },
-  { id: "GLOBAL", label: "Global Macro", market: "INTERNATIONAL" },
-  { id: "MARKETS", label: "Financial Markets", category: "Financial Markets" },
-  { id: "ECONOMY", label: "Economy & Policy", category: "Economy & Central Banks" },
+type ChannelOption = {
+  id: string;
+  label: string;
+  category?: string;
+  country?: string;
+  market?: string;
+  priority?: string;
+};
+
+const CHANNELS: ChannelOption[] = [
+  { id: "ALL", label: "All Stories" },
+  { id: "BANKING", label: "Banking & Financials", category: "Banking & Financial Services" },
   { id: "COMPANY", label: "Company News", category: "Company News" },
+  { id: "SECTORS", label: "Sectoral Coverage", category: "Sectoral Coverage" },
+  { id: "MACRO", label: "Macro & Central Banks", category: "Economy & Central Banks" },
+  { id: "GLOBAL", label: "Global Markets", market: "INTERNATIONAL" },
+  { id: "COMMODITIES", label: "Commodities & Forex", category: "Commodities & Currencies" },
+  { id: "REGULATORY", label: "Regulations & Policy", category: "Regulatory & Geopolitics" },
   { id: "BREAKING", label: "Breaking Wire", priority: "BREAKING" },
 ];
 

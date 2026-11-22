@@ -1863,6 +1863,246 @@ export async function resetPaperAccount(): Promise<{ status: string; message: st
   return response.json();
 }
 
+// ─── Global Market Calendar & Status Intelligence ────────────────────────────
+
+export type MarketStatusType =
+  | "PRE_MARKET"
+  | "OPEN"
+  | "BREAK"
+  | "CLOSING_AUCTION"
+  | "POST_MARKET"
+  | "CLOSED"
+  | "HOLIDAY"
+  | "SPECIAL_SESSION"
+  | "EMERGENCY_CLOSED"
+  | "STATUS_UNAVAILABLE";
+
+export type MarketSessionInfo = {
+  market_id: string;
+  market_name: string;
+  exchange: string;
+  mic: string;
+  country: string;
+  country_code: string;
+  region: string;
+  timezone: string;
+  status: MarketStatusType;
+  session_label: string;
+  current_local_time: string;
+  current_utc_time: string;
+  user_local_time?: string;
+  session_start_local: string;
+  session_end_local: string;
+  is_regular_trading: boolean;
+  is_trading_day: boolean;
+  holiday_today: boolean;
+  holiday_name?: string;
+  special_session_today: boolean;
+  special_session_notes?: string;
+  supported_asset_classes: string[];
+  effective_data_status: string;
+  source_attribution: string;
+  last_verified_at: string;
+};
+
+export type CalendarHolidayRecord = {
+  holiday_id: string;
+  country: string;
+  country_code: string;
+  market: string;
+  exchange: string;
+  event_name: string;
+  category: string;
+  holiday_date: string;
+  start_time_local?: string;
+  end_time_local?: string;
+  timezone: string;
+  affected_asset_classes: string[];
+  trading_status: string;
+  settlement_status: string;
+  banking_status: string;
+  description: string;
+  source: string;
+  source_url: string;
+  effective_year: number;
+  is_special_session: boolean;
+  special_session_hours?: string;
+};
+
+export type GlobalMarketStatusSummary = {
+  timestamp_utc: string;
+  summary_label: string;
+  active_open_markets_count: number;
+  closed_markets_count: number;
+  next_major_opening: string;
+  next_major_closing: string;
+  markets: MarketSessionInfo[];
+  today_holidays: CalendarHolidayRecord[];
+  upcoming_holidays: CalendarHolidayRecord[];
+};
+
+export type CalendarEventRecord = {
+  event_id: string;
+  title: string;
+  event_type: string;
+  country: string;
+  country_code: string;
+  currency: string;
+  event_time_utc: string;
+  event_time_local: string;
+  timezone: string;
+  actual?: string;
+  forecast?: string;
+  previous?: string;
+  unit?: string;
+  source: string;
+  source_url: string;
+  importance: "HIGH" | "MEDIUM" | "LOW";
+  symbol?: string;
+  company_name?: string;
+  notes: string;
+  publication_status: string;
+  affected_sectors: string[];
+};
+
+export type ExchangeMarketHours = {
+  market_id: string;
+  exchange_name: string;
+  mic: string;
+  country: string;
+  region: string;
+  timezone: string;
+  pre_market?: string;
+  regular_hours: string;
+  lunch_break?: string;
+  post_market?: string;
+  asset_classes: string[];
+};
+
+export async function getGlobalMarketStatus(timezone?: string): Promise<GlobalMarketStatusSummary> {
+  const url = timezone
+    ? `${getApiBase()}/api/v1/calendar/markets/status?timezone=${encodeURIComponent(timezone)}`
+    : `${getApiBase()}/api/v1/calendar/markets/status`;
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to retrieve global market status");
+  return response.json();
+}
+
+export async function getCalendarHolidays(params?: {
+  year?: number;
+  country?: string;
+  exchange?: string;
+  category?: string;
+}): Promise<CalendarHolidayRecord[]> {
+  const q = new URLSearchParams();
+  if (params?.year) q.set("year", params.year.toString());
+  if (params?.country && params.country !== "all") q.set("country", params.country);
+  if (params?.exchange && params.exchange !== "all") q.set("exchange", params.exchange);
+  if (params?.category && params.category !== "all") q.set("category", params.category);
+
+  const response = await fetch(`${getApiBase()}/api/v1/calendar/holidays?${q.toString()}`, {
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Unable to retrieve holiday database");
+  return response.json();
+}
+
+export async function getGlobalCalendarEvents(params?: {
+  event_type?: string;
+  country?: string;
+  importance?: string;
+  symbol?: string;
+}): Promise<CalendarEventRecord[]> {
+  const q = new URLSearchParams();
+  if (params?.event_type && params.event_type !== "all") q.set("event_type", params.event_type);
+  if (params?.country && params.country !== "all") q.set("country", params.country);
+  if (params?.importance && params.importance !== "all") q.set("importance", params.importance);
+  if (params?.symbol) q.set("symbol", params.symbol);
+
+  const response = await fetch(`${getApiBase()}/api/v1/calendar/events?${q.toString()}`, {
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Unable to retrieve calendar events");
+  return response.json();
+}
+
+export async function getMarketHoursDirectory(): Promise<ExchangeMarketHours[]> {
+  const response = await fetch(`${getApiBase()}/api/v1/calendar/market-hours`, {
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Unable to retrieve market hours");
+  return response.json();
+}
+
+// ─── Floating AI Support & Research Chatbot ──────────────────────────────────
+
+export type AssistantCitation = {
+  citation_id: string;
+  title: string;
+  source_name: string;
+  url: string;
+  citation_type: string;
+  snippet: string;
+  timestamp: string;
+};
+
+export type AssistantMessage = {
+  id: string;
+  conversation_id: string;
+  sender: "user" | "assistant" | "system";
+  content: string;
+  intent: string;
+  citations: AssistantCitation[];
+  suggested_prompts: string[];
+  created_at: string;
+  model_provider: string;
+  disclaimer: string;
+};
+
+export type AssistantConversation = {
+  conversation_id: string;
+  user_id: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+  messages: AssistantMessage[];
+};
+
+export async function queryAssistantChat(payload: {
+  message: string;
+  conversation_id?: string;
+  context?: {
+    symbol?: string;
+    route?: string;
+    timeframe?: string;
+    active_indicators?: string[];
+  };
+}): Promise<AssistantMessage> {
+  const response = await fetch(`${getApiBase()}/api/v1/assistant/chat`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.detail || "Unable to reach AI Research Assistant");
+  }
+  return response.json();
+}
+
+export async function submitAssistantFeedback(payload: {
+  message_id: string;
+  conversation_id: string;
+  rating: "positive" | "negative";
+  feedback_text?: string;
+}): Promise<void> {
+  await fetch(`${getApiBase()}/api/v1/assistant/feedback`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}
+
 
 
 

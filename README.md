@@ -38,9 +38,23 @@
 - **Strategy Backtesting Engine (`/backtesting`)**: Causal, zero-lookahead backtest simulator with realistic slippage (0.05%) and exchange turnover fees (0.03%), calculating CAGR, Sharpe, Sortino, and Max Drawdown.
 - **Virtual Paper Trading Ledger (`/paper-trading`)**: Risk-free virtual account initialized with ₹10,00,000 INR cash, supporting simulated Market/Limit fills and real-time MTM portfolio valuation.
 
-### 📰 Verified Real-Time Financial News Intelligence
-- **Zero Hallucination Guarantee**: Ingestion exclusively from primary regulatory filings and reputable financial publishers.
-- **Algorithmic Market Impact**: Categorization into Critical, High, Medium, and Low impact tiers with direct primary source citations.
+### 🌐 Global Market Calendar & Live Status Intelligence (`/calendar`)
+- **Authoritative Real-Time Market Status**: Continuous operating state tracking across 8+ international bourses (NSE, BSE, MCX, RBI, NYSE, NASDAQ, LSE, TSE, HKEX) with 10 canonical session states (`PRE_MARKET`, `OPEN`, `BREAK`, `CLOSING_AUCTION`, `POST_MARKET`, `CLOSED`, `HOLIDAY`, `SPECIAL_SESSION`, etc.).
+- **Institutional Holiday & Closure Database**: Full 2026/2027 calendar distinguishing between trading closures, banking closures (RBI / NI Act Section 25), MCX dual-session operations, and Diwali Muhurat special sessions.
+- **High-Impact Economic & Corporate Catalysts**: Central bank interest rate decisions (RBI MPC, Fed FOMC, ECB), inflation (CPI/WPI), GDP, corporate earnings, and dividend corporate actions.
+- **Navigation Shell Status Pill**: Interactive navbar widget displaying real-time open/closed status with instant drop-down popover.
+
+### 🤖 Floating AI Support & Market Research Chatbot
+- **Omnipresent Conversational Research Companion**: Expandable floating widget available across all pages with context-aware routing (adapts dynamically on `/company/[symbol]`, `/charts`, `/calendar`, `/news`).
+- **Grounded Multi-Intent RAG**: Zero-hallucination query routing across `MARKET_STATUS`, `COMPANY_RESEARCH`, `PLATFORM_SUPPORT`, `MARKET_EDUCATION`, and `NEWS_ANALYSIS`.
+- **Traceable Source Citations**: Every empirical data point is anchored to primary regulatory filings or data providers with verifiable external URLs and timestamps.
+- **Strict Compliance Guardrails**: Prompt injection sanitization, non-advisory positioning, and refusal to provide guaranteed return forecasts.
+
+### 📰 Advanced Worldwide Financial News Intelligence Engine (`/news`)
+- **7 Canonical Topic Taxonomies**: Banking & Financials, Listed Companies, Sectoral Coverage, Macroeconomics & Central Banks, Global Markets, Commodities & Forex, and Regulatory/Geopolitics.
+- **Source Credibility Registry**: Formal 4-tier publisher hierarchy (Tier 1 Primary Official, Tier 2 Established Journalism, Tier 3 Industry Press).
+- **Automated Named Entity Recognition**: Automatic mapping of news headlines to listed exchange tickers and GICS sectors.
+- **8-Point AI Structured Article Dossiers**: Executive summary, key facts, why it matters, transmission channels, impact horizon, affected tickers, and risk factors with 100% source attribution.
 
 ---
 

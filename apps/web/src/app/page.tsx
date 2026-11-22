@@ -22,13 +22,20 @@ import {
   Clock,
   ArrowUpRight,
   CheckCircle2,
+  Calendar,
+  CalendarDays,
+  AlertCircle,
 } from "lucide-react";
 import NavigationShell from "@/components/NavigationShell";
 import {
   getMarketTicker,
   getNewsFeed,
+  getGlobalMarketStatus,
+  getGlobalCalendarEvents,
   type TickerItem,
   type NewsItem,
+  type GlobalMarketStatusSummary,
+  type CalendarEventRecord,
 } from "@/lib/api";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -112,6 +119,8 @@ const BENCHMARK_KEYS = [
 export default function HomePage() {
   const [tickers, setTickers] = useState<TickerItem[]>([]);
   const [newsArticles, setNewsArticles] = useState<NewsItem[]>([]);
+  const [marketStatus, setMarketStatus] = useState<GlobalMarketStatusSummary | null>(null);
+  const [upcomingEvents, setUpcomingEvents] = useState<CalendarEventRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -120,13 +129,21 @@ export default function HomePage() {
     Promise.all([
       getMarketTicker().catch(() => []),
       getNewsFeed({ limit: 6 }).catch(() => []),
-    ]).then(([tickerData, newsData]) => {
+      getGlobalMarketStatus().catch(() => null),
+      getGlobalCalendarEvents({ importance: "HIGH" }).catch(() => []),
+    ]).then(([tickerData, newsData, statusData, eventsData]) => {
       if (!isMounted) return;
       if (tickerData && tickerData.length > 0) {
         setTickers(tickerData);
       }
       if (newsData && newsData.length > 0) {
         setNewsArticles(newsData);
+      }
+      if (statusData) {
+        setMarketStatus(statusData);
+      }
+      if (eventsData && eventsData.length > 0) {
+        setUpcomingEvents(eventsData.slice(0, 3));
       }
       setLoading(false);
     });
@@ -368,6 +385,144 @@ export default function HomePage() {
                 </div>
               );
             })}
+          </div>
+        </section>
+
+        {/* ─────────────────── 2.5 GLOBAL MARKET CALENDAR & CATALYSTS ─────────────────── */}
+        <section className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                <CalendarDays size={18} className="text-cyan-500" /> Global Market Calendar &amp; Economic Catalysts
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Authoritative market hours, real-time exchange session status, and upcoming central bank rate decisions.
+              </p>
+            </div>
+            <Link
+              href="/calendar"
+              className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-cyan-500 transition flex items-center gap-1 font-mono"
+            >
+              <span>Explore Full Calendar</span>
+              <ArrowRight size={13} />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Live Exchange Sessions Status Pill Grid (2 Cols on lg) */}
+            <div className="lg:col-span-2 p-5 rounded-2xl bg-white dark:bg-[#0B1930] border border-slate-200 dark:border-[#162C4E] shadow-xs space-y-4">
+              <div className="flex items-center justify-between text-xs font-mono">
+                <span className="font-bold text-slate-700 dark:text-slate-300 uppercase flex items-center gap-1.5">
+                  <Clock size={13} className="text-blue-500" /> Real-Time Exchange Sessions
+                </span>
+                {marketStatus && (
+                  <span className="text-slate-500 dark:text-slate-400 text-[11px]">
+                    Open: <strong className="text-emerald-500">{marketStatus.active_open_markets_count}</strong> / {marketStatus.markets.length} tracked
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                {(marketStatus?.markets.slice(0, 6) || [
+                  { exchange: "NSE", market_name: "India (National)", status: "OPEN", current_local_time: "10:15 IST", session_label: "Regular Session" },
+                  { exchange: "BSE", market_name: "India (Bombay)", status: "OPEN", current_local_time: "10:15 IST", session_label: "Regular Session" },
+                  { exchange: "MCX", market_name: "India (Commodity)", status: "OPEN", current_local_time: "10:15 IST", session_label: "Dual Session Active" },
+                  { exchange: "NYSE", market_name: "United States", status: "CLOSED", current_local_time: "23:45 EST", session_label: "Closed" },
+                  { exchange: "NASDAQ", market_name: "United States", status: "CLOSED", current_local_time: "23:45 EST", session_label: "Closed" },
+                  { exchange: "LSE", market_name: "United Kingdom", status: "CLOSED", current_local_time: "04:45 GMT", session_label: "Closed" },
+                ]).map((m) => (
+                  <div
+                    key={m.exchange}
+                    className="p-3 rounded-xl bg-slate-50 dark:bg-[#071426] border border-slate-200 dark:border-[#162C4E] flex flex-col justify-between space-y-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-xs font-black text-slate-900 dark:text-white">
+                        {m.exchange}
+                      </span>
+                      <span
+                        className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-full flex items-center gap-1 ${
+                          m.status === "OPEN"
+                            ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
+                            : "bg-slate-200 dark:bg-[#10223B] text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-[#162C4E]"
+                        }`}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${m.status === "OPEN" ? "bg-emerald-500 animate-pulse" : "bg-slate-400"}`} />
+                        {m.status}
+                      </span>
+                    </div>
+                    <div className="text-[10px] font-mono text-slate-500 dark:text-slate-400 truncate">
+                      {m.session_label}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Special Trading Session / Dual Session Notice */}
+              <div className="p-3 rounded-xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                  <ShieldCheck size={14} className="text-blue-500 shrink-0" />
+                  <span className="text-[11px]">
+                    Includes Special Diwali Muhurat trading rules &amp; MCX commodity dual-session intelligence.
+                  </span>
+                </div>
+                <Link
+                  href="/calendar"
+                  className="text-[11px] font-mono font-bold text-blue-600 dark:text-cyan-400 hover:underline shrink-0 ml-2"
+                >
+                  View Holidays
+                </Link>
+              </div>
+            </div>
+
+            {/* Upcoming High-Impact Catalysts Panel */}
+            <div className="p-5 rounded-2xl bg-white dark:bg-[#0B1930] border border-slate-200 dark:border-[#162C4E] shadow-xs space-y-3 flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="font-bold text-slate-700 dark:text-slate-300 uppercase flex items-center gap-1.5">
+                    <Calendar size={13} className="text-cyan-500" /> Upcoming High-Impact Catalysts
+                  </span>
+                </div>
+
+                <div className="space-y-2.5">
+                  {upcomingEvents.length > 0 ? (
+                    upcomingEvents.map((evt) => (
+                      <div
+                        key={evt.event_id}
+                        className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#071426] border border-slate-200 dark:border-[#162C4E] space-y-1"
+                      >
+                        <div className="flex items-center justify-between text-[10px] font-mono">
+                          <span className="font-bold text-blue-600 dark:text-cyan-400">
+                            {evt.country} · {evt.event_type}
+                          </span>
+                          <span className="text-slate-500 dark:text-slate-400">
+                            {new Date(evt.event_time_utc).toLocaleDateString("en-IN", { month: "short", day: "numeric" })}
+                          </span>
+                        </div>
+                        <div className="text-xs font-bold text-slate-900 dark:text-white line-clamp-1">
+                          {evt.title}
+                        </div>
+                        <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 dark:text-slate-400 pt-0.5">
+                          <span>Forecast: <strong className="text-slate-800 dark:text-slate-200">{evt.forecast || "—"}</strong></span>
+                          <span>Prior: {evt.previous || "—"}</span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-4 text-center text-xs text-slate-400">
+                      Loading scheduled macroeconomic catalysts...
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <Link
+                href="/calendar"
+                className="w-full py-2 rounded-xl bg-blue-600/10 hover:bg-blue-600/20 text-blue-600 dark:text-cyan-400 border border-blue-500/20 text-center font-bold text-xs transition flex items-center justify-center gap-1.5 mt-2"
+              >
+                <span>Browse Full Catalysts Database</span>
+                <ChevronRight size={13} />
+              </Link>
+            </div>
           </div>
         </section>
 

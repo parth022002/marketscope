@@ -115,6 +115,63 @@ async def get_markets_news(limit: int = Query(20, ge=1, le=50)):
 
 
 @news_router.get(
+    "/news/banking",
+    response_model=list[CanonicalNewsArticle],
+    summary="Banking & Financial Institutions News",
+)
+async def get_banking_news(limit: int = Query(20, ge=1, le=50)):
+    """Returns news specifically covering RBI, public & private sector banks, NBFCs, and credit growth."""
+    return await news_service.get_articles(category="Banking & Financial Institutions", limit=limit, page=1)
+
+
+@news_router.get(
+    "/news/categories",
+    summary="Canonical News Categories",
+)
+async def get_news_categories():
+    """Returns the 7 canonical hierarchical news categories."""
+    return [
+        {"id": "BANKING", "label": "Banking & Financial Institutions", "description": "RBI decisions, bank earnings, credit growth, NPA updates"},
+        {"id": "COMPANY", "label": "Company News", "description": "Quarterly earnings, M&A, management changes, corporate actions"},
+        {"id": "SECTORS", "label": "Industry & Sectors", "description": "IT, Automotive, Pharma, Energy, Infrastructure, Metals"},
+        {"id": "MACRO", "label": "Economy & Central Banks", "description": "Inflation, GDP, employment, monetary and fiscal policy"},
+        {"id": "GLOBAL_MARKETS", "label": "Global Financial Markets", "description": "US, European, and Asian market indices and capital flows"},
+        {"id": "COMMODITIES_FOREX", "label": "Commodities & Currencies", "description": "Crude oil, gold, silver, industrial metals, USD/INR"},
+        {"id": "REGULATORY", "label": "Regulations & Geopolitics", "description": "SEBI, SEC, exchange notices, global trade policy"},
+    ]
+
+
+@news_router.get(
+    "/news/sectors/{sector}",
+    response_model=list[CanonicalNewsArticle],
+    summary="Sector-Specific Verified News",
+)
+async def get_sector_news(sector: str, limit: int = Query(15, ge=1, le=50)):
+    """Returns news developments affecting a specific industrial sector."""
+    articles = await news_service.get_articles(limit=50, page=1)
+    sec_lower = sector.lower()
+    matched = [
+        a for a in articles
+        if any(sec_lower in s.lower() for s in a.affected_sectors)
+        or sec_lower in a.category.lower()
+    ]
+    return matched[:limit]
+
+
+@news_router.get(
+    "/news/search",
+    response_model=list[CanonicalNewsArticle],
+    summary="Search Verified News",
+)
+async def search_news(
+    q: str = Query(..., description="Query term across headline, summary, and entities"),
+    limit: int = Query(20, ge=1, le=50),
+):
+    """Executes search across verified headlines, summaries, and related companies."""
+    return await news_service.get_articles(query=q, limit=limit, page=1)
+
+
+@news_router.get(
     "/news/companies/{symbol}",
     response_model=list[CanonicalNewsArticle],
     summary="Company-Specific Verified News",
