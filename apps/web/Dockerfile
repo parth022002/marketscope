@@ -47,4 +47,4 @@ EXPOSE 3000 10000
 HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT:-3000} || exit 1
 
-CMD ["sh", "-c", "exec npm run start -- -p ${PORT:-3000}"]
+CMD ["sh", "-c", "PORT=${PORT:-3000} exec npm run start"]

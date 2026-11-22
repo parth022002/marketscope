@@ -64,7 +64,23 @@ The application is architected to support two deployment paths:
 
 ---
 
-## 4. Post-Deployment Verification
+## 4. Troubleshooting 15-Minute Deploy Timeouts
+
+If you observed deploy runs exceeding 15 minutes (`15m 7s`, `15m 10s`, etc.) and failing on Render:
+
+1. **Port Binding Mismatch (Resolved)**:
+   - *Cause*: Previous commits hardcoded `--port 8000`. Render dynamically assigns a port via `$PORT` (typically `10000`) and polls that port. When uvicorn only listened on 8000, Render waited until the 15-minute timeout elapsed.
+   - *Fix*: The current `Dockerfile`, `Procfile`, and `start.sh` dynamically bind to `${PORT:-8000}`.
+2. **Docker Build Context Size (Resolved)**:
+   - *Cause*: Without `.dockerignore`, Render transferred the entire repository (including `apps/web/node_modules/`, `.git/`, `.next/`, and `.venv/`) to Docker daemon, causing build context upload and `chown -R` to time out.
+   - *Fix*: Comprehensive `.dockerignore` files are added at repository root and in `apps/api/` and `apps/web/`.
+3. **Triggering Latest Commit**:
+   - Ensure Render deploys the latest commit from `master` rather than re-running older historical commits (`356be9e`, `eff29dd`, etc.).
+   - In Render Dashboard: Click **Manual Deploy** -> **Deploy latest commit** or **Clear build cache & deploy**.
+
+---
+
+## 5. Post-Deployment Verification
 
 1. **Verify Backend Health**:
    ```bash

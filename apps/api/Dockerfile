@@ -17,8 +17,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy requirements from either context (root or apps/api)
+COPY requirements.txt* apps/api/requirements.txt* ./
+RUN if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; \
+    elif [ -f apps/api/requirements.txt ]; then pip install --no-cache-dir -r apps/api/requirements.txt; fi
 
 # Final Runtime Image
 FROM python:3.12-slim AS runner
@@ -39,11 +41,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN groupadd -g 1001 appgroup && \
     useradd -u 1001 -g appgroup -s /bin/sh appuser
 
-COPY --from=builder /opt/venv /opt/venv
+# Copy virtual environment and app code with proper ownership in single layers
+COPY --chown=appuser:appgroup --from=builder /opt/venv /opt/venv
+COPY --chown=appuser:appgroup . /app
 
-COPY . /app
-
-RUN chown -R appuser:appgroup /app /opt/venv
 USER appuser
 
 EXPOSE 8000 10000

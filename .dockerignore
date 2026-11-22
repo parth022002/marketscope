@@ -1,0 +1,58 @@
+# MarketScope.io — Docker Ignore File (Root)
+.git
+.gitignore
+.github
+.vscode
+.idea
+
+# Python Virtual Environments & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.venv/
+venv/
+env/
+ENV/
+apps/api/.venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node & Next.js Build Artifacts
+node_modules/
+apps/web/node_modules/
+.next/
+apps/web/.next/
+out/
+apps/web/out/
+
+# Documentation, Compliance & Tests
+docs/
+compliance/
+tests/
+apps/api/tests/
+
+# Log & Temporary files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+Thumbs.db
