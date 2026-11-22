@@ -12,10 +12,16 @@ import {
   Layers,
   ChevronDown,
   RotateCcw,
+  RotateCw,
   Sparkles,
   SlidersHorizontal,
   Plus,
   Compass,
+  Bell,
+  Cloud,
+  Check,
+  Play,
+  Settings,
 } from "lucide-react";
 
 export type ChartTypeOption =
@@ -36,6 +42,8 @@ interface ChartToolbarProps {
   onChartTypeChange: (ct: ChartTypeOption) => void;
   onOpenIndicators: () => void;
   activeIndicatorsCount: number;
+  onOpenAlerts?: () => void;
+  activeAlertsCount?: number;
   onToggleFullscreen: () => void;
   isFullscreen: boolean;
   onExportScreenshot: () => void;
@@ -74,15 +82,23 @@ export default function ChartToolbar({
   onChartTypeChange,
   onOpenIndicators,
   activeIndicatorsCount,
+  onOpenAlerts,
+  activeAlertsCount = 0,
   onToggleFullscreen,
   isFullscreen,
   onExportScreenshot,
   onResetChart,
 }: ChartToolbarProps) {
   const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
   const CurrentTypeIcon =
     CHART_TYPES.find((c) => c.id === chartType)?.icon || CandlestickChart;
+
+  const handleSaveLayout = () => {
+    setIsSaved(true);
+    setTimeout(() => setIsSaved(false), 2000);
+  };
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 p-2 bg-[#071426] border-b border-[#162C4E] text-xs font-mono select-none">
@@ -93,6 +109,14 @@ export default function ChartToolbar({
           <span className="text-cyan-400">{symbol}</span>
           <span className="text-[10px] text-slate-400 font-normal">· {exchange}</span>
         </div>
+
+        {/* Compare / Add Symbol Button */}
+        <button
+          title="Compare or Add Symbol"
+          className="p-1 rounded-lg bg-[#0B1930] hover:bg-[#10223B] border border-[#162C4E] text-slate-400 hover:text-cyan-400 transition"
+        >
+          <Plus size={13} />
+        </button>
 
         <div className="h-4 w-px bg-[#162C4E] mx-1 hidden sm:block" />
 
@@ -167,10 +191,45 @@ export default function ChartToolbar({
             </span>
           )}
         </button>
+
+        {/* Price Alerts Trigger Button */}
+        {onOpenAlerts && (
+          <button
+            onClick={onOpenAlerts}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#0B1930] hover:bg-[#10223B] border border-[#162C4E] text-slate-300 hover:text-white transition relative"
+          >
+            <Bell size={13} className="text-amber-400" />
+            <span className="text-[11px] font-semibold">Alert</span>
+            {activeAlertsCount > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-amber-500/20 text-amber-400 border border-amber-500/40 font-bold">
+                {activeAlertsCount}
+              </span>
+            )}
+          </button>
+        )}
       </div>
 
-      {/* Right Controls: Reset, Screenshot & Fullscreen */}
-      <div className="flex items-center gap-1">
+      {/* Right Controls: Save, Reset, Screenshot & Fullscreen */}
+      <div className="flex items-center gap-1.5">
+        {/* Layout Save Button */}
+        <button
+          onClick={handleSaveLayout}
+          title="Save Chart Layout"
+          className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[#0B1930] hover:bg-[#10223B] border border-[#162C4E] text-slate-300 hover:text-white transition"
+        >
+          {isSaved ? (
+            <>
+              <Check size={12} className="text-emerald-400" />
+              <span className="text-[10px] text-emerald-400 font-bold">Saved</span>
+            </>
+          ) : (
+            <>
+              <Cloud size={12} className="text-cyan-400" />
+              <span className="text-[10px] text-slate-300 hidden md:inline">Save</span>
+            </>
+          )}
+        </button>
+
         <button
           onClick={onResetChart}
           title="Reset Zoom & Scale"

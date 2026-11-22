@@ -47,7 +47,7 @@ import ChartRightSidebar, {
   type InstrumentStats,
   type ChartAlertItem,
 } from "./ChartRightSidebar";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Calendar } from "lucide-react";
 
 interface StockChartProps {
   symbol: string;
@@ -110,6 +110,22 @@ export default function StockChart({
 
   // Alerts State
   const [alerts, setAlerts] = useState<ChartAlertItem[]>([]);
+  const [currentTime, setCurrentTime] = useState<string>("");
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      setCurrentTime(
+        now.toLocaleTimeString("en-GB", {
+          hour12: false,
+          timeZone: "Asia/Kolkata",
+        })
+      );
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Instrument Statistics for Right Sidebar
   const [instrumentStats, setInstrumentStats] = useState<InstrumentStats>({
@@ -686,6 +702,8 @@ export default function StockChart({
         onChartTypeChange={setChartType}
         onOpenIndicators={() => setIsIndicatorsModalOpen(true)}
         activeIndicatorsCount={activeIndicatorsCount}
+        onOpenAlerts={() => setIsSidebarOpen(true)}
+        activeAlertsCount={alerts.length}
         onToggleFullscreen={() => setIsFullscreen(!isFullscreen)}
         isFullscreen={isFullscreen}
         onExportScreenshot={handleExportScreenshot}
@@ -708,37 +726,69 @@ export default function StockChart({
 
         {/* Center Chart Workspace */}
         <div className="relative flex-1 flex flex-col h-full overflow-hidden bg-[#071426]">
-          {/* Top-Left OHLCV Readout & Status Header */}
-          <div className="absolute top-2.5 left-3 z-20 flex items-center gap-2 flex-wrap pointer-events-none select-none text-[11px] font-mono">
-            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#0B1930]/90 border border-[#162C4E] text-white">
-              <span className="font-bold text-cyan-400">{symbol}</span>
-              <span className="text-slate-400">· {timeframe} · {exchange}</span>
+          {/* Top-Left OHLCV Readout, Status Header & TV-Style Execution Badges */}
+          <div className="absolute top-2.5 left-3 z-20 flex flex-col gap-1.5 select-none text-[11px] font-mono pointer-events-none">
+            {/* Row 1: Symbol, Market Status, 15m Delayed Pill, OHLCV Readout */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#0B1930]/90 border border-[#162C4E] text-white shadow-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                <span className="font-bold text-cyan-400">{symbol}</span>
+                <span className="text-slate-400">· {timeframe} · {exchange}</span>
+                <span className="text-slate-500 font-normal">· Closed</span>
+              </div>
+
+              {/* Delayed Data Pill matching TradingView */}
+              <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-[10px] text-amber-300 font-medium">
+                <span className="px-1 rounded bg-amber-500 text-slate-950 font-black text-[9px]">D</span>
+                <span>15 min delayed</span>
+              </div>
+
+              {activeBar && (
+                <div className="flex items-center gap-2 px-2.5 py-0.5 rounded bg-[#0B1930]/90 border border-[#162C4E] text-slate-300 shadow-sm">
+                  <span>
+                    O <strong className="text-white">₹{activeBar.open.toFixed(2)}</strong>
+                  </span>
+                  <span>
+                    H <strong className="text-white">₹{activeBar.high.toFixed(2)}</strong>
+                  </span>
+                  <span>
+                    L <strong className="text-white">₹{activeBar.low.toFixed(2)}</strong>
+                  </span>
+                  <span>
+                    C <strong className="text-white">₹{activeBar.close.toFixed(2)}</strong>
+                  </span>
+                  <span className={isUp ? "text-emerald-400 font-bold" : "text-rose-400 font-bold"}>
+                    {isUp ? "+" : ""}
+                    {barChange.toFixed(2)} ({isUp ? "+" : ""}
+                    {barChangePct.toFixed(2)}%)
+                  </span>
+                  {activeBar.volume > 0 && (
+                    <span className="text-slate-400 hidden sm:inline">
+                      Vol <strong className="text-slate-200">{(activeBar.volume / 1e6).toFixed(2)}M</strong>
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
 
+            {/* Row 2: TradingView Buy / Sell Execution Quote Box */}
             {activeBar && (
-              <div className="flex items-center gap-2 px-2.5 py-0.5 rounded bg-[#0B1930]/90 border border-[#162C4E] text-slate-300">
-                <span>
-                  O: <strong className="text-white">₹{activeBar.open.toFixed(2)}</strong>
-                </span>
-                <span>
-                  H: <strong className="text-white">₹{activeBar.high.toFixed(2)}</strong>
-                </span>
-                <span>
-                  L: <strong className="text-white">₹{activeBar.low.toFixed(2)}</strong>
-                </span>
-                <span>
-                  C: <strong className="text-white">₹{activeBar.close.toFixed(2)}</strong>
-                </span>
-                <span className={isUp ? "text-emerald-400 font-bold" : "text-rose-400 font-bold"}>
-                  {isUp ? "+" : ""}
-                  {barChange.toFixed(2)} ({isUp ? "+" : ""}
-                  {barChangePct.toFixed(2)}%)
-                </span>
-                {activeBar.volume > 0 && (
-                  <span className="text-slate-400 hidden sm:inline">
-                    Vol: <strong className="text-slate-200">{(activeBar.volume / 1e6).toFixed(2)}M</strong>
-                  </span>
-                )}
+              <div className="flex items-center gap-1.5 pointer-events-auto">
+                <div
+                  title="Mock Sell Quote"
+                  className="flex flex-col items-center justify-center px-2.5 py-0.5 rounded bg-rose-950/70 hover:bg-rose-900/90 border border-rose-500/40 text-rose-200 shadow-sm transition cursor-default"
+                >
+                  <span className="text-[11px] font-bold font-mono">₹{activeBar.close.toFixed(2)}</span>
+                  <span className="text-[8px] font-bold text-rose-400 tracking-wider">SELL</span>
+                </div>
+                <span className="text-[9px] text-slate-500 font-mono px-0.5">0.00</span>
+                <div
+                  title="Mock Buy Quote"
+                  className="flex flex-col items-center justify-center px-2.5 py-0.5 rounded bg-blue-950/70 hover:bg-blue-900/90 border border-blue-500/40 text-blue-200 shadow-sm transition cursor-default"
+                >
+                  <span className="text-[11px] font-bold font-mono">₹{activeBar.close.toFixed(2)}</span>
+                  <span className="text-[8px] font-bold text-cyan-400 tracking-wider">BUY</span>
+                </div>
               </div>
             )}
           </div>
@@ -793,17 +843,29 @@ export default function StockChart({
                 <button
                   key={r.label}
                   onClick={() => setTimeframe(r.tf)}
-                  className="px-2 py-0.5 rounded text-slate-400 hover:text-white hover:bg-[#0B1930] transition"
+                  className={`px-2 py-0.5 rounded transition ${
+                    timeframe === r.tf
+                      ? "bg-blue-600/30 text-cyan-400 font-bold border border-blue-500/30"
+                      : "text-slate-400 hover:text-white hover:bg-[#0B1930]"
+                  }`}
                 >
                   {r.label}
                 </button>
               ))}
+              <div className="h-3 w-px bg-[#162C4E] mx-1" />
+              <button
+                type="button"
+                title="Go to date..."
+                className="p-1 rounded text-slate-400 hover:text-white hover:bg-[#0B1930] transition"
+              >
+                <Calendar size={13} />
+              </button>
             </div>
 
-            <div className="flex items-center gap-2 text-slate-500 text-[10px]">
-              <span>UTC+5:30 (IST)</span>
+            <div className="flex items-center gap-2 text-slate-400 text-[10px]">
+              <span>{currentTime ? `${currentTime} UTC+5:30` : "UTC+5:30 (IST)"}</span>
               <span>·</span>
-              <span className="text-cyan-400">MarketScope Engine v2.4</span>
+              <span className="text-cyan-400 font-medium">MarketScope Terminal</span>
             </div>
           </div>
         </div>
