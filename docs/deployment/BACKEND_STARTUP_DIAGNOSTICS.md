@@ -30,7 +30,7 @@ The MarketScope.io backend boots through the following lifecycle stages:
 | **OOM Killed on Startup** | Worker count exceeded instance RAM | Fixed: set `--workers 1`. Uvicorn asyncio event loop handles all requests efficiently. |
 | **CORS Rejected on Vercel** | Preflight `OPTIONS` request failed | Fixed in `app/main.py`: `allow_origin_regex` permits `*.vercel.app` and `*.onrender.com`. |
 | **Database Connection Slow** | Serverless cold start latency | Handled: lifespan is non-blocking; `/health/ready` reports status gracefully without crashing. |
-| **`NameError: name 'Any' is not defined`** | Missing typing import in `canonical_news.py` | Verified: `from typing import Any, Sequence` is present on line 9 of `app/domain/canonical_news.py`. |
+| **`NameError: name 'Any' is not defined`** | Missing typing import in `exchange_registry.py` or `canonical_news.py` | Fixed: added `from __future__ import annotations` and imported `Any` in `exchange_registry.py` line 11 and `canonical_news.py` line 9. |
 
 ---
 
