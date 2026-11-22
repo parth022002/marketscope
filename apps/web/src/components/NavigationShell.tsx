@@ -1,37 +1,37 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Show, UserButton } from "@clerk/nextjs";
+import { useUser, UserButton } from "@clerk/nextjs";
 import {
   LayoutDashboard,
   Globe,
-  TrendingUp,
-  Newspaper,
-  Filter,
-  Building2,
-  BookOpen,
-  BarChart3,
+  Compass,
   Bookmark,
-  Calendar,
-  ShieldCheck,
+  Briefcase,
+  LineChart,
+  Sparkles,
+  FileText,
+  Bell,
+  HelpCircle,
+  Settings,
   Search,
   Menu,
   X,
   ChevronLeft,
   ChevronRight,
-  Command,
   Sun,
   Moon,
-  Sparkles,
-  Server,
+  Command,
   ArrowRight,
+  TrendingUp,
   TrendingDown,
-  BarChart2,
-  Activity,
-  RotateCcw,
+  Building2,
+  Filter,
   CheckCircle2,
+  Clock,
+  ShieldCheck,
 } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
 import MarketTicker from "@/components/MarketTicker";
@@ -45,35 +45,25 @@ interface NavigationShellProps {
   activePath?: string;
 }
 
-const PRIMARY_NAV = [
-  { label: "Home", href: "/" },
-  { label: "Markets", href: "/markets" },
-  { label: "Stocks", href: "/stocks" },
-  { label: "Screener", href: "/screener" },
-  { label: "News", href: "/news" },
-  { label: "Research", href: "/research" },
-  { label: "About", href: "/about" },
+// 8 Primary Navigation Destinations (Phase 4.1)
+const MAIN_NAV_ITEMS = [
+  { label: "Overview", href: "/", icon: LayoutDashboard },
+  { label: "Markets", href: "/markets", icon: Globe },
+  { label: "Discover", href: "/discover", icon: Compass, badge: "HUB" },
+  { label: "Watchlists", href: "/watchlists", icon: Bookmark },
+  { label: "Portfolio", href: "/portfolio", icon: Briefcase },
+  { label: "Research", href: "/research", icon: FileText },
+  { label: "Charts", href: "/charts", icon: LineChart, badge: "PRO" },
 ];
 
-const NAV_ITEMS = [
-  { label: "Dashboard", href: "/", icon: LayoutDashboard },
-  { label: "Charts Terminal", href: "/charts", icon: BarChart2, badge: "PRO" },
-  { label: "Markets Hub", href: "/markets", icon: Globe },
-  { label: "Stocks Discovery", href: "/stocks", icon: TrendingUp },
-  { label: "Research Hub", href: "/research", icon: Sparkles, badge: "NEW" },
-  { label: "Options & Derivatives", href: "/derivatives", icon: Activity, badge: "GREEKS" },
-  { label: "Market Flow", href: "/market-intelligence", icon: Sparkles },
-  { label: "Screeners", href: "/screener", icon: Filter },
-  { label: "Backtesting", href: "/backtesting", icon: RotateCcw },
-  { label: "Paper Trading", href: "/paper-trading", icon: CheckCircle2 },
-  { label: "News Intelligence", href: "/news", icon: Newspaper, badge: "LIVE" },
-  { label: "Companies", href: "/companies", icon: Building2 },
-  { label: "Peer Comparison", href: "/compare", icon: BarChart3 },
-  { label: "Watchlists", href: "/watchlists", icon: Bookmark },
-  { label: "Calendar & Events", href: "/calendar", icon: Calendar },
-  { label: "About Platform", href: "/about", icon: BookOpen },
-  { label: "Data Quality & Feeds", href: "/admin/market-data", icon: Server },
-  { label: "Workspace & Privacy", href: "/workspace", icon: ShieldCheck },
+const INTELLIGENCE_NAV = [
+  { label: "AI Research", href: "/intelligence", icon: Sparkles, badge: "AI" },
+];
+
+const BOTTOM_NAV_ITEMS = [
+  { label: "Alerts", href: "/alerts", icon: Bell },
+  { label: "Help & Docs", href: "/help", icon: HelpCircle },
+  { label: "Settings", href: "/settings", icon: Settings },
 ];
 
 interface PaletteItem {
@@ -85,574 +75,532 @@ interface PaletteItem {
   chg?: string;
   exchange?: string;
   isin?: string | null;
-  has_multiple_listings?: boolean;
 }
 
 const QUICK_SEARCH_ITEMS: PaletteItem[] = [
   { type: "EQUITY", symbol: "RELIANCE", name: "Reliance Industries Ltd", href: "/company/reliance", price: "₹1,377.50", chg: "+0.14%", exchange: "NSE" },
   { type: "EQUITY", symbol: "TCS", name: "Tata Consultancy Services", href: "/company/tcs", price: "₹4,180.20", chg: "+1.10%", exchange: "NSE" },
-  { type: "EQUITY", symbol: "INFY", name: "Infosys Ltd", href: "/company/infy", price: "₹1,885.60", chg: "-0.65%", exchange: "NSE", has_multiple_listings: true },
-  { type: "EQUITY", symbol: "TATAMOTORS", name: "Tata Motors Ltd", href: "/company/tatamotors", price: "₹942.50", chg: "+1.97%", exchange: "NSE", has_multiple_listings: true },
+  { type: "EQUITY", symbol: "INFY", name: "Infosys Ltd", href: "/company/infy", price: "₹1,885.60", chg: "-0.65%", exchange: "NSE" },
+  { type: "EQUITY", symbol: "TATAMOTORS", name: "Tata Motors Ltd", href: "/company/tatamotors", price: "₹942.50", chg: "+1.97%", exchange: "NSE" },
   { type: "INDEX", symbol: "NIFTY 50", name: "NSE Benchmark Index", href: "/markets", price: "25,800.60", chg: "+1.12%", exchange: "NSE" },
   { type: "INDEX", symbol: "SENSEX", name: "BSE Benchmark Index", href: "/markets", price: "83,919.71", chg: "+1.08%", exchange: "BSE" },
   { type: "COMMODITY", symbol: "GOLD", name: "Gold 24K Spot (MCX)", href: "/markets", price: "₹76,450", chg: "+0.45%", exchange: "MCX" },
   { type: "COMMODITY", symbol: "BRENT", name: "Brent Crude Oil", href: "/markets", price: "$74.20", chg: "-0.85%", exchange: "ICE" },
-  { type: "PAGE", symbol: "SCREENER", name: "Quantitative Stock Screener", href: "/screener" },
-  { type: "PAGE", symbol: "NEWS", name: "Verified Financial Wire", href: "/news" },
-  { type: "PAGE", symbol: "CALENDAR", name: "Global Economic Calendar", href: "/calendar" },
+  { type: "HUB", symbol: "DISCOVER", name: "Stock & ETF Screener Hub", href: "/discover" },
+  { type: "AI", symbol: "INTELLIGENCE", name: "MarketScope Unified Intelligence", href: "/intelligence" },
 ];
 
 export default function NavigationShell({ children, activePath }: NavigationShellProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const currentPath = activePath || pathname;
   const { theme, toggleTheme } = useTheme();
+  const { isSignedIn, isLoaded } = useUser();
 
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  // Sidebar expand/collapse state
+  const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+
+  // Command palette state
+  const [commandOpen, setCommandOpen] = useState(false);
   const [paletteQuery, setPaletteQuery] = useState("");
-  const [serverResults, setServerResults] = useState<Instrument[]>([]);
+  const [searchResults, setSearchResults] = useState<Instrument[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Keyboard shortcut Ctrl+K to open Command Palette, Escape to close
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const currentPath = activePath || pathname;
+
+  // Global Keyboard Shortcuts (Cmd+K / Ctrl+K)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
-        setIsCommandPaletteOpen((prev) => !prev);
+        setCommandOpen((prev) => !prev);
       } else if (e.key === "Escape") {
-        setIsCommandPaletteOpen(false);
+        setCommandOpen(false);
+        setMobileMenuOpen(false);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Debounced server search against Universal Instrument Master
+  // Focus input when command palette opens
   useEffect(() => {
-    const q = paletteQuery.trim();
-    if (!q) {
-      setServerResults([]);
-      setIsSearching(false);
+    if (commandOpen) {
+      setTimeout(() => searchInputRef.current?.focus(), 60);
+    } else {
+      setPaletteQuery("");
+      setSearchResults([]);
+    }
+  }, [commandOpen]);
+
+  // Debounced API search
+  useEffect(() => {
+    if (!paletteQuery.trim()) {
+      setSearchResults([]);
       return;
     }
-    setIsSearching(true);
-    const timer = setTimeout(() => {
-      searchInstruments(q, { limit: 10 })
-        .then((items) => {
-          setServerResults(items || []);
-        })
-        .catch(() => {
-          setServerResults([]);
-        })
-        .finally(() => {
-          setIsSearching(false);
-        });
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const res = await searchInstruments(paletteQuery.trim());
+        setSearchResults(res || []);
+      } catch (e) {
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
     }, 200);
-
     return () => clearTimeout(timer);
   }, [paletteQuery]);
 
-  const matchingStaticPages = QUICK_SEARCH_ITEMS.filter(
-    (i) =>
-      i.type === "PAGE" &&
-      (i.symbol.toLowerCase().includes(paletteQuery.toLowerCase()) ||
-        i.name.toLowerCase().includes(paletteQuery.toLowerCase()))
-  );
+  const handleSelectResult = (href: string) => {
+    setCommandOpen(false);
+    setMobileMenuOpen(false);
+    router.push(href);
+  };
 
-  const displayedItems: PaletteItem[] =
-    paletteQuery.trim().length === 0
-      ? QUICK_SEARCH_ITEMS
-      : [
-          ...matchingStaticPages,
-          ...serverResults.map((item) => ({
-            type: item.security_type || "EQUITY",
-            symbol: item.symbol,
-            name: item.display_name || item.company_name,
-            href: `/company/${item.symbol.toLowerCase()}`,
-            price:
-              item.price !== undefined
-                ? item.currency === "INR"
-                  ? `₹${item.price.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                  : `$${item.price.toFixed(2)}`
-                : undefined,
-            chg:
-              item.change_pct !== undefined
-                ? `${item.change_pct >= 0 ? "+" : ""}${item.change_pct.toFixed(2)}%`
-                : undefined,
-            exchange: item.exchange,
-            isin: item.isin,
-            has_multiple_listings: item.has_multiple_listings,
-          })),
-        ];
-
-  const isLight = theme === "light";
+  const isRouteActive = (href: string) => {
+    if (href === "/" && currentPath === "/") return true;
+    if (href !== "/" && currentPath.startsWith(href)) return true;
+    return false;
+  };
 
   return (
-    <div
-      className={`min-h-screen flex flex-col font-sans transition-colors duration-200 relative ${
-        isLight ? "bg-[#F8FAFC] text-slate-900" : "bg-[#071426] text-slate-100"
-      }`}
-    >
-      {/* Dynamic Visual Constellation & Ambient Glow */}
+    <div className="relative min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] flex overflow-x-hidden">
+      {/* Interactive 3D Perspective Background */}
       <AnimatedBackground />
 
-      {/* ─────────────────── Header Topbar ─────────────────── */}
-      <header
-        className={`sticky top-0 z-40 backdrop-blur-md px-4 md:px-6 h-14 flex items-center justify-between border-b transition-colors ${
-          isLight
-            ? "bg-white/85 border-slate-200 shadow-xs"
-            : "bg-[#071426]/90 border-[#162C4E]"
-        }`}
+      {/* ── DESKTOP FIXED SIDEBAR ───────────────────────────────────── */}
+      <aside
+        aria-label="Sidebar Navigation"
+        className={`hidden md:flex flex-col fixed top-0 left-0 bottom-0 z-30 transition-all duration-300 ease-in-out border-r border-slate-800/80 bg-[#070D18]/95 dark:bg-[#070D18]/95 backdrop-blur-xl ${
+          collapsed ? "w-18" : "w-64"
+        } select-none`}
       >
-        <div className="flex items-center gap-3">
-          {/* Mobile Menu Hamburger */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className={`md:hidden p-1.5 rounded-lg transition ${
-              isLight
-                ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                : "text-slate-400 hover:text-white hover:bg-[#0B1930]"
-            }`}
-            aria-label="Toggle Navigation"
-          >
-            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
-
-          {/* Desktop & Mobile Brand Identity */}
-          <div className="hidden sm:block">
-            <BrandLogo variant="inline" size={28} />
-          </div>
-          <div className="sm:hidden">
-            <BrandLogo variant="icon" size={28} />
-          </div>
-        </div>
-
-        {/* Primary Desktop Navigation Links */}
-        <nav className="hidden lg:flex items-center gap-1 xl:gap-1.5 ml-2 xl:ml-4">
-          {PRIMARY_NAV.map((item) => {
-            const isActive =
-              item.href === "/"
-                ? currentPath === "/"
-                : currentPath.startsWith(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition ${
-                  isActive
-                    ? isLight
-                      ? "text-blue-600 bg-blue-50 font-bold"
-                      : "text-white bg-blue-600/25 border border-blue-500/30 font-bold"
-                    : isLight
-                    ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                    : "text-slate-300 hover:text-white hover:bg-[#0B1930]"
-                }`}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Global Terminal Search Bar / Command Palette Trigger */}
-        <div className="flex-1 max-w-xs xl:max-w-md mx-2 xl:mx-4 hidden md:block">
-          <button
-            onClick={() => setIsCommandPaletteOpen(true)}
-            className={`w-full flex items-center justify-between rounded-xl pl-3.5 pr-2.5 py-1.5 text-xs transition border text-left shadow-xs ${
-              isLight
-                ? "bg-white border-slate-200 text-slate-400 hover:border-blue-400 hover:text-slate-600"
-                : "bg-[#0B1930] border-[#162C4E] text-slate-400 hover:border-blue-500 hover:text-slate-200"
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <Search size={14} className="text-slate-400" />
-              <span>Search companies, symbols, filings, news (e.g. Reliance, Nifty, Gold)...</span>
-            </div>
-            <div
-              className={`flex items-center gap-0.5 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border ${
-                isLight
-                  ? "bg-slate-100 border-slate-200 text-slate-500"
-                  : "bg-[#071426] border-[#162C4E] text-slate-400"
-              }`}
-            >
-              <Command size={10} /> K
-            </div>
-          </button>
-        </div>
-
-        {/* Right Controls: Market Status, Theme Switcher & User Auth */}
-        <div className="flex items-center gap-2.5">
-          {/* Live Market Status Pill */}
-          <div className="hidden lg:flex items-center gap-1.5 text-[11px] font-mono font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/30">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>NSE: OPEN · IST</span>
-          </div>
-
-          {/* Theme Toggle Button (Dark / Light) */}
-          <button
-            onClick={toggleTheme}
-            title={isLight ? "Switch to Dark Mode" : "Switch to Light Mode"}
-            className={`p-2 rounded-xl transition border flex items-center justify-center ${
-              isLight
-                ? "bg-slate-100 hover:bg-slate-200 border-slate-200 text-amber-600"
-                : "bg-[#0B1930] hover:bg-[#10223B] border-[#162C4E] text-cyan-400"
-            }`}
-            aria-label="Toggle Theme"
-          >
-            {isLight ? <Moon size={15} /> : <Sun size={15} />}
-          </button>
-
-          {/* Quick Watchlists Link */}
-          <Link
-            href="/watchlists"
-            className={`hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border transition ${
-              isLight
-                ? "bg-white hover:bg-slate-100 border-slate-200 text-slate-700 shadow-xs"
-                : "bg-[#0B1930] hover:bg-[#10223B] border-[#162C4E] text-slate-200"
-            }`}
-          >
-            <Bookmark size={13} className="text-amber-500" /> Watchlists
+        {/* Top: Brand Logo & Collapse Toggle */}
+        <div className="flex items-center justify-between px-3.5 h-16 border-b border-slate-800/70">
+          <Link href="/" className="flex items-center gap-2.5 overflow-hidden">
+            <BrandLogo variant={collapsed ? "icon" : "inline"} size={collapsed ? 28 : 24} />
           </Link>
-
-          {/* Clerk Auth Integration */}
-          <Show when="signed-in">
-            <div className={`flex items-center pl-2 border-l ${isLight ? "border-slate-200" : "border-[#162C4E]"}`}>
-              <UserButton />
-            </div>
-          </Show>
-          <Show when="signed-out">
-            <Link
-              href="/sign-in"
-              className="text-xs px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition font-bold shadow-md shadow-blue-600/20"
-            >
-              Sign In
-            </Link>
-          </Show>
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors"
+          >
+            {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
         </div>
-      </header>
 
-      {/* ─────────────────── Continuous Multi-Asset Marquee Ticker ─────────────────── */}
-      <MarketTicker />
-
-      {/* ─────────────────── Main App Body (Sidebar + Content) ─────────────────── */}
-      <div className="flex flex-1 relative w-full">
-        {/* Desktop Collapsible Sidebar */}
-        <aside
-          className={`hidden md:flex flex-col border-r transition-all duration-300 shrink-0 ${
-            isLight
-              ? "bg-slate-50/90 border-slate-200"
-              : "bg-[#071426]/90 border-[#162C4E]"
-          } ${isCollapsed ? "w-16 p-2" : "w-56 lg:w-60 p-4"}`}
-        >
-          {/* Section Header */}
-          {!isCollapsed && (
-            <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 mb-2 px-3">
-              INTELLIGENCE HUBS
-            </div>
-          )}
-
-          {/* Navigation Links */}
-          <nav className="space-y-1 flex-1">
-            {NAV_ITEMS.map((item) => {
-              const isActive =
-                item.href === "/"
-                  ? currentPath === "/"
-                  : currentPath.startsWith(item.href);
+        {/* Middle Navigation: Clean & Non-Scrollable */}
+        <div className="flex-1 py-3 px-2.5 flex flex-col justify-between overflow-hidden">
+          {/* Main Group */}
+          <div className="space-y-1">
+            {!collapsed && (
+              <p className="px-2.5 mb-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
+                Main Menu
+              </p>
+            )}
+            {MAIN_NAV_ITEMS.map((item) => {
               const Icon = item.icon;
-
+              const active = isRouteActive(item.href);
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  title={isCollapsed ? item.label : undefined}
-                  className={`flex items-center rounded-xl text-xs font-semibold transition group ${
-                    isCollapsed
-                      ? "justify-center p-2.5 my-1"
-                      : "justify-between px-3 py-2"
-                  } ${
-                    isActive
-                      ? isLight
-                        ? "bg-blue-50 text-blue-700 border border-blue-200 font-bold shadow-xs"
-                        : "bg-blue-600/20 text-white border border-blue-500/40 font-bold shadow-sm"
-                      : isLight
-                      ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                      : "text-slate-300 hover:text-white hover:bg-[#0B1930]"
+                  title={collapsed ? item.label : undefined}
+                  className={`group relative flex items-center gap-3 px-2.5 py-2 rounded-lg text-xs font-medium transition-all ${
+                    active
+                      ? "bg-sky-500/15 text-sky-400 font-semibold border border-sky-500/30 shadow-[0_0_12px_rgba(56,189,248,0.15)]"
+                      : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/50"
                   }`}
                 >
-                  <div className="flex items-center gap-2.5">
-                    <Icon
-                      size={16}
-                      className={
-                        isActive
-                          ? "text-blue-500"
-                          : isLight
-                          ? "text-slate-400 group-hover:text-slate-700"
-                          : "text-slate-400 group-hover:text-white"
-                      }
-                    />
-                    {!isCollapsed && <span>{item.label}</span>}
-                  </div>
-
-                  {!isCollapsed && item.badge && (
-                    <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
+                  <Icon
+                    className={`w-4 h-4 flex-shrink-0 transition-transform group-hover:scale-110 ${
+                      active ? "text-sky-400" : "text-slate-400 group-hover:text-slate-200"
+                    }`}
+                  />
+                  {!collapsed && (
+                    <span className="truncate flex-1 tracking-wide">{item.label}</span>
+                  )}
+                  {!collapsed && item.badge && (
+                    <span
+                      className={`text-[9px] px-1.5 py-0.5 rounded font-mono font-bold tracking-wider ${
+                        active
+                          ? "bg-sky-500/25 text-sky-300"
+                          : "bg-slate-800 text-slate-400 group-hover:text-slate-200"
+                      }`}
+                    >
                       {item.badge}
                     </span>
                   )}
                 </Link>
               );
             })}
-          </nav>
 
-          {/* Safe-Harbor Box */}
-          {!isCollapsed && (
-            <div
-              className={`mt-4 p-3 rounded-xl border text-[11px] leading-relaxed ${
-                isLight
-                  ? "bg-white border-slate-200 text-slate-500"
-                  : "bg-[#0B1930] border-[#162C4E] text-slate-400"
-              }`}
-            >
-              <div
-                className={`flex items-center gap-1.5 font-bold mb-1 ${
-                  isLight ? "text-slate-800" : "text-white"
-                }`}
-              >
-                <ShieldCheck size={14} className="text-cyan-500" />
-                <span>Research Terminal</span>
-              </div>
-              Read-only analytical intelligence. Zero brokerage execution or advisory.
+            {/* Intelligence Section */}
+            <div className="pt-2">
+              {!collapsed && (
+                <p className="px-2.5 mb-1.5 text-[10px] font-semibold text-sky-400/80 uppercase tracking-widest flex items-center gap-1.5">
+                  <Sparkles className="w-3 h-3 text-sky-400" />
+                  <span>Intelligence</span>
+                </p>
+              )}
+              {INTELLIGENCE_NAV.map((item) => {
+                const Icon = item.icon;
+                const active = isRouteActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    title={collapsed ? item.label : undefined}
+                    className={`group relative flex items-center gap-3 px-2.5 py-2 rounded-lg text-xs font-medium transition-all ${
+                      active
+                        ? "bg-gradient-to-r from-sky-500/20 to-indigo-500/20 text-sky-300 font-semibold border border-sky-500/40 shadow-[0_0_14px_rgba(56,189,248,0.2)]"
+                        : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/50"
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 text-sky-400 flex-shrink-0 group-hover:rotate-12 transition-transform" />
+                    {!collapsed && <span className="truncate flex-1 tracking-wide">{item.label}</span>}
+                    {!collapsed && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-sky-500/25 text-sky-300 border border-sky-500/30">
+                        {item.badge}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
             </div>
-          )}
+          </div>
 
-          {/* Expand / Collapse Button */}
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className={`mt-3 p-2 rounded-xl transition flex items-center justify-center border ${
-              isLight
-                ? "text-slate-500 hover:text-slate-900 hover:bg-slate-100 border-slate-200"
-                : "text-slate-400 hover:text-white hover:bg-[#0B1930] border-[#162C4E]"
-            }`}
-            aria-label="Toggle Sidebar"
-          >
-            {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-          </button>
-        </aside>
-
-        {/* Mobile Slide-Out Drawer */}
-        {mobileMenuOpen && (
-          <div className="fixed inset-0 z-50 md:hidden bg-black/70 backdrop-blur-sm flex">
-            <div
-              className={`w-64 border-r p-4 flex flex-col h-full shadow-2xl ${
-                isLight ? "bg-white border-slate-200" : "bg-[#071426] border-[#162C4E]"
-              }`}
-            >
-              <div className="flex items-center justify-between pb-4 border-b border-inherit">
-                <BrandLogo variant="inline" size={26} />
-                <button
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="p-1 rounded text-slate-400 hover:text-white"
+          {/* Bottom Utility Group */}
+          <div className="pt-3 border-t border-slate-800/60 space-y-1">
+            {BOTTOM_NAV_ITEMS.map((item) => {
+              const Icon = item.icon;
+              const active = isRouteActive(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  title={collapsed ? item.label : undefined}
+                  className={`flex items-center gap-3 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    active
+                      ? "bg-slate-800 text-sky-400 font-semibold"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/40"
+                  }`}
                 >
-                  <X size={18} />
-                </button>
+                  <Icon className="w-4 h-4 flex-shrink-0" />
+                  {!collapsed && <span className="truncate flex-1">{item.label}</span>}
+                </Link>
+              );
+            })}
+
+            {/* Profile Avatar & Workspace */}
+            <div className="pt-2">
+              <Link
+                href="/workspace"
+                title={collapsed ? "Workspace & Profile" : undefined}
+                className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-800/50 transition-colors"
+              >
+                <div className="flex-shrink-0">
+                  {isLoaded && isSignedIn ? (
+                    <UserButton />
+                  ) : (
+                    <div className="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 text-[10px] font-bold">
+                      MS
+                    </div>
+                  )}
+                </div>
+                {!collapsed && (
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-slate-200 truncate">Workspace</p>
+                    <p className="text-[10px] text-slate-400 truncate">Settings & Profile</p>
+                  </div>
+                )}
+              </Link>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      {/* ── MAIN CONTENT AREA ───────────────────────────────────────── */}
+      <div
+        className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ease-in-out ${
+          collapsed ? "md:pl-18" : "md:pl-64"
+        }`}
+      >
+        {/* ── TOP HEADER BAR ──────────────────────────────────────────── */}
+        <header className="sticky top-0 z-20 h-16 border-b border-slate-800/80 bg-[#070D18]/90 dark:bg-[#070D18]/90 backdrop-blur-md flex items-center justify-between px-4 lg:px-6 gap-3">
+          {/* Left: Mobile Toggle & Global Search Trigger */}
+          <div className="flex items-center gap-3 flex-1 max-w-xl">
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open mobile menu"
+              className="md:hidden p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/60"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
+            {/* Global Search Bar */}
+            <button
+              onClick={() => setCommandOpen(true)}
+              className="w-full flex items-center justify-between px-3.5 py-2 rounded-lg bg-slate-900/80 hover:bg-slate-800/80 border border-slate-700/80 text-xs text-slate-400 hover:text-slate-200 transition-all shadow-inner group"
+            >
+              <div className="flex items-center gap-2.5 truncate">
+                <Search className="w-4 h-4 text-slate-400 group-hover:text-sky-400 transition-colors" />
+                <span className="truncate">Search any company, ticker, index, ISIN, or topic...</span>
+              </div>
+              <div className="hidden sm:flex items-center gap-1 font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-400">
+                <span>⌘</span>
+                <span>K</span>
+              </div>
+            </button>
+          </div>
+
+          {/* Right Header Utilities: Session Status, Theme Toggle, Auth */}
+          <div className="flex items-center gap-2.5">
+            {/* Market Session Status Pill */}
+            <div className="hidden lg:flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span className="text-[11px] font-mono tracking-wider font-semibold">NSE/BSE ACTIVE</span>
+            </div>
+
+            {/* Quick Chart Shortcut */}
+            <Link
+              href="/charts"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-slate-200 transition-colors"
+            >
+              <LineChart className="w-3.5 h-3.5 text-sky-400" />
+              <span>Chart</span>
+            </Link>
+
+            {/* Theme Switcher */}
+            <button
+              onClick={toggleTheme}
+              aria-label="Toggle theme"
+              className="p-2 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 transition-colors"
+            >
+              {theme === "light" ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+            </button>
+
+            {/* Auth Buttons */}
+            {isLoaded && isSignedIn ? (
+              <UserButton />
+            ) : (
+              <Link
+                href="/sign-in"
+                className="text-xs px-3 py-1.5 rounded-lg font-semibold bg-sky-500 hover:bg-sky-400 text-slate-950 transition-colors shadow-sm"
+              >
+                Sign In
+              </Link>
+            )}
+          </div>
+        </header>
+
+        {/* Global Market Ticker Banner */}
+        <div className="border-b border-slate-800/60 bg-[#060B14]/80 backdrop-blur z-10">
+          <MarketTicker />
+        </div>
+
+        {/* Page Content Viewport */}
+        <main className="flex-1 relative z-10 w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {children}
+        </main>
+
+        {/* Global Footer */}
+        <Footer />
+      </div>
+
+      {/* ── MOBILE OFF-CANVAS DRAWER ─────────────────────────────────── */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-50 md:hidden flex">
+          <div
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          <div className="relative w-72 max-w-xs bg-[#070D18] border-r border-slate-800 flex flex-col h-full z-10 shadow-2xl">
+            <div className="flex items-center justify-between p-4 border-b border-slate-800">
+              <BrandLogo variant="inline" size={26} />
+              <button
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+              <p className="px-2 text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-2">
+                Main Menu
+              </p>
+              {MAIN_NAV_ITEMS.map((item) => {
+                const Icon = item.icon;
+                const active = isRouteActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium ${
+                      active ? "bg-sky-500/15 text-sky-400 font-semibold" : "text-slate-300 hover:bg-slate-800/60"
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+
+              <div className="pt-4 border-t border-slate-800">
+                <p className="px-2 text-[10px] font-semibold text-sky-400/80 uppercase tracking-widest mb-2">
+                  Intelligence
+                </p>
+                {INTELLIGENCE_NAV.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    <span>{item.label}</span>
+                  </Link>
+                ))}
               </div>
 
-              {/* Mobile Quick Search Button */}
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  setIsCommandPaletteOpen(true);
-                }}
-                className={`w-full my-3 flex items-center gap-2 px-3 py-2 rounded-xl border text-xs text-left ${
-                  isLight
-                    ? "bg-slate-50 border-slate-200 text-slate-500"
-                    : "bg-[#0B1930] border-[#162C4E] text-slate-400"
-                }`}
-              >
-                <Search size={14} />
-                <span>Quick Search (Ctrl+K)...</span>
-              </button>
-
-              <nav className="space-y-1 flex-1 overflow-y-auto">
-                {NAV_ITEMS.map((item) => {
-                  const isActive =
-                    item.href === "/"
-                      ? currentPath === "/"
-                      : currentPath.startsWith(item.href);
+              <div className="pt-4 border-t border-slate-800 space-y-1">
+                {BOTTOM_NAV_ITEMS.map((item) => {
                   const Icon = item.icon;
-
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
                       onClick={() => setMobileMenuOpen(false)}
-                      className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold ${
-                        isActive
-                          ? "bg-blue-600/20 text-blue-500 font-bold"
-                          : isLight
-                          ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                          : "text-slate-300 hover:text-white hover:bg-[#0B1930]"
-                      }`}
+                      className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-400 hover:bg-slate-800/50"
                     >
-                      <div className="flex items-center gap-2.5">
-                        <Icon size={16} />
-                        <span>{item.label}</span>
-                      </div>
-                      {item.badge && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded font-mono bg-emerald-500/15 text-emerald-500 font-bold">
-                          {item.badge}
-                        </span>
-                      )}
+                      <Icon className="w-4 h-4" />
+                      <span>{item.label}</span>
                     </Link>
                   );
                 })}
-              </nav>
-
-              {/* Mobile Theme Toggle */}
-              <div className="pt-3 border-t border-inherit flex items-center justify-between">
-                <span className="text-xs text-slate-400">Theme</span>
-                <button
-                  onClick={toggleTheme}
-                  className="p-2 rounded-lg bg-slate-100 dark:bg-[#0B1930] text-slate-700 dark:text-cyan-400"
-                >
-                  {isLight ? <Moon size={16} /> : <Sun size={16} />}
-                </button>
               </div>
             </div>
-            <div className="flex-1" onClick={() => setMobileMenuOpen(false)} />
           </div>
-        )}
+        </div>
+      )}
 
-        {/* ─────────────────── Main Content Canvas ─────────────────── */}
-        <main className="flex-1 min-w-0 p-4 md:p-6 lg:p-8 flex flex-col justify-between w-full max-w-[1680px] mx-auto z-10">
-          <div className="w-full animate-fade-up">{children}</div>
-          <Footer />
-        </main>
-      </div>
-
-      {/* ─────────────────── Global Command Palette Modal (Ctrl+K) ─────────────────── */}
-      {isCommandPaletteOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-16 md:pt-24 bg-black/70 backdrop-blur-sm animate-in fade-in select-none">
+      {/* ── COMMAND PALETTE (CMD+K / CTRL+K) ────────────────────────── */}
+      {commandOpen && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4">
           <div
-            className={`w-full max-w-xl rounded-2xl border shadow-2xl overflow-hidden flex flex-col ${
-              isLight ? "bg-white border-slate-200" : "bg-[#0B1930] border-[#162C4E]"
-            }`}
-          >
-            {/* Search Input Bar */}
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-inherit">
-              <Search size={18} className="text-blue-500 shrink-0" />
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm"
+            onClick={() => setCommandOpen(false)}
+          />
+          <div className="relative w-full max-w-2xl bg-[#091120] border border-slate-700/80 rounded-xl shadow-2xl overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-150">
+            {/* Search Input */}
+            <div className="flex items-center px-4 border-b border-slate-800 bg-slate-900/60">
+              <Search className="w-5 h-5 text-sky-400 mr-3 flex-shrink-0" />
               <input
+                ref={searchInputRef}
                 type="text"
-                autoFocus
-                placeholder="Search symbol, company name, or ISIN (e.g. INFY, Apple, Reliance)..."
+                placeholder="Search symbol, company name, ISIN, or navigation..."
                 value={paletteQuery}
                 onChange={(e) => setPaletteQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && displayedItems.length > 0) {
-                    router.push(displayedItems[0].href);
-                    setIsCommandPaletteOpen(false);
-                  }
-                }}
-                className="w-full bg-transparent outline-none text-sm text-inherit placeholder-slate-400 font-sans"
+                className="w-full bg-transparent py-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none"
               />
-              {isSearching ? (
-                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin shrink-0" />
-              ) : (
-                <button
-                  onClick={() => setIsCommandPaletteOpen(false)}
-                  className="p-1 rounded text-slate-400 hover:text-inherit"
-                >
-                  <X size={16} />
-                </button>
-              )}
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-400">
+                ESC
+              </span>
             </div>
 
-            {/* Quick Results List */}
-            <div className="max-h-80 overflow-y-auto p-2 space-y-1 text-xs">
-              {displayedItems.length === 0 ? (
-                <div className="p-6 text-center text-slate-400">
-                  {isSearching ? "Searching global instrument master..." : "No matching instruments or pages found."}
-                </div>
+            {/* Results List */}
+            <div className="max-h-96 overflow-y-auto p-2 divide-y divide-slate-800/50">
+              {isSearching ? (
+                <div className="py-8 text-center text-xs text-slate-400">Searching global instruments...</div>
+              ) : paletteQuery.trim() ? (
+                searchResults.length > 0 ? (
+                  <div>
+                    <p className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      Search Results ({searchResults.length})
+                    </p>
+                    {searchResults.map((item) => (
+                      <button
+                        key={item.instrument_id}
+                        onClick={() => handleSelectResult(`/company/${item.symbol.toLowerCase()}`)}
+                        className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-slate-800/70 text-left transition-colors group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded bg-slate-800 flex items-center justify-center font-bold text-xs text-sky-400 border border-slate-700">
+                            {item.symbol.slice(0, 3)}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-sm text-slate-100 group-hover:text-sky-300">
+                                {item.symbol}
+                              </span>
+                              <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 border border-slate-700 text-slate-400">
+                                {item.exchange}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-400">{item.company_name || item.display_name}</p>
+                          </div>
+                        </div>
+                        <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-sky-400 group-hover:translate-x-0.5 transition-all" />
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-8 text-center text-xs text-slate-400">
+                    No instruments found matching &quot;{paletteQuery}&quot;.
+                  </div>
+                )
               ) : (
-                displayedItems.map((item, idx) => {
-                  const isUp = item.chg?.startsWith("+");
-                  return (
+                <div>
+                  <p className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                    Quick Navigation & Popular Equities
+                  </p>
+                  {QUICK_SEARCH_ITEMS.map((item) => (
                     <button
-                      key={`${item.symbol}-${item.exchange || idx}`}
-                      onClick={() => {
-                        router.push(item.href);
-                        setIsCommandPaletteOpen(false);
-                      }}
-                      className={`w-full flex items-center justify-between p-2.5 rounded-xl transition text-left group ${
-                        isLight
-                          ? "hover:bg-slate-100 text-slate-800"
-                          : "hover:bg-[#10223B] text-slate-200"
-                      }`}
+                      key={item.symbol}
+                      onClick={() => handleSelectResult(item.href)}
+                      className="w-full flex items-center justify-between p-2.5 rounded-lg hover:bg-slate-800/70 text-left transition-colors group"
                     >
-                      <div className="flex items-center gap-2.5">
-                        <span
-                          className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
-                            item.type === "EQUITY"
-                              ? "bg-blue-500/15 text-blue-500"
-                              : item.type === "INDEX"
-                              ? "bg-cyan-500/15 text-cyan-500"
-                              : item.type === "COMMODITY"
-                              ? "bg-amber-500/15 text-amber-500"
-                              : "bg-slate-500/15 text-slate-400"
-                          }`}
-                        >
-                          {item.type}
-                        </span>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded bg-slate-800 flex items-center justify-center font-bold text-xs text-slate-300 border border-slate-700">
+                          {item.symbol.slice(0, 3)}
+                        </div>
                         <div>
-                          <div className="font-bold flex items-center gap-1.5">
-                            <span>{item.symbol}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-xs text-slate-200 group-hover:text-sky-300">
+                              {item.symbol}
+                            </span>
                             {item.exchange && (
-                              <span className="text-[10px] font-mono font-bold px-1 py-0.2 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                              <span className="text-[9px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400">
                                 {item.exchange}
                               </span>
                             )}
-                            {item.has_multiple_listings && (
-                              <span className="text-[9px] font-sans font-medium px-1 py-0.2 rounded bg-indigo-500/15 text-indigo-400">
-                                Multi-Listed
-                              </span>
-                            )}
                           </div>
-                          <div className="text-[11px] text-slate-400 font-sans truncate max-w-xs md:max-w-sm">
-                            {item.name}
-                            {item.isin && <span className="ml-1.5 font-mono text-[10px] opacity-75">· {item.isin}</span>}
-                          </div>
+                          <p className="text-[11px] text-slate-400">{item.name}</p>
                         </div>
                       </div>
-
-                      {item.price ? (
-                        <div className="text-right font-mono">
-                          <div className="font-bold">{item.price}</div>
-                          <div
-                            className={`text-[10px] font-bold ${
-                              isUp ? "text-emerald-500" : "text-rose-500"
+                      {item.price && (
+                        <div className="text-right">
+                          <p className="text-xs font-semibold tabular-nums text-slate-200">{item.price}</p>
+                          <p
+                            className={`text-[10px] font-medium tabular-nums ${
+                              item.chg?.startsWith("+") ? "text-emerald-400" : "text-rose-400"
                             }`}
                           >
                             {item.chg}
-                          </div>
+                          </p>
                         </div>
-                      ) : (
-                        <ArrowRight size={14} className="text-slate-400 group-hover:text-blue-500 transition" />
                       )}
                     </button>
-                  );
-                })
+                  ))}
+                </div>
               )}
-            </div>
-
-            {/* Footer */}
-            <div
-              className={`flex items-center justify-between px-4 py-2 border-t text-[10px] text-slate-400 font-mono ${
-                isLight ? "bg-slate-50 border-slate-200" : "bg-[#071426] border-[#162C4E]"
-              }`}
-            >
-              <span>Tip: Press Enter to select first result</span>
-              <span>ESC to close</span>
             </div>
           </div>
         </div>
