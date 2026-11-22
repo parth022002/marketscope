@@ -174,3 +174,51 @@ def test_price_alerts_lifecycle():
     # Delete alert
     del_res = client.delete(f"/api/v1/alerts/{alert_id}")
     assert del_res.status_code == 200
+
+
+def test_expanded_indicators_calculations():
+    """Verify newly added technical indicators: WMA, HMA, STOCH_RSI, CCI, WILLIAMS_R, ICHIMOKU, KELTNER, CMF."""
+    indicators = [
+        ("WMA", "wma"),
+        ("HMA", "hma"),
+        ("STOCH_RSI", "stoch_rsi_k"),
+        ("CCI", "cci"),
+        ("WILLIAMS_R", "williams_r"),
+        ("ICHIMOKU", "tenkan"),
+        ("KELTNER", "middle"),
+        ("CMF", "cmf"),
+    ]
+    for ind, field in indicators:
+        res = client.get(f"/api/v1/instruments/RELIANCE/indicators?indicator={ind}&limit=100")
+        assert res.status_code == 200, f"Indicator {ind} failed with {res.status_code}: {res.text}"
+        data = res.json()
+        assert data["indicator_type"] == ind
+        assert len(data["data"]) > 0, f"Indicator {ind} returned empty series"
+        assert field in data["data"][0]["values"], f"Field {field} missing in {ind}"
+
+
+def test_chart_layouts_lifecycle():
+    """Verify creating, listing, and deleting multi-chart workspace layouts."""
+    payload = {
+        "name": "Nifty Swing Trading Desk",
+        "layout_type": "split_2h",
+        "active_symbols": ["NIFTY", "BANKNIFTY"],
+        "indicators": [{"type": "RSI", "period": 14}, {"type": "EMA", "period": 20}],
+        "timeframe": "15m",
+    }
+    res = client.post("/api/v1/chart/layouts", json=payload)
+    assert res.status_code == 201
+    layout = res.json()
+    layout_id = layout["layout_id"]
+    assert layout["name"] == "Nifty Swing Trading Desk"
+    assert layout["layout_type"] == "split_2h"
+
+    # List layouts
+    list_res = client.get("/api/v1/chart/layouts")
+    assert list_res.status_code == 200
+    layouts = list_res.json()
+    assert any(l["layout_id"] == layout_id for l in layouts)
+
+    # Delete layout
+    del_res = client.delete(f"/api/v1/chart/layouts/{layout_id}")
+    assert del_res.status_code == 200

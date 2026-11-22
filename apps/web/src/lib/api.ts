@@ -187,11 +187,21 @@ export type PeerComparisonResponse = {
 
 export type ScreenerCriteria = {
   sector?: string;
+  exchange?: string;
+  country?: string;
+  market_cap_category?: string;
   min_market_cap?: number;
   min_roe?: number;
   max_pe?: number;
+  min_pe?: number;
+  max_pb?: number;
+  min_pb?: number;
   max_debt_equity?: number;
   min_opm?: number;
+  min_dividend_yield?: number;
+  min_rsi?: number;
+  max_rsi?: number;
+  within_pct_52w_high?: number;
 };
 
 export type ScreenerResultItem = {
@@ -203,6 +213,15 @@ export type ScreenerResultItem = {
   roe: number;
   debt_to_equity: number;
   operating_margin: number;
+  exchange: string;
+  price: number;
+  change_pct: number;
+  pb_ratio?: number | null;
+  dividend_yield?: number | null;
+  rsi_14?: number | null;
+  week_52_high?: number;
+  week_52_low?: number;
+  market_cap_display?: string;
 };
 
 export type ScreenerResponse = {
@@ -1063,6 +1082,47 @@ export async function deleteUserAlert(alertId: string): Promise<void> {
   });
 }
 
+export type ChartLayoutItem = {
+  layout_id: string;
+  user_id: string;
+  name: string;
+  layout_type: "single" | "split_2h" | "split_2v" | "grid_4";
+  active_symbols: string[];
+  indicators: Record<string, unknown>[];
+  timeframe: string;
+  updated_at: string;
+};
+
+export async function getChartLayouts(userId = "default_user"): Promise<ChartLayoutItem[]> {
+  const response = await fetch(`${getApiBase()}/api/v1/chart/layouts?user_id=${encodeURIComponent(userId)}`, {
+    cache: "no-store",
+  });
+  if (!response.ok) return [];
+  return response.json();
+}
+
+export async function saveChartLayout(payload: {
+  name: string;
+  layout_type: string;
+  active_symbols: string[];
+  indicators?: Record<string, unknown>[];
+  timeframe?: string;
+}): Promise<ChartLayoutItem> {
+  const response = await fetch(`${getApiBase()}/api/v1/chart/layouts`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) throw new Error("Unable to save chart layout");
+  return response.json();
+}
+
+export async function deleteChartLayout(layoutId: string): Promise<void> {
+  await fetch(`${getApiBase()}/api/v1/chart/layouts/${encodeURIComponent(layoutId)}`, {
+    method: "DELETE",
+  });
+}
+
 
 export type InstrumentMasterItem = {
   instrument_id: string;
@@ -1548,6 +1608,258 @@ export async function getMarketCoverage(): Promise<MarketCoverageResponse> {
   const url = `${getApiBase()}/api/v1/market/coverage`;
   const response = await fetch(url, { cache: "no-store" });
   if (!response.ok) throw new Error("Unable to retrieve market coverage");
+  return response.json();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Derivatives & Quantitative Intelligence Types & API Calls
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type OptionStrikeItem = {
+  strike: number;
+  call_oi: number;
+  call_oi_change: number;
+  call_volume: number;
+  call_iv: number;
+  call_ltp: number;
+  call_delta: number;
+  put_ltp: number;
+  put_iv: number;
+  put_volume: number;
+  put_oi_change: number;
+  put_oi: number;
+  put_delta: number;
+  gamma: number;
+  vega: number;
+};
+
+export type OptionChainResponse = {
+  underlying: string;
+  spot_price: number;
+  expiry_date: string;
+  pcr: number;
+  max_pain: number;
+  total_call_oi: number;
+  total_put_oi: number;
+  atm_strike: number;
+  strikes: OptionStrikeItem[];
+  status: string;
+  timestamp: string;
+};
+
+export type FuturesBuildupItem = {
+  symbol: string;
+  expiry: string;
+  last_price: number;
+  price_change: number;
+  price_change_pct: number;
+  open_interest: number;
+  oi_change: number;
+  oi_change_pct: number;
+  classification: "LONG_BUILDUP" | "SHORT_BUILDUP" | "SHORT_COVERING" | "LONG_UNWINDING";
+  interpretation: string;
+  volume: number;
+};
+
+export type SectorLeadershipItem = {
+  sector: string;
+  change_pct_1d: number;
+  change_pct_1w: number;
+  change_pct_1m: number;
+  relative_strength: number;
+  top_driver: string;
+  momentum_status: "LEADING" | "WEAKENING" | "LAGGING" | "IMPROVING";
+};
+
+export type SetupRadarItem = {
+  symbol: string;
+  company_name: string;
+  sector: string;
+  timeframe: string;
+  setup_name: string;
+  direction: "BULLISH" | "BEARISH" | "NEUTRAL";
+  confidence: number;
+  description: string;
+  trigger_price: number;
+  stop_loss: number;
+  target_price: number;
+};
+
+export type MarketFlowResponse = {
+  advances: number;
+  declines: number;
+  unchanged: number;
+  ad_ratio: number;
+  market_sentiment: "BULLISH" | "CAUTIOUS_BULLISH" | "NEUTRAL" | "BEARISH";
+  nifty_spot: number;
+  nifty_change_pct: number;
+  highs_52w: number;
+  lows_52w: number;
+  sector_leadership: SectorLeadershipItem[];
+  setup_radar: SetupRadarItem[];
+};
+
+export async function getOptionChain(symbol = "NIFTY"): Promise<OptionChainResponse> {
+  const response = await fetch(`${getApiBase()}/api/v1/derivatives/option-chain?symbol=${encodeURIComponent(symbol)}`, {
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Unable to retrieve option chain");
+  return response.json();
+}
+
+export async function getFuturesBuildup(): Promise<FuturesBuildupItem[]> {
+  const response = await fetch(`${getApiBase()}/api/v1/derivatives/futures-buildup`, {
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Unable to retrieve futures buildup data");
+  return response.json();
+}
+
+export async function getMarketFlowIntelligence(): Promise<MarketFlowResponse> {
+  const response = await fetch(`${getApiBase()}/api/v1/market/flow-intelligence`, {
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Unable to retrieve market flow intelligence");
+  return response.json();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Backtesting & Paper Trading Types & API Calls
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type BacktestTrade = {
+  trade_id: number;
+  entry_time: string | number;
+  exit_time: string | number;
+  side: string;
+  entry_price: number;
+  exit_price: number;
+  quantity: number;
+  gross_pnl: number;
+  net_pnl: number;
+  return_pct: number;
+  reason: string;
+};
+
+export type EquityCurvePoint = {
+  time: string | number;
+  equity: number;
+  drawdown_pct: number;
+};
+
+export type BacktestResponse = {
+  symbol: string;
+  strategy_type: string;
+  timeframe: string;
+  initial_capital: number;
+  ending_capital: number;
+  total_return_pct: number;
+  cagr_pct: number;
+  sharpe_ratio: number;
+  sortino_ratio: number;
+  max_drawdown_pct: number;
+  win_rate_pct: number;
+  total_trades: number;
+  winning_trades: number;
+  losing_trades: number;
+  profit_factor: number;
+  equity_curve: EquityCurvePoint[];
+  trades: BacktestTrade[];
+};
+
+export type PaperPosition = {
+  symbol: string;
+  quantity: number;
+  average_price: number;
+  current_price: number;
+  invested_amount: number;
+  current_value: number;
+  unrealized_pnl: number;
+  unrealized_pnl_pct: number;
+};
+
+export type PaperOrder = {
+  order_id: string;
+  symbol: string;
+  side: "BUY" | "SELL";
+  order_type: "MARKET" | "LIMIT";
+  quantity: number;
+  executed_price: number;
+  fee: number;
+  total_amount: number;
+  status: string;
+  timestamp: string;
+};
+
+export type PaperPortfolioResponse = {
+  account_id: string;
+  currency: string;
+  initial_cash: number;
+  available_cash: number;
+  invested_value: number;
+  total_portfolio_value: number;
+  total_unrealized_pnl: number;
+  total_realized_pnl: number;
+  positions: PaperPosition[];
+  recent_orders: PaperOrder[];
+};
+
+export async function runBacktest(payload: {
+  symbol: string;
+  strategy_type: string;
+  timeframe?: string;
+  initial_capital?: number;
+  fast_period?: number;
+  slow_period?: number;
+  rsi_oversold?: number;
+  rsi_overbought?: number;
+  slippage_pct?: number;
+  fee_pct?: number;
+}): Promise<BacktestResponse> {
+  const response = await fetch(`${getApiBase()}/api/v1/backtest/run`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({ detail: "Backtest failed" }));
+    throw new Error(err.detail || "Backtest execution error");
+  }
+  return response.json();
+}
+
+export async function getPaperPortfolio(): Promise<PaperPortfolioResponse> {
+  const response = await fetch(`${getApiBase()}/api/v1/paper-trading/portfolio`, {
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Unable to retrieve paper portfolio");
+  return response.json();
+}
+
+export async function placePaperOrder(payload: {
+  symbol: string;
+  side: "BUY" | "SELL";
+  order_type?: "MARKET" | "LIMIT";
+  quantity: number;
+  limit_price?: number;
+}): Promise<PaperOrder> {
+  const response = await fetch(`${getApiBase()}/api/v1/paper-trading/orders`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({ detail: "Order failed" }));
+    throw new Error(err.detail || "Unable to place simulated order");
+  }
+  return response.json();
+}
+
+export async function resetPaperAccount(): Promise<{ status: string; message: string }> {
+  const response = await fetch(`${getApiBase()}/api/v1/paper-trading/reset`, {
+    method: "POST",
+  });
+  if (!response.ok) throw new Error("Unable to reset paper trading account");
   return response.json();
 }
 

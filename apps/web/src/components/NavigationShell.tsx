@@ -28,6 +28,10 @@ import {
   Server,
   ArrowRight,
   TrendingDown,
+  BarChart2,
+  Activity,
+  RotateCcw,
+  CheckCircle2,
 } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
 import MarketTicker from "@/components/MarketTicker";
@@ -43,12 +47,16 @@ interface NavigationShellProps {
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
+  { label: "Charts Terminal", href: "/charts", icon: BarChart2, badge: "PRO" },
   { label: "Markets Hub", href: "/markets", icon: Globe },
   { label: "Stocks Discovery", href: "/stocks", icon: TrendingUp },
-  { label: "News Intelligence", href: "/news", icon: Newspaper, badge: "LIVE" },
+  { label: "Options & Derivatives", href: "/derivatives", icon: Activity, badge: "GREEKS" },
+  { label: "Market Flow", href: "/market-intelligence", icon: Sparkles },
   { label: "Screeners", href: "/screener", icon: Filter },
+  { label: "Backtesting", href: "/backtesting", icon: RotateCcw },
+  { label: "Paper Trading", href: "/paper-trading", icon: CheckCircle2 },
+  { label: "News Intelligence", href: "/news", icon: Newspaper, badge: "LIVE" },
   { label: "Companies", href: "/companies", icon: Building2 },
-  { label: "Research Dossier", href: "/company/reliance", icon: BookOpen },
   { label: "Peer Comparison", href: "/compare", icon: BarChart3 },
   { label: "Watchlists", href: "/watchlists", icon: Bookmark },
   { label: "Calendar & Events", href: "/calendar", icon: Calendar },

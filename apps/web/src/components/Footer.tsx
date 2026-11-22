@@ -96,8 +96,18 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/charts" className="font-semibold text-sky-500 hover:text-sky-400 transition">
+                  Charts Terminal (TradingView-Style)
+                </Link>
+              </li>
+              <li>
                 <Link href="/markets" className="hover:text-blue-600 dark:hover:text-cyan-400 transition">
                   Indian Markets (NSE / BSE)
+                </Link>
+              </li>
+              <li>
+                <Link href="/derivatives" className="hover:text-blue-600 dark:hover:text-cyan-400 transition">
+                  Options Chain &amp; Derivatives
                 </Link>
               </li>
               <li>

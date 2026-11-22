@@ -87,6 +87,7 @@ from app.engine.instrument_master import universal_instrument_master
 from app.engine.global_instrument_master import global_instrument_master, GlobalInstrument, CompanyLegalEntity
 from app.engine.stock_universe_ingestion import stock_universe_ingestion
 from app.engine.market_data_service import market_data_service
+from app.engine.screener_engine import screener_engine
 from app.engine.ai_synthesis import generate_ai_synthesis
 from app.engine.market_intelligence import (
     get_global_ticker_feed,
@@ -802,58 +803,15 @@ _SCREENER_PRESETS = [
 
 @router.get("/screener/presets")
 def list_screener_presets():
-    return {"presets": _SCREENER_PRESETS}
+    return {"presets": screener_engine.get_presets()}
 
 
 @router.post("/screener/run", response_model=ScreenerResponse)
 def run_screener(criteria: ScreenerCriteria):
     """
-    Evaluates multi-metric fundamental filtering across the universe of listed Indian companies.
+    Evaluates multi-metric fundamental, technical, and valuation filtering across the universal stock master.
     """
-    results: list[ScreenerResultItem] = []
-
-    for sym, data in FINANCIAL_STATEMENTS_DATABASE.items():
-        if criteria.sector and data["sector"].casefold() != criteria.sector.casefold():
-            continue
-        if criteria.min_market_cap and data["market_cap"] < criteria.min_market_cap:
-            continue
-
-        r = calculate_financial_ratios(sym)
-        roe = r["profitability"]["roe"]
-        pe = r["valuation"]["pe_ratio"]
-        debt_eq = r["solvency"]["debt_to_equity"]
-        opm = r["profitability"]["operating_margin"]
-
-        if criteria.min_roe is not None and roe < criteria.min_roe:
-            continue
-        if criteria.max_pe is not None and (pe is None or pe > criteria.max_pe):
-            continue
-        if criteria.max_debt_equity is not None and debt_eq > criteria.max_debt_equity:
-            continue
-        if criteria.min_opm is not None and opm < criteria.min_opm:
-            continue
-
-        results.append(
-            ScreenerResultItem(
-                symbol=sym,
-                company_name=data["company_name"],
-                sector=data["sector"],
-                market_cap=data["market_cap"],
-                pe_ratio=pe,
-                roe=roe,
-                debt_to_equity=debt_eq,
-                operating_margin=opm,
-            )
-        )
-
-    # Sort descending by market cap
-    results.sort(key=lambda x: x.market_cap, reverse=True)
-
-    return ScreenerResponse(
-        count=len(results),
-        results=results,
-        applied_criteria=criteria,
-    )
+    return screener_engine.run_screen(criteria)
 
 
 # ─── 9. Workspace Watchlists (Phase 3) ─────────────────────────────────────────

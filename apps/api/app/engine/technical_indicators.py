@@ -310,3 +310,211 @@ class TechnicalIndicatorsEngine:
 
             results.append(IndicatorDataPoint(time=bars[i].time, values={"obv": obv}))
         return results
+
+    @staticmethod
+    def calculate_wma(bars: Sequence[OHLCVBar], period: int = 14) -> list[IndicatorDataPoint]:
+        """Weighted Moving Average (WMA) with linear weights 1..N."""
+        if len(bars) < period:
+            return []
+        results: list[IndicatorDataPoint] = []
+        weight_sum = period * (period + 1) / 2.0
+        for i in range(period - 1, len(bars)):
+            subset = [float(b.close) for b in bars[i - period + 1 : i + 1]]
+            wma = sum((idx + 1) * val for idx, val in enumerate(subset)) / weight_sum
+            results.append(IndicatorDataPoint(time=bars[i].time, values={"wma": round(wma, 2)}))
+        return results
+
+    @staticmethod
+    def calculate_hma(bars: Sequence[OHLCVBar], period: int = 16) -> list[IndicatorDataPoint]:
+        """Hull Moving Average (HMA): WMA(2*WMA(n/2) - WMA(n), sqrt(n))."""
+        if len(bars) < period:
+            return []
+        half_period = max(2, period // 2)
+        sqrt_period = max(2, int(math.sqrt(period)))
+
+        def _calc_wma_series(values: list[float], n: int) -> list[float]:
+            denom = n * (n + 1) / 2.0
+            out = []
+            for i in range(n - 1, len(values)):
+                subset = values[i - n + 1 : i + 1]
+                val = sum((idx + 1) * v for idx, v in enumerate(subset)) / denom
+                out.append(val)
+            return out
+
+        closes = [float(b.close) for b in bars]
+        wma_half = _calc_wma_series(closes, half_period)
+        wma_full = _calc_wma_series(closes, period)
+
+        # Align length
+        offset = len(wma_half) - len(wma_full)
+        diff_series = [2.0 * wma_half[i + offset] - wma_full[i] for i in range(len(wma_full))]
+
+        hma_raw = _calc_wma_series(diff_series, sqrt_period)
+        time_offset = len(bars) - len(hma_raw)
+
+        results: list[IndicatorDataPoint] = []
+        for i, val in enumerate(hma_raw):
+            results.append(IndicatorDataPoint(time=bars[time_offset + i].time, values={"hma": round(val, 2)}))
+        return results
+
+    @staticmethod
+    def calculate_stoch_rsi(
+        bars: Sequence[OHLCVBar], rsi_period: int = 14, stoch_period: int = 14, k_period: int = 3, d_period: int = 3
+    ) -> list[IndicatorDataPoint]:
+        """Stochastic RSI (%K and %D lines)."""
+        rsi_points = TechnicalIndicatorsEngine.calculate_rsi(bars, period=rsi_period)
+        if len(rsi_points) < stoch_period + k_period:
+            return []
+
+        rsi_values = [p.values["rsi"] for p in rsi_points]
+        raw_k = []
+        for i in range(stoch_period - 1, len(rsi_values)):
+            sub = rsi_values[i - stoch_period + 1 : i + 1]
+            min_r = min(sub)
+            max_r = max(sub)
+            denom = max_r - min_r
+            k = ((rsi_values[i] - min_r) / denom * 100.0) if denom > 0 else 50.0
+            raw_k.append(k)
+
+        # Smooth K with SMA
+        smoothed_k = []
+        for i in range(k_period - 1, len(raw_k)):
+            smoothed_k.append(sum(raw_k[i - k_period + 1 : i + 1]) / k_period)
+
+        # Smooth D with SMA over smoothed K
+        results = []
+        time_offset = len(bars) - len(smoothed_k)
+        for i in range(d_period - 1, len(smoothed_k)):
+            d = sum(smoothed_k[i - d_period + 1 : i + 1]) / d_period
+            results.append(
+                IndicatorDataPoint(
+                    time=bars[time_offset + i].time,
+                    values={"stoch_rsi_k": round(smoothed_k[i], 2), "stoch_rsi_d": round(d, 2)},
+                )
+            )
+        return results
+
+    @staticmethod
+    def calculate_cci(bars: Sequence[OHLCVBar], period: int = 20) -> list[IndicatorDataPoint]:
+        """Commodity Channel Index (CCI)."""
+        if len(bars) < period:
+            return []
+        results: list[IndicatorDataPoint] = []
+        tps = [(float(b.high) + float(b.low) + float(b.close)) / 3.0 for b in bars]
+
+        for i in range(period - 1, len(bars)):
+            sub_tp = tps[i - period + 1 : i + 1]
+            mean_tp = sum(sub_tp) / period
+            mean_dev = sum(abs(x - mean_tp) for x in sub_tp) / period
+            denom = 0.015 * mean_dev
+            cci = ((tps[i] - mean_tp) / denom) if denom > 0 else 0.0
+            results.append(IndicatorDataPoint(time=bars[i].time, values={"cci": round(cci, 2)}))
+        return results
+
+    @staticmethod
+    def calculate_williams_r(bars: Sequence[OHLCVBar], period: int = 14) -> list[IndicatorDataPoint]:
+        """Williams %R oscillator (-100 to 0)."""
+        if len(bars) < period:
+            return []
+        results: list[IndicatorDataPoint] = []
+        for i in range(period - 1, len(bars)):
+            sub = bars[i - period + 1 : i + 1]
+            highest_high = max(float(b.high) for b in sub)
+            lowest_low = min(float(b.low) for b in sub)
+            close = float(bars[i].close)
+            denom = highest_high - lowest_low
+            wr = (((highest_high - close) / denom) * -100.0) if denom > 0 else -50.0
+            results.append(IndicatorDataPoint(time=bars[i].time, values={"williams_r": round(wr, 2)}))
+        return results
+
+    @staticmethod
+    def calculate_ichimoku(
+        bars: Sequence[OHLCVBar],
+        tenkan_period: int = 9,
+        kijun_period: int = 26,
+        senkou_b_period: int = 52,
+    ) -> list[IndicatorDataPoint]:
+        """Ichimoku Kinko Hyo (Conversion, Base, Span A, Span B)."""
+        if len(bars) < senkou_b_period:
+            return []
+        results: list[IndicatorDataPoint] = []
+
+        def _hl_avg(slice_bars: Sequence[OHLCVBar]) -> float:
+            hh = max(float(b.high) for b in slice_bars)
+            ll = min(float(b.low) for b in slice_bars)
+            return (hh + ll) / 2.0
+
+        for i in range(senkou_b_period - 1, len(bars)):
+            tenkan = _hl_avg(bars[i - tenkan_period + 1 : i + 1])
+            kijun = _hl_avg(bars[i - kijun_period + 1 : i + 1])
+            span_a = (tenkan + kijun) / 2.0
+            span_b = _hl_avg(bars[i - senkou_b_period + 1 : i + 1])
+
+            results.append(
+                IndicatorDataPoint(
+                    time=bars[i].time,
+                    values={
+                        "tenkan": round(tenkan, 2),
+                        "kijun": round(kijun, 2),
+                        "span_a": round(span_a, 2),
+                        "span_b": round(span_b, 2),
+                    },
+                )
+            )
+        return results
+
+    @staticmethod
+    def calculate_keltner(
+        bars: Sequence[OHLCVBar], ema_period: int = 20, atr_period: int = 10, multiplier: float = 2.0
+    ) -> list[IndicatorDataPoint]:
+        """Keltner Channels (EMA +/- multiplier * ATR)."""
+        ema_pts = TechnicalIndicatorsEngine.calculate_ema(bars, period=ema_period)
+        atr_pts = TechnicalIndicatorsEngine.calculate_atr(bars, period=atr_period)
+        if not ema_pts or not atr_pts:
+            return []
+
+        # Map by time
+        atr_map = {p.time: p.values["atr"] for p in atr_pts}
+        results: list[IndicatorDataPoint] = []
+        for pt in ema_pts:
+            if pt.time in atr_map:
+                mid = pt.values["ema"]
+                atr = atr_map[pt.time]
+                upper = mid + (multiplier * atr)
+                lower = mid - (multiplier * atr)
+                results.append(
+                    IndicatorDataPoint(
+                        time=pt.time,
+                        values={
+                            "middle": round(mid, 2),
+                            "upper": round(upper, 2),
+                            "lower": round(lower, 2),
+                        },
+                    )
+                )
+        return results
+
+    @staticmethod
+    def calculate_cmf(bars: Sequence[OHLCVBar], period: int = 20) -> list[IndicatorDataPoint]:
+        """Chaikin Money Flow (CMF)."""
+        if len(bars) < period:
+            return []
+        results: list[IndicatorDataPoint] = []
+        mfvs = []
+        vols = []
+        for b in bars:
+            h = float(b.high)
+            l = float(b.low)
+            c = float(b.close)
+            v = float(b.volume)
+            denom = h - l
+            mfm = ((c - l) - (h - c)) / denom if denom > 0 else 0.0
+            mfvs.append(mfm * v)
+            vols.append(v)
+
+        for i in range(period - 1, len(bars)):
+            sum_mfv = sum(mfvs[i - period + 1 : i + 1])
+            sum_vol = sum(vols[i - period + 1 : i + 1])
+            cmf = (sum_mfv / sum_vol) if sum_vol > 0 else 0.0
+            results.append(IndicatorDataPoint(time=bars[i].time, values={"cmf": round(cmf, 4)}))
+        return results

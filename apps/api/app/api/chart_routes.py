@@ -18,15 +18,18 @@ from app.domain.canonical_chart import (
     DrawingToolType,
     PriceAlert,
     PriceAlertCondition,
+    ChartLayout,
+    ChartLayoutType,
 )
 from app.engine.historical_data_service import historical_data_service
 from app.engine.technical_indicators import TechnicalIndicatorsEngine
 
 chart_router = APIRouter(prefix="", tags=["Charting & Technical Intelligence"])
 
-# In-memory repositories for drawing annotations and alerts
+# In-memory repositories for drawing annotations, layouts, and alerts
 DRAWINGS_STORE: dict[str, UserChartDrawing] = {}
 ALERTS_STORE: dict[str, PriceAlert] = {}
+LAYOUTS_STORE: dict[str, ChartLayout] = {}
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -102,6 +105,22 @@ async def get_instrument_indicator(
         data_points = TechnicalIndicatorsEngine.calculate_stochastic(bars, k_period=period)
     elif indicator == IndicatorType.OBV:
         data_points = TechnicalIndicatorsEngine.calculate_obv(bars)
+    elif indicator == IndicatorType.WMA:
+        data_points = TechnicalIndicatorsEngine.calculate_wma(bars, period=period)
+    elif indicator == IndicatorType.HMA:
+        data_points = TechnicalIndicatorsEngine.calculate_hma(bars, period=period)
+    elif indicator == IndicatorType.STOCH_RSI:
+        data_points = TechnicalIndicatorsEngine.calculate_stoch_rsi(bars, rsi_period=period)
+    elif indicator == IndicatorType.CCI:
+        data_points = TechnicalIndicatorsEngine.calculate_cci(bars, period=period)
+    elif indicator == IndicatorType.WILLIAMS_R:
+        data_points = TechnicalIndicatorsEngine.calculate_williams_r(bars, period=period)
+    elif indicator == IndicatorType.ICHIMOKU:
+        data_points = TechnicalIndicatorsEngine.calculate_ichimoku(bars)
+    elif indicator == IndicatorType.KELTNER:
+        data_points = TechnicalIndicatorsEngine.calculate_keltner(bars, ema_period=period)
+    elif indicator == IndicatorType.CMF:
+        data_points = TechnicalIndicatorsEngine.calculate_cmf(bars, period=period)
 
     return CalculatedIndicatorResponse(
         symbol=symbol.upper(),
@@ -232,3 +251,71 @@ async def delete_user_alert(alert_id: str):
         del ALERTS_STORE[alert_id]
         return {"status": "success", "message": f"Alert {alert_id} deleted"}
     raise HTTPException(status_code=404, detail="Alert not found")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 5. Multi-Chart Layout Persistence
+# ─────────────────────────────────────────────────────────────────────────────
+
+class SaveLayoutRequest(BaseModel):
+    name: str = "My Custom Layout"
+    layout_type: ChartLayoutType = ChartLayoutType.SINGLE
+    active_symbols: list[str] = ["NIFTY", "RELIANCE"]
+    indicators: list[dict[str, Any]] = []
+    timeframe: str = "1D"
+
+
+@chart_router.get(
+    "/chart/layouts",
+    response_model=list[ChartLayout],
+    summary="Get User Saved Chart Layouts",
+)
+async def get_user_chart_layouts(user_id: str = "default_user"):
+    """Returns all saved multi-chart layouts for the user."""
+    # Ensure default workspace exists
+    if not LAYOUTS_STORE:
+        default_layout = ChartLayout(
+            layout_id="layout_default",
+            user_id="default_user",
+            name="Default Workspace",
+            layout_type=ChartLayoutType.SINGLE,
+            active_symbols=["NIFTY"],
+            timeframe="1D",
+        )
+        LAYOUTS_STORE[default_layout.layout_id] = default_layout
+
+    return [l for l in LAYOUTS_STORE.values() if l.user_id == user_id]
+
+
+@chart_router.post(
+    "/chart/layouts",
+    response_model=ChartLayout,
+    status_code=status.HTTP_201_CREATED,
+    summary="Save Chart Layout Workspace",
+)
+async def save_user_chart_layout(payload: SaveLayoutRequest, user_id: str = "default_user"):
+    """Persists a multi-chart layout configuration."""
+    layout_id = f"layout_{uuid.uuid4().hex[:10]}"
+    layout = ChartLayout(
+        layout_id=layout_id,
+        user_id=user_id,
+        name=payload.name,
+        layout_type=payload.layout_type,
+        active_symbols=payload.active_symbols,
+        indicators=payload.indicators,
+        timeframe=payload.timeframe,
+    )
+    LAYOUTS_STORE[layout_id] = layout
+    return layout
+
+
+@chart_router.delete(
+    "/chart/layouts/{layout_id}",
+    summary="Delete Chart Layout",
+)
+async def delete_user_chart_layout(layout_id: str):
+    """Deletes a saved layout."""
+    if layout_id in LAYOUTS_STORE:
+        del LAYOUTS_STORE[layout_id]
+        return {"status": "success", "message": f"Layout {layout_id} deleted"}
+    raise HTTPException(status_code=404, detail="Layout not found")

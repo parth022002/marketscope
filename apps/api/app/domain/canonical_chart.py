@@ -52,6 +52,14 @@ class IndicatorType(str, Enum):
     ATR = "ATR"
     STOCHASTIC = "STOCHASTIC"
     OBV = "OBV"
+    WMA = "WMA"
+    HMA = "HMA"
+    STOCH_RSI = "STOCH_RSI"
+    CCI = "CCI"
+    WILLIAMS_R = "WILLIAMS_R"
+    ICHIMOKU = "ICHIMOKU"
+    KELTNER = "KELTNER"
+    CMF = "CMF"
 
 
 class DrawingToolType(str, Enum):
@@ -151,3 +159,22 @@ class PriceAlert(BaseModel):
     triggered_at: datetime | None = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     note: str | None = None
+
+
+class ChartLayoutType(str, Enum):
+    SINGLE = "single"
+    SPLIT_2H = "split_2h"
+    SPLIT_2V = "split_2v"
+    GRID_4 = "grid_4"
+
+
+class ChartLayout(BaseModel):
+    layout_id: str
+    user_id: str = "default_user"
+    name: str = "Default Workspace"
+    layout_type: ChartLayoutType = ChartLayoutType.SINGLE
+    active_symbols: list[str] = Field(default_factory=lambda: ["NIFTY", "RELIANCE"])
+    indicators: list[dict[str, Any]] = Field(default_factory=list)
+    timeframe: str = "1D"
+    chart_type: ChartType = ChartType.CANDLESTICK
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

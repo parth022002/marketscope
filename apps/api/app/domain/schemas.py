@@ -171,11 +171,21 @@ class PeerComparisonResponse(BaseModel):
 
 class ScreenerCriteria(BaseModel):
     sector: str | None = None
+    exchange: str | None = None
+    country: str | None = None
+    market_cap_category: str | None = None
     min_market_cap: float | None = None
     min_roe: float | None = None
     max_pe: float | None = None
+    min_pe: float | None = None
+    max_pb: float | None = None
+    min_pb: float | None = None
     max_debt_equity: float | None = None
     min_opm: float | None = None
+    min_dividend_yield: float | None = None
+    min_rsi: float | None = None
+    max_rsi: float | None = None
+    within_pct_52w_high: float | None = None
 
 
 class ScreenerResultItem(BaseModel):
@@ -183,10 +193,19 @@ class ScreenerResultItem(BaseModel):
     company_name: str
     sector: str
     market_cap: float
-    pe_ratio: float | None
-    roe: float
-    debt_to_equity: float
-    operating_margin: float
+    pe_ratio: float | None = None
+    roe: float = 0.0
+    debt_to_equity: float = 0.0
+    operating_margin: float = 0.0
+    exchange: str = "NSE"
+    price: float = 0.0
+    change_pct: float = 0.0
+    pb_ratio: float | None = None
+    dividend_yield: float | None = None
+    rsi_14: float | None = None
+    week_52_high: float = 0.0
+    week_52_low: float = 0.0
+    market_cap_display: str = ""
 
 
 class ScreenerResponse(BaseModel):
