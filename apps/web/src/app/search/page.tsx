@@ -174,7 +174,7 @@ function SearchContent() {
               Matching Instruments ({items.length})
             </h2>
             <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-50 dark:bg-[#16C8D5]/15 text-cyan-700 dark:text-[#16C8D5] border border-cyan-200 dark:border-[#16C8D5]/30">
-              LIVE CANONICAL INDEX
+              UNIVERSAL MULTI-MARKET DISCOVERY
             </span>
           </div>
 
@@ -182,7 +182,7 @@ function SearchContent() {
             {items.map((item) => (
               <Link
                 key={item.instrument_id}
-                href={`/company/${item.symbol.toLowerCase()}`}
+                href={`/stocks/${item.instrument_id}`}
                 className="p-4 rounded-xl bg-white dark:bg-[#0B1D38] border border-slate-200 dark:border-[#132B4F] hover:border-blue-500 transition flex items-center justify-between group shadow-sm hover:shadow-md"
               >
                 <div>
@@ -193,19 +193,34 @@ function SearchContent() {
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-[#07152B] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#132B4F]">
                       {item.exchange}
                     </span>
+                    <span className="text-[9px] px-1.5 py-0.2 rounded font-mono font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                      {item.data_status || "LIVE_MARKET"}
+                    </span>
                   </div>
-                  <div className="text-xs text-slate-600 dark:text-slate-300 mt-1">{item.company_name}</div>
+                  <div className="text-xs text-slate-600 dark:text-slate-300 mt-1 font-medium">{item.company_name}</div>
                   <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">
-                    Sector: {item.sector} · Base Currency: {item.currency}
+                    Sector: {item.sector} · Country: {item.country || "Global"}
                   </div>
+                  {item.isin && (
+                    <div className="text-[10px] font-mono text-slate-400 mt-0.5">
+                      ISIN: {item.isin}
+                    </div>
+                  )}
                 </div>
-                <ArrowUpRight size={16} className="text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white transition" />
+                <div className="flex items-center gap-2">
+                  {item.price && (
+                    <span className="text-xs font-mono font-bold text-slate-900 dark:text-white">
+                      {item.currency === "INR" ? "₹" : "$"}{item.price.toFixed(2)}
+                    </span>
+                  )}
+                  <ArrowUpRight size={16} className="text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white transition" />
+                </div>
               </Link>
             ))}
 
             {items.length === 0 && !loading && (
               <div className="col-span-2 p-12 rounded-2xl bg-white dark:bg-[#0B1D38] border border-dashed border-slate-200 dark:border-[#132B4F] text-center text-slate-500 dark:text-slate-400 text-xs">
-                Search for an Indian or global equity symbol (e.g. RELIANCE, TCS, INFY, AAPL, NVDA) to inspect its dossier, deterministic metrics, and filing lineage.
+                Search for any Indian (NSE/BSE) or global equity (NASDAQ, NYSE, LSE, TSE) by ticker, company name, ISIN (e.g. INE062A01020), or BSE scrip code (e.g. 500325).
               </div>
             )}
           </div>

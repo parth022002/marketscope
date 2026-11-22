@@ -2220,7 +2220,187 @@ export async function listSpecialistAgents(): Promise<{ count: number; agents: a
   return response.json();
 }
 
+// ─── Universal Stock Search & Master Research Workstation ─────────────────────
 
+export type MasterResearchBundle = {
+  instrument: {
+    instrument_id: string;
+    symbol: string;
+    isin?: string | null;
+    bse_code?: string | null;
+    company_name: string;
+    display_name: string;
+    exchange: string;
+    exchange_name: string;
+    country: string;
+    country_code: string;
+    sector: string;
+    industry: string;
+    currency: string;
+    security_type: string;
+    current_price: number;
+    change_pct: number;
+    market_cap: number;
+    market_cap_display: string;
+    data_status: string;
+    pe_ratio?: number | null;
+    pb_ratio?: number | null;
+    ev_ebitda?: number | null;
+    dividend_yield_pct?: number | null;
+    roe_pct?: number | null;
+    roce_pct?: number | null;
+    operating_margin_pct?: number | null;
+    net_margin_pct?: number | null;
+    debt_to_equity?: number | null;
+    beta?: number | null;
+    var_95?: number | null;
+    max_drawdown_pct?: number | null;
+    q_score?: number | null;
+    peers?: string[];
+  };
+  quote: {
+    instrument_id: string;
+    symbol: string;
+    price: number;
+    change: number;
+    change_pct: number;
+    day_high: number;
+    day_low: number;
+    fifty_two_week_high: number;
+    fifty_two_week_low: number;
+    volume: number;
+    currency: string;
+    data_status: string;
+    timestamp: string;
+  };
+  coverage: {
+    data_status: string;
+    coverage_level: string;
+    quote_mode: string;
+    historical_data_available: boolean;
+    financials_available: boolean;
+    valuation_models_available: boolean;
+    q_intelligence_available: boolean;
+    news_available: boolean;
+    corporate_events_available: boolean;
+    provider_primary: string;
+    last_sync_at: string;
+    limitations: string[];
+  };
+  ratios: {
+    valuation: {
+      pe_ratio?: number | null;
+      pb_ratio?: number | null;
+      ev_ebitda?: number | null;
+      dividend_yield_pct?: number | null;
+    };
+    profitability: {
+      roe_pct?: number | null;
+      roce_pct?: number | null;
+      operating_margin_pct?: number | null;
+      net_margin_pct?: number | null;
+    };
+    leverage: {
+      debt_to_equity?: number | null;
+      current_ratio?: number | null;
+      interest_coverage?: number | null;
+    };
+  };
+  valuation: {
+    instrument_id: string;
+    symbol: string;
+    current_price: number;
+    dcf_intrinsic_value: number;
+    discount_to_fair_value_pct: number;
+    wacc_pct: number;
+    terminal_growth_rate_pct: number;
+    pe_multiple_sector_avg: number;
+    valuation_status: string;
+  };
+  financials: {
+    income_statement: Array<{ item: string; [year: string]: any }>;
+    balance_sheet: Array<{ item: string; [year: string]: any }>;
+    cash_flow: Array<{ item: string; [year: string]: any }>;
+  };
+  technical: {
+    instrument_id: string;
+    symbol: string;
+    rsi_14: number;
+    macd: { line: number; signal: number; histogram: number };
+    sma_50: number;
+    sma_200: number;
+    trend_signal: string;
+    support_level: number;
+    resistance_level: number;
+  };
+  risk: {
+    instrument_id: string;
+    symbol: string;
+    beta: number;
+    var_95: number;
+    max_drawdown_pct: number;
+    annualized_volatility_pct: number;
+    sharpe_ratio: number;
+    risk_category: string;
+  };
+  intelligence: {
+    instrument_id: string;
+    symbol: string;
+    q_score: number;
+    confidence_level: number;
+    model_version: string;
+    factors: Record<string, number>;
+    disclaimer: string;
+  };
+  news: Array<{
+    id: string;
+    headline: string;
+    publisher: string;
+    url: string;
+    published_at: string;
+    sentiment: string;
+    relevance_score: number;
+    category: string;
+  }>;
+  events: Array<{
+    event_type: string;
+    title: string;
+    date: string;
+    status: string;
+  }>;
+  peers: string[];
+};
 
+export type SearchDiagnosticsResponse = {
+  total_instruments_indexed: number;
+  exchanges_covered: string[];
+  coverage_distribution: Record<string, number>;
+  multi_listing_companies_count: number;
+  index_status: string;
+  sample_symbols: string[];
+};
 
+export async function getMasterResearchBundle(instrumentId: string): Promise<MasterResearchBundle> {
+  const response = await fetch(`${getApiBase()}/api/v1/instruments/${encodeURIComponent(instrumentId)}/research`, {
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error(`Unable to retrieve research bundle for ${instrumentId}`);
+  return response.json();
+}
+
+export async function getInstrumentCoverage(instrumentId: string) {
+  const response = await fetch(`${getApiBase()}/api/v1/instruments/${encodeURIComponent(instrumentId)}/coverage`, {
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Unable to retrieve coverage");
+  return response.json();
+}
+
+export async function getSearchDiagnostics(): Promise<SearchDiagnosticsResponse> {
+  const response = await fetch(`${getApiBase()}/api/v1/instruments/admin/diagnostics`, {
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Unable to retrieve search diagnostics");
+  return response.json();
+}
 

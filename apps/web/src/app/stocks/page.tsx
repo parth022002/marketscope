@@ -384,7 +384,7 @@ export default function StocksPage() {
                       {/* Symbol & Company */}
                       <td className="py-3.5 pl-2">
                         <Link
-                          href={`/company/${stock.symbol.toLowerCase()}`}
+                          href={`/stocks/${stock.instrument_id}`}
                           className="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-cyan-400 flex items-center gap-1.5 transition"
                         >
                           <span>{stock.symbol}</span>
@@ -480,7 +480,7 @@ export default function StocksPage() {
                       {/* Action */}
                       <td className="py-3.5 text-right pr-2">
                         <Link
-                          href={`/company/${stock.symbol.toLowerCase()}`}
+                          href={`/stocks/${stock.instrument_id}`}
                           className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600/15 hover:bg-blue-600 text-blue-600 dark:text-white hover:text-white text-[11px] font-bold transition shadow-xs"
                         >
                           Dossier <ArrowRight size={11} />

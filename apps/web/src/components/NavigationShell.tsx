@@ -107,9 +107,24 @@ export default function NavigationShell({ children, activePath }: NavigationShel
   const [paletteQuery, setPaletteQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Instrument[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [marketCategory, setMarketCategory] = useState<"ALL" | "INDIA" | "US" | "GLOBAL">("ALL");
+  const [recentSearches, setRecentSearches] = useState<{ symbol: string; name: string; id: string; exchange: string }[]>([]);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const currentPath = activePath || pathname;
+
+  // Load recent searches from localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("marketscope_recent_searches");
+        if (stored) {
+          setRecentSearches(JSON.parse(stored));
+        }
+      } catch (e) {}
+    }
+  }, []);
 
   // Global Keyboard Shortcuts (Cmd+K / Ctrl+K)
   useEffect(() => {
@@ -130,9 +145,11 @@ export default function NavigationShell({ children, activePath }: NavigationShel
   useEffect(() => {
     if (commandOpen) {
       setTimeout(() => searchInputRef.current?.focus(), 60);
+      setSelectedIndex(0);
     } else {
       setPaletteQuery("");
       setSearchResults([]);
+      setSelectedIndex(0);
     }
   }, [commandOpen]);
 
@@ -140,6 +157,7 @@ export default function NavigationShell({ children, activePath }: NavigationShel
   useEffect(() => {
     if (!paletteQuery.trim()) {
       setSearchResults([]);
+      setSelectedIndex(0);
       return;
     }
     const timer = setTimeout(async () => {
@@ -147,20 +165,50 @@ export default function NavigationShell({ children, activePath }: NavigationShel
       try {
         const res = await searchInstruments(paletteQuery.trim());
         setSearchResults(res || []);
+        setSelectedIndex(0);
       } catch (e) {
         setSearchResults([]);
       } finally {
         setIsSearching(false);
       }
-    }, 200);
+    }, 180);
     return () => clearTimeout(timer);
   }, [paletteQuery]);
 
-  const handleSelectResult = (href: string) => {
+  const handleSelectResult = (
+    href: string,
+    meta?: { symbol: string; name: string; id: string; exchange: string }
+  ) => {
+    if (meta && typeof window !== "undefined") {
+      try {
+        const existing = JSON.parse(localStorage.getItem("marketscope_recent_searches") || "[]");
+        const filtered = existing.filter((x: any) => x.id !== meta.id && x.symbol !== meta.symbol);
+        const updated = [meta, ...filtered].slice(0, 5);
+        localStorage.setItem("marketscope_recent_searches", JSON.stringify(updated));
+        setRecentSearches(updated);
+      } catch (e) {}
+    }
     setCommandOpen(false);
     setMobileMenuOpen(false);
     router.push(href);
   };
+
+  // Filter results by market category
+  const filteredResults = searchResults.filter((item) => {
+    if (marketCategory === "ALL") return true;
+    const ex = (item.exchange || "").toUpperCase();
+    const country = (item.country || "").toUpperCase();
+    if (marketCategory === "INDIA") {
+      return ex === "NSE" || ex === "BSE" || country === "INDIA";
+    }
+    if (marketCategory === "US") {
+      return ex === "NASDAQ" || ex === "NYSE" || country === "UNITED STATES" || country === "US";
+    }
+    if (marketCategory === "GLOBAL") {
+      return ex !== "NSE" && ex !== "BSE" && ex !== "NASDAQ" && ex !== "NYSE";
+    }
+    return true;
+  });
 
   const isRouteActive = (href: string) => {
     if (href === "/" && currentPath === "/") return true;
@@ -503,9 +551,31 @@ export default function NavigationShell({ children, activePath }: NavigationShel
               <input
                 ref={searchInputRef}
                 type="text"
-                placeholder="Search symbol, company name, ISIN, or navigation..."
+                placeholder="Search symbol, company name, ISIN, BSE code, or navigation..."
                 value={paletteQuery}
                 onChange={(e) => setPaletteQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    setSelectedIndex((prev) => Math.min(prev + 1, Math.max(0, filteredResults.length - 1)));
+                  } else if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    setSelectedIndex((prev) => Math.max(prev - 1, 0));
+                  } else if (e.key === "Enter") {
+                    e.preventDefault();
+                    if (filteredResults[selectedIndex]) {
+                      const target = filteredResults[selectedIndex];
+                      handleSelectResult(`/stocks/${target.instrument_id}`, {
+                        symbol: target.symbol,
+                        name: target.company_name || target.display_name || target.symbol,
+                        id: target.instrument_id,
+                        exchange: target.exchange,
+                      });
+                    } else if (paletteQuery.trim()) {
+                      handleSelectResult(`/search?q=${encodeURIComponent(paletteQuery.trim())}`);
+                    }
+                  }
+                }}
                 className="w-full bg-transparent py-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none"
               />
               <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-400">
@@ -513,90 +583,173 @@ export default function NavigationShell({ children, activePath }: NavigationShel
               </span>
             </div>
 
+            {/* Market Filter Chips */}
+            <div className="flex items-center gap-1.5 px-3 py-2 bg-slate-900/40 border-b border-slate-800/80 text-xs">
+              <span className="text-[10px] font-mono uppercase text-slate-400 mr-1">Market:</span>
+              {[
+                { id: "ALL", label: "All Markets" },
+                { id: "INDIA", label: "India (NSE/BSE)" },
+                { id: "US", label: "US (NASDAQ/NYSE)" },
+                { id: "GLOBAL", label: "Global / Europe / Asia" },
+              ].map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => {
+                    setMarketCategory(m.id as any);
+                    setSelectedIndex(0);
+                  }}
+                  className={`px-2 py-0.5 rounded text-[11px] font-medium transition ${
+                    marketCategory === m.id
+                      ? "bg-blue-600 text-white font-bold"
+                      : "bg-slate-800/60 text-slate-400 hover:text-slate-200"
+                  }`}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+
             {/* Results List */}
             <div className="max-h-96 overflow-y-auto p-2 divide-y divide-slate-800/50">
               {isSearching ? (
                 <div className="py-8 text-center text-xs text-slate-400">Searching global instruments...</div>
               ) : paletteQuery.trim() ? (
-                searchResults.length > 0 ? (
+                filteredResults.length > 0 ? (
+                  <div>
+                    <p className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center justify-between">
+                      <span>Search Results ({filteredResults.length})</span>
+                      <span className="text-[9px] font-normal lowercase text-slate-400">Use ↑ ↓ and Enter</span>
+                    </p>
+                    {filteredResults.map((item, idx) => {
+                      const isSelected = idx === selectedIndex;
+                      const status = item.data_status || "LIVE_MARKET";
+                      const statusColor =
+                        status === "LIVE_MARKET"
+                          ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
+                          : status === "DELAYED_15M"
+                          ? "text-amber-400 bg-amber-500/10 border-amber-500/20"
+                          : "text-orange-400 bg-orange-500/10 border-orange-500/20";
+
+                      return (
+                        <button
+                          key={item.instrument_id}
+                          onClick={() =>
+                            handleSelectResult(`/stocks/${item.instrument_id}`, {
+                              symbol: item.symbol,
+                              name: item.company_name || item.display_name || item.symbol,
+                              id: item.instrument_id,
+                              exchange: item.exchange,
+                            })
+                          }
+                          className={`w-full flex items-center justify-between p-2.5 rounded-lg text-left transition-colors group ${
+                            isSelected ? "bg-slate-800/90 border border-blue-500/40" : "hover:bg-slate-800/60"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded bg-slate-800 flex items-center justify-center font-bold text-xs text-sky-400 border border-slate-700">
+                              {item.symbol.slice(0, 3)}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold text-sm text-slate-100 group-hover:text-sky-300">
+                                  {item.symbol}
+                                </span>
+                                <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 border border-slate-700 text-slate-400 font-mono">
+                                  {item.exchange}
+                                </span>
+                                <span className={`text-[9px] px-1.5 py-0.2 rounded font-mono border ${statusColor}`}>
+                                  {status.replace(/_/g, " ")}
+                                </span>
+                              </div>
+                              <p className="text-xs text-slate-400">{item.company_name || item.display_name}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {item.price && (
+                              <span className="text-xs font-mono font-bold text-slate-200">
+                                {item.currency === "INR" ? "₹" : "$"}{item.price.toFixed(2)}
+                              </span>
+                            )}
+                            <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-sky-400 group-hover:translate-x-0.5 transition-all" />
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="py-8 text-center text-xs text-slate-400">
+                    No instruments found matching &quot;{paletteQuery}&quot; in {marketCategory} filter.
+                  </div>
+                )
+              ) : (
+                <div className="space-y-3">
+                  {recentSearches.length > 0 && (
+                    <div>
+                      <p className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                        <Clock size={12} className="text-slate-400" /> Recent Searches
+                      </p>
+                      <div className="space-y-1">
+                        {recentSearches.map((rec) => (
+                          <button
+                            key={rec.id}
+                            onClick={() => handleSelectResult(`/stocks/${rec.id}`)}
+                            className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-slate-800/60 text-left transition group"
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <span className="text-xs font-mono font-bold text-sky-400">{rec.symbol}</span>
+                              <span className="text-[10px] text-slate-400 font-mono">{rec.exchange}</span>
+                              <span className="text-xs text-slate-300 truncate max-w-xs">{rec.name}</span>
+                            </div>
+                            <span className="text-[11px] text-slate-400 group-hover:text-sky-400 font-sans">Open</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div>
                     <p className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                      Search Results ({searchResults.length})
+                      Quick Navigation & Popular Equities
                     </p>
-                    {searchResults.map((item) => (
+                    {QUICK_SEARCH_ITEMS.map((item) => (
                       <button
-                        key={item.instrument_id}
-                        onClick={() => handleSelectResult(`/company/${item.symbol.toLowerCase()}`)}
-                        className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-slate-800/70 text-left transition-colors group"
+                        key={item.symbol}
+                        onClick={() => handleSelectResult(item.href)}
+                        className="w-full flex items-center justify-between p-2.5 rounded-lg hover:bg-slate-800/70 text-left transition-colors group"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded bg-slate-800 flex items-center justify-center font-bold text-xs text-sky-400 border border-slate-700">
+                          <div className="w-8 h-8 rounded bg-slate-800 flex items-center justify-center font-bold text-xs text-slate-300 border border-slate-700">
                             {item.symbol.slice(0, 3)}
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
-                              <span className="font-semibold text-sm text-slate-100 group-hover:text-sky-300">
+                              <span className="font-semibold text-xs text-slate-200 group-hover:text-sky-300">
                                 {item.symbol}
                               </span>
-                              <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 border border-slate-700 text-slate-400">
-                                {item.exchange}
-                              </span>
+                              {item.exchange && (
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400">
+                                  {item.exchange}
+                                </span>
+                              )}
                             </div>
-                            <p className="text-xs text-slate-400">{item.company_name || item.display_name}</p>
+                            <p className="text-[11px] text-slate-400">{item.name}</p>
                           </div>
                         </div>
-                        <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-sky-400 group-hover:translate-x-0.5 transition-all" />
+                        {item.price && (
+                          <div className="text-right">
+                            <p className="text-xs font-semibold tabular-nums text-slate-200">{item.price}</p>
+                            <p
+                              className={`text-[10px] font-medium tabular-nums ${
+                                item.chg?.startsWith("+") ? "text-emerald-400" : "text-rose-400"
+                              }`}
+                            >
+                              {item.chg}
+                            </p>
+                          </div>
+                        )}
                       </button>
                     ))}
                   </div>
-                ) : (
-                  <div className="py-8 text-center text-xs text-slate-400">
-                    No instruments found matching &quot;{paletteQuery}&quot;.
-                  </div>
-                )
-              ) : (
-                <div>
-                  <p className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                    Quick Navigation & Popular Equities
-                  </p>
-                  {QUICK_SEARCH_ITEMS.map((item) => (
-                    <button
-                      key={item.symbol}
-                      onClick={() => handleSelectResult(item.href)}
-                      className="w-full flex items-center justify-between p-2.5 rounded-lg hover:bg-slate-800/70 text-left transition-colors group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded bg-slate-800 flex items-center justify-center font-bold text-xs text-slate-300 border border-slate-700">
-                          {item.symbol.slice(0, 3)}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-xs text-slate-200 group-hover:text-sky-300">
-                              {item.symbol}
-                            </span>
-                            {item.exchange && (
-                              <span className="text-[9px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400">
-                                {item.exchange}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-[11px] text-slate-400">{item.name}</p>
-                        </div>
-                      </div>
-                      {item.price && (
-                        <div className="text-right">
-                          <p className="text-xs font-semibold tabular-nums text-slate-200">{item.price}</p>
-                          <p
-                            className={`text-[10px] font-medium tabular-nums ${
-                              item.chg?.startsWith("+") ? "text-emerald-400" : "text-rose-400"
-                            }`}
-                          >
-                            {item.chg}
-                          </p>
-                        </div>
-                      )}
-                    </button>
-                  ))}
                 </div>
               )}
             </div>

@@ -16,6 +16,7 @@ from app.api.news_routes import news_router
 from app.api.calendar_routes import calendar_router
 from app.api.assistant_routes import assistant_router
 from app.api.quant_routes import quant_router
+from app.api.universal_search_routes import router as universal_search_router
 from app.core.middleware import CorrelationIdMiddleware, SecurityHeadersMiddleware
 
 # Optional Sentry Error Telemetry Initialization
@@ -71,6 +72,7 @@ app.include_router(news_router, prefix="/api/v1")
 app.include_router(derivatives_router, prefix="/api/v1")
 app.include_router(backtest_router, prefix="/api/v1")
 app.include_router(router, prefix="/api/v1")
+app.include_router(universal_search_router)
 app.include_router(ws_router)
 
 
