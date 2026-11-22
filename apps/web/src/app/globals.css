@@ -1,21 +1,41 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --bg-midnight: #07152B;
-  --surface-navy: #0B1D38;
-  --surface-navy-light: #122849;
-  --line-navy: #132B4F;
-  --accent-blue: #087BEE;
-  --accent-cyan: #16C8D5;
-  --accent-green: #39E85B;
-  --accent-red: #F06464;
-  --text-primary: #F7FAFF;
+  --bg-primary: #071426;
+  --bg-surface: #0B1930;
+  --bg-surface-elevated: #10223B;
+  --border-primary: #162C4E;
+  --border-subtle: #1C3358;
+  --text-primary: #F8FAFC;
   --text-secondary: #94A3B8;
   --text-muted: #64748B;
+  --accent-blue: #3B82F6;
+  --accent-cyan: #22D3EE;
+  --accent-emerald: #10B981;
+  --accent-rose: #F43F5E;
+  --accent-amber: #F59E0B;
+  --accent-glow: rgba(59, 130, 246, 0.15);
+}
+
+.light {
+  --bg-primary: #F8FAFC;
+  --bg-surface: #FFFFFF;
+  --bg-surface-elevated: #F1F5F9;
+  --border-primary: #E2E8F0;
+  --border-subtle: #CBD5E1;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #94A3B8;
+  --accent-blue: #2563EB;
+  --accent-cyan: #0284C7;
+  --accent-emerald: #16A34A;
+  --accent-rose: #DC2626;
+  --accent-amber: #D97706;
+  --accent-glow: rgba(37, 99, 235, 0.08);
 }
 
 * {
@@ -26,16 +46,57 @@ html, body {
   margin: 0;
   padding: 0;
   min-height: 100%;
-  background-color: #07152B;
-  color: #F7FAFF;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 /* Tabular numerals for financial alignment */
-.tabular-nums, table, .metric-value {
+.tabular-nums, table, .metric-value, [data-tabular="true"] {
   font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Glassmorphism Surface Classes */
+.glass-panel {
+  background: rgba(11, 25, 48, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(22, 44, 78, 0.85);
+}
+
+.light .glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+/* Ambient Radial Glow Helpers */
+.ambient-glow-blue {
+  background: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+}
+
+.ambient-glow-cyan {
+  background: radial-gradient(circle at 50% 0%, rgba(34, 211, 238, 0.12) 0%, transparent 70%);
+}
+
+/* Subtle Technical Grid Motif */
+.bg-grid-pattern {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(22, 44, 78, 0.2) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(22, 44, 78, 0.2) 1px, transparent 1px);
+}
+
+.light .bg-grid-pattern {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(226, 232, 240, 0.8) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(226, 232, 240, 0.8) 1px, transparent 1px);
 }
 
 /* Continuous Multi-Asset Marquee */
@@ -66,4 +127,49 @@ html, body {
 .scrollbar-none {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Custom Scrollbars for Terminal Panes */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.35);
+}
+
+/* Page Transition Fade Up */
+@keyframes fadeUpIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fadeUpIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Respect Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

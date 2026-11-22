@@ -1,6 +1,7 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import "./globals.css";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://marketscope.io"),
@@ -32,14 +33,18 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/logo-icon.png" type="image/png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
-      <body className="antialiased">
-        <ClerkProvider>{children}</ClerkProvider>
+      <body className="antialiased selection:bg-blue-600 selection:text-white">
+        <ClerkProvider>
+          <ThemeProvider>
+            {children}
+          </ThemeProvider>
+        </ClerkProvider>
       </body>
     </html>
   );

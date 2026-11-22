@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Show, UserButton } from "@clerk/nextjs";
 import {
   LayoutDashboard,
@@ -22,14 +22,18 @@ import {
   ChevronLeft,
   ChevronRight,
   Command,
-  Radio,
+  Sun,
+  Moon,
   Sparkles,
   Server,
+  ArrowRight,
+  TrendingDown,
 } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
 import MarketTicker from "@/components/MarketTicker";
 import Footer from "@/components/Footer";
 import AnimatedBackground from "@/components/AnimatedBackground";
+import { useTheme } from "./ThemeProvider";
 
 interface NavigationShellProps {
   children: React.ReactNode;
@@ -51,45 +55,79 @@ const NAV_ITEMS = [
   { label: "Workspace & Privacy", href: "/workspace", icon: ShieldCheck },
 ];
 
+const QUICK_SEARCH_ITEMS = [
+  { type: "EQUITY", symbol: "RELIANCE", name: "Reliance Industries Ltd", href: "/company/reliance", price: "₹1,377.50", chg: "+0.14%" },
+  { type: "EQUITY", symbol: "TCS", name: "Tata Consultancy Services", href: "/company/tcs", price: "₹4,180.20", chg: "+1.10%" },
+  { type: "EQUITY", symbol: "INFY", name: "Infosys Ltd", href: "/company/infy", price: "₹1,885.60", chg: "-0.65%" },
+  { type: "EQUITY", symbol: "TATAMOTORS", name: "Tata Motors Ltd", href: "/company/tatamotors", price: "₹942.50", chg: "+1.97%" },
+  { type: "INDEX", symbol: "NIFTY 50", name: "NSE Benchmark Index", href: "/markets", price: "25,800.60", chg: "+1.12%" },
+  { type: "INDEX", symbol: "SENSEX", name: "BSE Benchmark Index", href: "/markets", price: "83,919.71", chg: "+1.08%" },
+  { type: "COMMODITY", symbol: "GOLD", name: "Gold 24K Spot (MCX)", href: "/markets", price: "₹76,450", chg: "+0.45%" },
+  { type: "COMMODITY", symbol: "BRENT", name: "Brent Crude Oil", href: "/markets", price: "$74.20", chg: "-0.85%" },
+  { type: "PAGE", symbol: "SCREENER", name: "Quantitative Stock Screener", href: "/screener" },
+  { type: "PAGE", symbol: "NEWS", name: "Verified Financial Wire", href: "/news" },
+  { type: "PAGE", symbol: "CALENDAR", name: "Global Economic Calendar", href: "/calendar" },
+];
+
 export default function NavigationShell({ children, activePath }: NavigationShellProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const currentPath = activePath || pathname;
+  const { theme, toggleTheme } = useTheme();
+
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [paletteQuery, setPaletteQuery] = useState("");
 
-  // Keyboard shortcut Ctrl+K to jump to search
+  // Keyboard shortcut Ctrl+K to open Command Palette, Escape to close
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "k") {
         e.preventDefault();
-        const searchInput = document.getElementById("global-nav-search");
-        searchInput?.focus();
+        setIsCommandPaletteOpen((prev) => !prev);
+      } else if (e.key === "Escape") {
+        setIsCommandPaletteOpen(false);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      window.location.href = `/search?q=${encodeURIComponent(searchQuery.trim())}`;
-    }
-  };
+  const filteredPalette = QUICK_SEARCH_ITEMS.filter(
+    (i) =>
+      i.symbol.toLowerCase().includes(paletteQuery.toLowerCase()) ||
+      i.name.toLowerCase().includes(paletteQuery.toLowerCase())
+  );
+
+  const isLight = theme === "light";
 
   return (
-    <div className="min-h-screen bg-[#071426] text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white relative">
-      {/* Dynamic Canvas Particles & Ambient Radial Glow */}
+    <div
+      className={`min-h-screen flex flex-col font-sans transition-colors duration-200 relative ${
+        isLight ? "bg-[#F8FAFC] text-slate-900" : "bg-[#071426] text-slate-100"
+      }`}
+    >
+      {/* Dynamic Visual Constellation & Ambient Glow */}
       <AnimatedBackground />
 
       {/* ─────────────────── Header Topbar ─────────────────── */}
-      <header className="sticky top-0 z-40 bg-[#071426]/90 backdrop-blur-md border-b border-[#162C4E] px-4 md:px-6 h-14 flex items-center justify-between">
+      <header
+        className={`sticky top-0 z-40 backdrop-blur-md px-4 md:px-6 h-14 flex items-center justify-between border-b transition-colors ${
+          isLight
+            ? "bg-white/85 border-slate-200 shadow-xs"
+            : "bg-[#071426]/90 border-[#162C4E]"
+        }`}
+      >
         <div className="flex items-center gap-3">
           {/* Mobile Menu Hamburger */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-[#0B1930] transition"
+            className={`md:hidden p-1.5 rounded-lg transition ${
+              isLight
+                ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                : "text-slate-400 hover:text-white hover:bg-[#0B1930]"
+            }`}
             aria-label="Toggle Navigation"
           >
             {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -104,51 +142,76 @@ export default function NavigationShell({ children, activePath }: NavigationShel
           </div>
         </div>
 
-        {/* Global Terminal Search Bar with Ctrl+K */}
+        {/* Global Terminal Search Bar / Command Palette Trigger */}
         <div className="flex-1 max-w-lg mx-4 hidden md:block">
-          <form onSubmit={handleSearchSubmit} className="relative">
-            <Search
-              size={14}
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
-            />
-            <input
-              id="global-nav-search"
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search companies, symbols, filings, news (e.g. Reliance, TCS, Brent, RBI)..."
-              className="w-full bg-[#0B1930] border border-[#162C4E] focus:border-blue-500 rounded-xl pl-9 pr-14 py-1.5 text-xs text-white placeholder-slate-400 focus:outline-none transition shadow-inner font-sans"
-            />
-            <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5 text-[10px] font-mono font-bold text-slate-400 px-1.5 py-0.5 rounded bg-[#071426] border border-[#162C4E]">
+          <button
+            onClick={() => setIsCommandPaletteOpen(true)}
+            className={`w-full flex items-center justify-between rounded-xl pl-3.5 pr-2.5 py-1.5 text-xs transition border text-left shadow-xs ${
+              isLight
+                ? "bg-white border-slate-200 text-slate-400 hover:border-blue-400 hover:text-slate-600"
+                : "bg-[#0B1930] border-[#162C4E] text-slate-400 hover:border-blue-500 hover:text-slate-200"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Search size={14} className="text-slate-400" />
+              <span>Search companies, symbols, filings, news (e.g. Reliance, Nifty, Gold)...</span>
+            </div>
+            <div
+              className={`flex items-center gap-0.5 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border ${
+                isLight
+                  ? "bg-slate-100 border-slate-200 text-slate-500"
+                  : "bg-[#071426] border-[#162C4E] text-slate-400"
+              }`}
+            >
               <Command size={10} /> K
             </div>
-          </form>
+          </button>
         </div>
 
-        {/* Live Market Session Pill & User Auth */}
-        <div className="flex items-center gap-3">
+        {/* Right Controls: Market Status, Theme Switcher & User Auth */}
+        <div className="flex items-center gap-2.5">
           {/* Live Market Status Pill */}
-          <div className="hidden lg:flex items-center gap-1.5 text-[11px] font-mono font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <div className="hidden lg:flex items-center gap-1.5 text-[11px] font-mono font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/30">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
             <span>NSE: OPEN · IST</span>
           </div>
 
+          {/* Theme Toggle Button (Dark / Light) */}
+          <button
+            onClick={toggleTheme}
+            title={isLight ? "Switch to Dark Mode" : "Switch to Light Mode"}
+            className={`p-2 rounded-xl transition border flex items-center justify-center ${
+              isLight
+                ? "bg-slate-100 hover:bg-slate-200 border-slate-200 text-amber-600"
+                : "bg-[#0B1930] hover:bg-[#10223B] border-[#162C4E] text-cyan-400"
+            }`}
+            aria-label="Toggle Theme"
+          >
+            {isLight ? <Moon size={15} /> : <Sun size={15} />}
+          </button>
+
+          {/* Quick Watchlists Link */}
           <Link
             href="/watchlists"
-            className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-[#0B1930] hover:bg-[#10223B] border border-[#162C4E] text-slate-200 transition"
+            className={`hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border transition ${
+              isLight
+                ? "bg-white hover:bg-slate-100 border-slate-200 text-slate-700 shadow-xs"
+                : "bg-[#0B1930] hover:bg-[#10223B] border-[#162C4E] text-slate-200"
+            }`}
           >
-            <Bookmark size={13} className="text-yellow-400" /> Watchlists
+            <Bookmark size={13} className="text-amber-500" /> Watchlists
           </Link>
 
+          {/* Clerk Auth Integration */}
           <Show when="signed-in">
-            <div className="flex items-center gap-2 pl-2 border-l border-[#162C4E]">
+            <div className={`flex items-center pl-2 border-l ${isLight ? "border-slate-200" : "border-[#162C4E]"}`}>
               <UserButton />
             </div>
           </Show>
           <Show when="signed-out">
             <Link
               href="/sign-in"
-              className="text-xs px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition font-bold shadow-sm shadow-blue-600/30"
+              className="text-xs px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition font-bold shadow-md shadow-blue-600/20"
             >
               Sign In
             </Link>
@@ -163,11 +226,13 @@ export default function NavigationShell({ children, activePath }: NavigationShel
       <div className="flex flex-1 relative w-full">
         {/* Desktop Collapsible Sidebar */}
         <aside
-          className={`hidden md:flex flex-col bg-[#071426]/90 border-r border-[#162C4E] transition-all duration-300 shrink-0 ${
-            isCollapsed ? "w-16 p-2" : "w-56 lg:w-60 p-4"
-          }`}
+          className={`hidden md:flex flex-col border-r transition-all duration-300 shrink-0 ${
+            isLight
+              ? "bg-slate-50/90 border-slate-200"
+              : "bg-[#071426]/90 border-[#162C4E]"
+          } ${isCollapsed ? "w-16 p-2" : "w-56 lg:w-60 p-4"}`}
         >
-          {/* Section Header or Collapse Rail */}
+          {/* Section Header */}
           {!isCollapsed && (
             <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 mb-2 px-3">
               INTELLIGENCE HUBS
@@ -194,7 +259,11 @@ export default function NavigationShell({ children, activePath }: NavigationShel
                       : "justify-between px-3 py-2"
                   } ${
                     isActive
-                      ? "bg-blue-600/20 text-white border border-blue-500/40 font-bold shadow-sm"
+                      ? isLight
+                        ? "bg-blue-50 text-blue-700 border border-blue-200 font-bold shadow-xs"
+                        : "bg-blue-600/20 text-white border border-blue-500/40 font-bold shadow-sm"
+                      : isLight
+                      ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                       : "text-slate-300 hover:text-white hover:bg-[#0B1930]"
                   }`}
                 >
@@ -203,15 +272,17 @@ export default function NavigationShell({ children, activePath }: NavigationShel
                       size={16}
                       className={
                         isActive
-                          ? "text-cyan-400"
-                          : "text-slate-400 group-hover:text-white transition"
+                          ? "text-blue-500"
+                          : isLight
+                          ? "text-slate-400 group-hover:text-slate-700"
+                          : "text-slate-400 group-hover:text-white"
                       }
                     />
                     {!isCollapsed && <span>{item.label}</span>}
                   </div>
 
                   {!isCollapsed && item.badge && (
-                    <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                    <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
                       {item.badge}
                     </span>
                   )}
@@ -220,21 +291,35 @@ export default function NavigationShell({ children, activePath }: NavigationShel
             })}
           </nav>
 
-          {/* Regulatory Safe-Harbor Box */}
+          {/* Safe-Harbor Box */}
           {!isCollapsed && (
-            <div className="mt-4 p-3 rounded-xl bg-[#0B1930] border border-[#162C4E] text-[11px] text-slate-400 leading-relaxed">
-              <div className="flex items-center gap-1.5 text-white font-bold mb-1">
-                <ShieldCheck size={14} className="text-cyan-400" />
+            <div
+              className={`mt-4 p-3 rounded-xl border text-[11px] leading-relaxed ${
+                isLight
+                  ? "bg-white border-slate-200 text-slate-500"
+                  : "bg-[#0B1930] border-[#162C4E] text-slate-400"
+              }`}
+            >
+              <div
+                className={`flex items-center gap-1.5 font-bold mb-1 ${
+                  isLight ? "text-slate-800" : "text-white"
+                }`}
+              >
+                <ShieldCheck size={14} className="text-cyan-500" />
                 <span>Research Terminal</span>
               </div>
-              Read-only analytical intelligence. No trade execution or advisory.
+              Read-only analytical intelligence. Zero brokerage execution or advisory.
             </div>
           )}
 
           {/* Expand / Collapse Button */}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="mt-3 p-2 rounded-lg text-slate-400 hover:text-white hover:bg-[#0B1930] transition flex items-center justify-center border border-[#162C4E]"
+            className={`mt-3 p-2 rounded-xl transition flex items-center justify-center border ${
+              isLight
+                ? "text-slate-500 hover:text-slate-900 hover:bg-slate-100 border-slate-200"
+                : "text-slate-400 hover:text-white hover:bg-[#0B1930] border-[#162C4E]"
+            }`}
             aria-label="Toggle Sidebar"
           >
             {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
@@ -244,8 +329,12 @@ export default function NavigationShell({ children, activePath }: NavigationShel
         {/* Mobile Slide-Out Drawer */}
         {mobileMenuOpen && (
           <div className="fixed inset-0 z-50 md:hidden bg-black/70 backdrop-blur-sm flex">
-            <div className="w-64 bg-[#071426] border-r border-[#162C4E] p-4 flex flex-col h-full shadow-2xl">
-              <div className="flex items-center justify-between pb-4 border-b border-[#162C4E]">
+            <div
+              className={`w-64 border-r p-4 flex flex-col h-full shadow-2xl ${
+                isLight ? "bg-white border-slate-200" : "bg-[#071426] border-[#162C4E]"
+              }`}
+            >
+              <div className="flex items-center justify-between pb-4 border-b border-inherit">
                 <BrandLogo variant="inline" size={26} />
                 <button
                   onClick={() => setMobileMenuOpen(false)}
@@ -255,16 +344,21 @@ export default function NavigationShell({ children, activePath }: NavigationShel
                 </button>
               </div>
 
-              {/* Mobile Search */}
-              <form onSubmit={handleSearchSubmit} className="my-3">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search market instruments..."
-                  className="w-full bg-[#0B1930] border border-[#162C4E] rounded-lg px-3 py-1.5 text-xs text-white"
-                />
-              </form>
+              {/* Mobile Quick Search Button */}
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setIsCommandPaletteOpen(true);
+                }}
+                className={`w-full my-3 flex items-center gap-2 px-3 py-2 rounded-xl border text-xs text-left ${
+                  isLight
+                    ? "bg-slate-50 border-slate-200 text-slate-500"
+                    : "bg-[#0B1930] border-[#162C4E] text-slate-400"
+                }`}
+              >
+                <Search size={14} />
+                <span>Quick Search (Ctrl+K)...</span>
+              </button>
 
               <nav className="space-y-1 flex-1 overflow-y-auto">
                 {NAV_ITEMS.map((item) => {
@@ -279,9 +373,11 @@ export default function NavigationShell({ children, activePath }: NavigationShel
                       key={item.href}
                       href={item.href}
                       onClick={() => setMobileMenuOpen(false)}
-                      className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold ${
+                      className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold ${
                         isActive
-                          ? "bg-blue-600/20 text-white font-bold"
+                          ? "bg-blue-600/20 text-blue-500 font-bold"
+                          : isLight
+                          ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                           : "text-slate-300 hover:text-white hover:bg-[#0B1930]"
                       }`}
                     >
@@ -290,7 +386,7 @@ export default function NavigationShell({ children, activePath }: NavigationShel
                         <span>{item.label}</span>
                       </div>
                       {item.badge && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded font-mono bg-emerald-500/15 text-emerald-400">
+                        <span className="text-[9px] px-1.5 py-0.5 rounded font-mono bg-emerald-500/15 text-emerald-500 font-bold">
                           {item.badge}
                         </span>
                       )}
@@ -298,17 +394,138 @@ export default function NavigationShell({ children, activePath }: NavigationShel
                   );
                 })}
               </nav>
+
+              {/* Mobile Theme Toggle */}
+              <div className="pt-3 border-t border-inherit flex items-center justify-between">
+                <span className="text-xs text-slate-400">Theme</span>
+                <button
+                  onClick={toggleTheme}
+                  className="p-2 rounded-lg bg-slate-100 dark:bg-[#0B1930] text-slate-700 dark:text-cyan-400"
+                >
+                  {isLight ? <Moon size={16} /> : <Sun size={16} />}
+                </button>
+              </div>
             </div>
             <div className="flex-1" onClick={() => setMobileMenuOpen(false)} />
           </div>
         )}
 
         {/* ─────────────────── Main Content Canvas ─────────────────── */}
-        <main className="flex-1 min-w-0 p-4 md:p-6 lg:p-8 flex flex-col justify-between w-full max-w-[1680px] mx-auto">
-          <div className="w-full">{children}</div>
+        <main className="flex-1 min-w-0 p-4 md:p-6 lg:p-8 flex flex-col justify-between w-full max-w-[1680px] mx-auto z-10">
+          <div className="w-full animate-fade-up">{children}</div>
           <Footer />
         </main>
       </div>
+
+      {/* ─────────────────── Global Command Palette Modal (Ctrl+K) ─────────────────── */}
+      {isCommandPaletteOpen && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-16 md:pt-24 bg-black/70 backdrop-blur-sm animate-in fade-in select-none">
+          <div
+            className={`w-full max-w-xl rounded-2xl border shadow-2xl overflow-hidden flex flex-col ${
+              isLight ? "bg-white border-slate-200" : "bg-[#0B1930] border-[#162C4E]"
+            }`}
+          >
+            {/* Search Input Bar */}
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-inherit">
+              <Search size={18} className="text-blue-500 shrink-0" />
+              <input
+                type="text"
+                autoFocus
+                placeholder="Type a company, symbol, or command..."
+                value={paletteQuery}
+                onChange={(e) => setPaletteQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && filteredPalette.length > 0) {
+                    router.push(filteredPalette[0].href);
+                    setIsCommandPaletteOpen(false);
+                  }
+                }}
+                className="w-full bg-transparent outline-none text-sm text-inherit placeholder-slate-400 font-sans"
+              />
+              <button
+                onClick={() => setIsCommandPaletteOpen(false)}
+                className="p-1 rounded text-slate-400 hover:text-inherit"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Quick Results List */}
+            <div className="max-h-80 overflow-y-auto p-2 space-y-1 text-xs">
+              {filteredPalette.length === 0 ? (
+                <div className="p-6 text-center text-slate-400">
+                  No matching instruments or pages found.
+                </div>
+              ) : (
+                filteredPalette.map((item) => {
+                  const isUp = item.chg?.startsWith("+");
+                  return (
+                    <button
+                      key={item.symbol}
+                      onClick={() => {
+                        router.push(item.href);
+                        setIsCommandPaletteOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between p-2.5 rounded-xl transition text-left group ${
+                        isLight
+                          ? "hover:bg-slate-100 text-slate-800"
+                          : "hover:bg-[#10223B] text-slate-200"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span
+                          className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
+                            item.type === "EQUITY"
+                              ? "bg-blue-500/15 text-blue-500"
+                              : item.type === "INDEX"
+                              ? "bg-cyan-500/15 text-cyan-500"
+                              : item.type === "COMMODITY"
+                              ? "bg-amber-500/15 text-amber-500"
+                              : "bg-slate-500/15 text-slate-400"
+                          }`}
+                        >
+                          {item.type}
+                        </span>
+                        <div>
+                          <div className="font-bold flex items-center gap-1.5">
+                            <span>{item.symbol}</span>
+                          </div>
+                          <div className="text-[11px] text-slate-400 font-sans">{item.name}</div>
+                        </div>
+                      </div>
+
+                      {item.price ? (
+                        <div className="text-right font-mono">
+                          <div className="font-bold">{item.price}</div>
+                          <div
+                            className={`text-[10px] font-bold ${
+                              isUp ? "text-emerald-500" : "text-rose-500"
+                            }`}
+                          >
+                            {item.chg}
+                          </div>
+                        </div>
+                      ) : (
+                        <ArrowRight size={14} className="text-slate-400 group-hover:text-blue-500 transition" />
+                      )}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Footer */}
+            <div
+              className={`flex items-center justify-between px-4 py-2 border-t text-[10px] text-slate-400 font-mono ${
+                isLight ? "bg-slate-50 border-slate-200" : "bg-[#071426] border-[#162C4E]"
+              }`}
+            >
+              <span>Tip: Press Enter to select first result</span>
+              <span>ESC to close</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

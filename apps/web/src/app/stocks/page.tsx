@@ -10,18 +10,19 @@ import {
   Filter,
   ArrowRight,
   Sparkles,
+  ArrowUpRight,
 } from "lucide-react";
 import NavigationShell from "@/components/NavigationShell";
 import { getMarketOverview } from "@/lib/api";
 
 const BASELINE_STOCKS = [
-  { symbol: "RELIANCE", name: "Reliance Industries Limited", exchange: "NSE", sector: "Energy & Conglomerate", price: 1265.40, change_pct: 0.59, market_cap_cr: 1991200, pe: 27.8, roe: 9.8, status: "LIVE" },
-  { symbol: "TCS", name: "Tata Consultancy Services", exchange: "NSE", sector: "Information Technology", price: 4150.20, change_pct: 0.73, market_cap_cr: 1492500, pe: 31.4, roe: 48.2, status: "LIVE" },
-  { symbol: "HDFCBANK", name: "HDFC Bank Limited", exchange: "NSE", sector: "Financial Services", price: 1745.00, change_pct: 0.75, market_cap_cr: 1334000, pe: 19.2, roe: 16.4, status: "LIVE" },
-  { symbol: "ICICIBANK", name: "ICICI Bank Limited", exchange: "NSE", sector: "Financial Services", price: 1260.00, change_pct: 0.80, market_cap_cr: 1148000, pe: 18.5, roe: 18.9, status: "LIVE" },
-  { symbol: "INFY", name: "Infosys Limited", exchange: "NSE", sector: "Information Technology", price: 1860.00, change_pct: 0.81, market_cap_cr: 912000, pe: 28.6, roe: 31.5, status: "LIVE" },
-  { symbol: "BHARTIARTL", name: "Bharti Airtel Limited", exchange: "NSE", sector: "Telecommunications", price: 1580.00, change_pct: 0.96, market_cap_cr: 1224000, pe: 42.1, roe: 14.8, status: "LIVE" },
-  { symbol: "TATAMOTORS", name: "Tata Motors Limited", exchange: "NSE", sector: "Automobile", price: 820.00, change_pct: 0.61, market_cap_cr: 298500, pe: 9.8, roe: 38.4, status: "LIVE" },
+  { symbol: "RELIANCE", name: "Reliance Industries Limited", exchange: "NSE", sector: "Energy & Conglomerate", price: 1377.50, change_pct: 0.14, market_cap_cr: 1991200, pe: 27.8, roe: 9.8, status: "LIVE" },
+  { symbol: "TCS", name: "Tata Consultancy Services", exchange: "NSE", sector: "Information Technology", price: 4180.20, change_pct: 1.10, market_cap_cr: 1492500, pe: 31.4, roe: 48.2, status: "LIVE" },
+  { symbol: "HDFCBANK", name: "HDFC Bank Limited", exchange: "NSE", sector: "Financial Services", price: 1745.00, change_pct: 0.49, market_cap_cr: 1334000, pe: 19.2, roe: 16.4, status: "LIVE" },
+  { symbol: "ICICIBANK", name: "ICICI Bank Limited", exchange: "NSE", sector: "Financial Services", price: 1290.40, change_pct: 1.11, market_cap_cr: 1148000, pe: 18.5, roe: 18.9, status: "LIVE" },
+  { symbol: "INFY", name: "Infosys Limited", exchange: "NSE", sector: "Information Technology", price: 1885.60, change_pct: -0.65, market_cap_cr: 912000, pe: 28.6, roe: 31.5, status: "LIVE" },
+  { symbol: "BHARTIARTL", name: "Bharti Airtel Limited", exchange: "NSE", sector: "Telecommunications", price: 1595.00, change_pct: 1.40, market_cap_cr: 1224000, pe: 42.1, roe: 14.8, status: "LIVE" },
+  { symbol: "TATAMOTORS", name: "Tata Motors Limited", exchange: "NSE", sector: "Automobile", price: 942.50, change_pct: 1.97, market_cap_cr: 298500, pe: 9.8, roe: 38.4, status: "LIVE" },
   { symbol: "LT", name: "Larsen & Toubro Limited", exchange: "NSE", sector: "Infrastructure", price: 3620.00, change_pct: 0.84, market_cap_cr: 578000, pe: 34.2, roe: 15.6, status: "LIVE" },
   { symbol: "NVDA", name: "NVIDIA Corporation", exchange: "NASDAQ", sector: "Semiconductors", price: 142.20, change_pct: 1.21, market_cap_cr: 3580000, pe: 54.2, roe: 115.0, status: "LIVE", currency: "USD" },
   { symbol: "AAPL", name: "Apple Inc.", exchange: "NASDAQ", sector: "Consumer Tech", price: 228.50, change_pct: 0.66, market_cap_cr: 4978000, pe: 33.1, roe: 152.0, status: "LIVE", currency: "USD" },
@@ -31,7 +32,7 @@ const BASELINE_STOCKS = [
 
 export default function StocksPage() {
   const [exchangeFilter, setExchangeFilter] = useState<string>("all");
-  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState<string>("" );
   const [stocksList, setStocksList] = useState(BASELINE_STOCKS);
 
   useEffect(() => {
@@ -75,27 +76,29 @@ export default function StocksPage() {
     <NavigationShell activePath="/stocks">
       <div className="space-y-6 w-full">
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-[#162C4E]">
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-slate-200 dark:border-[#162C4E]">
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-wider text-cyan-400 uppercase">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-wider text-blue-600 dark:text-cyan-400 uppercase">
               <Building2 size={14} /> Equities Intelligence Directory
             </div>
-            <h1 className="text-2xl md:text-3xl font-black text-white mt-1 tracking-tight">
+            <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white mt-1 tracking-tight">
               Stocks Discovery &amp; Directory
             </h1>
-            <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed font-sans">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed font-sans">
               Discover and inspect companies across Indian and global equity universes with direct access to canonical financial statements, 15 golden ratios, and evidence lineage.
             </p>
           </div>
         </div>
 
         {/* Search & Filter Controls */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-4 md:p-5 rounded-2xl bg-[#0B1930] border border-[#162C4E] shadow-lg">
-          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#071426] border border-[#162C4E] text-xs">
+        <div className="flex flex-wrap items-center justify-between gap-3 p-4 md:p-5 rounded-2xl bg-white dark:bg-[#0B1930] border border-slate-200 dark:border-[#162C4E] shadow-xs">
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-[#071426] border border-slate-200 dark:border-[#162C4E] text-xs">
             <button
               onClick={() => setExchangeFilter("all")}
               className={`px-3 py-1.5 rounded-lg font-semibold transition ${
-                exchangeFilter === "all" ? "bg-blue-600 text-white shadow-sm" : "text-slate-400 hover:text-white"
+                exchangeFilter === "all"
+                  ? "bg-blue-600 text-white shadow-xs"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               All Equities ({stocksList.length})
@@ -103,7 +106,9 @@ export default function StocksPage() {
             <button
               onClick={() => setExchangeFilter("nse")}
               className={`px-3 py-1.5 rounded-lg font-semibold transition ${
-                exchangeFilter === "nse" ? "bg-blue-600 text-white shadow-sm" : "text-slate-400 hover:text-white"
+                exchangeFilter === "nse"
+                  ? "bg-blue-600 text-white shadow-xs"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               NSE India
@@ -111,7 +116,9 @@ export default function StocksPage() {
             <button
               onClick={() => setExchangeFilter("us")}
               className={`px-3 py-1.5 rounded-lg font-semibold transition ${
-                exchangeFilter === "us" ? "bg-blue-600 text-white shadow-sm" : "text-slate-400 hover:text-white"
+                exchangeFilter === "us"
+                  ? "bg-blue-600 text-white shadow-xs"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               US Markets
@@ -125,16 +132,16 @@ export default function StocksPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Filter by company, symbol or sector..."
-              className="w-full bg-[#071426] border border-[#162C4E] rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 transition shadow-inner font-sans"
+              className="w-full bg-slate-50 dark:bg-[#071426] border border-slate-200 dark:border-[#162C4E] rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 transition font-sans"
             />
           </div>
         </div>
 
         {/* Equities Table */}
-        <div className="p-5 rounded-2xl bg-[#0B1930] border border-[#162C4E] overflow-x-auto shadow-xl scrollbar-none">
+        <div className="p-5 rounded-2xl bg-white dark:bg-[#0B1930] border border-slate-200 dark:border-[#162C4E] overflow-x-auto shadow-xs scrollbar-none">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-[#162C4E] text-slate-400 font-mono text-[11px]">
+              <tr className="border-b border-slate-200 dark:border-[#162C4E] text-slate-500 dark:text-slate-400 font-mono text-[11px]">
                 <th className="pb-3 pl-2">SYMBOL &amp; COMPANY</th>
                 <th className="pb-3">EXCHANGE</th>
                 <th className="pb-3">SECTOR</th>
@@ -145,28 +152,28 @@ export default function StocksPage() {
                 <th className="pb-3 text-right pr-2">ACTION</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#162C4E]/60">
+            <tbody className="divide-y divide-slate-100 dark:divide-[#162C4E]/60">
               {filtered.map((stock) => {
                 const isPositive = stock.change_pct >= 0;
                 const isUsd = stock.currency === "USD";
                 return (
-                  <tr key={stock.symbol} className="hover:bg-[#10223B]/60 transition group cursor-pointer">
+                  <tr key={stock.symbol} className="hover:bg-slate-50 dark:hover:bg-[#10223B]/60 transition group cursor-pointer">
                     <td className="py-3.5 pl-2">
                       <Link
                         href={`/company/${stock.symbol.toLowerCase()}`}
-                        className="font-bold text-white group-hover:text-cyan-400 flex items-center gap-1.5 transition"
+                        className="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-cyan-400 flex items-center gap-1.5 transition"
                       >
                         {stock.symbol}
                       </Link>
-                      <div className="text-[11px] text-slate-400">{stock.name}</div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400">{stock.name}</div>
                     </td>
-                    <td className="py-3.5 font-mono text-[11px] text-slate-400">
-                      <span className="px-2 py-0.5 rounded bg-[#071426] border border-[#162C4E]">
+                    <td className="py-3.5 font-mono text-[11px] text-slate-500 dark:text-slate-400">
+                      <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-[#071426] border border-slate-200 dark:border-[#162C4E]">
                         {stock.exchange}
                       </span>
                     </td>
-                    <td className="py-3.5 text-slate-300 text-[11px]">{stock.sector}</td>
-                    <td className="py-3.5 text-right font-mono font-bold text-white tabular-nums">
+                    <td className="py-3.5 text-slate-600 dark:text-slate-300 text-[11px] font-mono">{stock.sector}</td>
+                    <td className="py-3.5 text-right font-mono font-bold text-slate-900 dark:text-white tabular-nums">
                       {isUsd ? "$" : "₹"}
                       {stock.price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
@@ -174,8 +181,8 @@ export default function StocksPage() {
                       <span
                         className={`px-2 py-0.5 rounded text-[11px] inline-flex items-center gap-0.5 ${
                           isPositive
-                            ? "text-emerald-400 bg-emerald-500/10"
-                            : "text-red-400 bg-red-500/10"
+                            ? "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10"
+                            : "text-rose-600 dark:text-rose-400 bg-rose-500/10"
                         }`}
                       >
                         {isPositive ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
@@ -183,12 +190,12 @@ export default function StocksPage() {
                         {stock.change_pct.toFixed(2)}%
                       </span>
                     </td>
-                    <td className="py-3.5 text-right font-mono text-slate-300 tabular-nums">{stock.pe}x</td>
-                    <td className="py-3.5 text-right font-mono text-emerald-400 font-bold tabular-nums">{stock.roe}%</td>
+                    <td className="py-3.5 text-right font-mono text-slate-600 dark:text-slate-300 tabular-nums">{stock.pe}x</td>
+                    <td className="py-3.5 text-right font-mono text-emerald-600 dark:text-emerald-400 font-bold tabular-nums">{stock.roe}%</td>
                     <td className="py-3.5 text-right pr-2">
                       <Link
                         href={`/company/${stock.symbol.toLowerCase()}`}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600/15 hover:bg-blue-600 text-white text-[11px] font-bold transition shadow-sm"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600/15 hover:bg-blue-600 text-blue-600 dark:text-white hover:text-white text-[11px] font-bold transition shadow-xs"
                       >
                         Dossier <ArrowRight size={11} />
                       </Link>

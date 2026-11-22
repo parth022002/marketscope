@@ -97,10 +97,10 @@ export default function CompanyPage() {
 
   if (loading) {
     return (
-      <div className="shell flex items-center justify-center min-h-screen bg-[#07152B] text-white">
+      <div className="shell flex items-center justify-center min-h-screen bg-slate-50 dark:bg-[#07152B] text-slate-800 dark:text-white">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-[#087BEE] border-t-transparent mb-3" />
-          <p className="text-sm text-slate-400">Loading research dossier for {symbol}...</p>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent mb-3" />
+          <p className="text-sm text-slate-500 dark:text-slate-400">Loading research dossier for {symbol}...</p>
         </div>
       </div>
     );
@@ -108,13 +108,13 @@ export default function CompanyPage() {
 
   if (error || !dossier) {
     return (
-      <div className="shell flex items-center justify-center min-h-screen bg-[#07152B] text-white p-6">
-        <div className="max-w-md w-full bg-[#0B1D38] border border-[#132B4F] rounded-2xl p-8 text-center space-y-4">
-          <h2 className="text-xl font-bold text-white">Dossier Unavailable</h2>
-          <p className="text-sm text-slate-400">{error || "Could not locate company data."}</p>
+      <div className="shell flex items-center justify-center min-h-screen bg-slate-50 dark:bg-[#07152B] text-slate-800 dark:text-white p-6">
+        <div className="max-w-md w-full bg-white dark:bg-[#0B1D38] border border-slate-200 dark:border-[#132B4F] rounded-2xl p-8 text-center space-y-4 shadow-sm">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Dossier Unavailable</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{error || "Could not locate company data."}</p>
           <Link
             href="/stocks"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#087BEE] text-white text-sm font-semibold hover:bg-[#0769cc] transition"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-500 transition shadow-sm"
           >
             <ArrowLeft size={16} /> Return to Stocks
           </Link>
@@ -133,35 +133,35 @@ export default function CompanyPage() {
     {
       title: "Valuation",
       score: peRatio > 40 ? "Stretched" : peRatio > 25 ? "Fair Value" : "Attractive",
-      badgeClass: peRatio > 40 ? "text-amber-400 bg-amber-500/15 border-amber-500/30" : "text-[#39E85B] bg-[#39E85B]/15 border-[#39E85B]/30",
+      badgeClass: peRatio > 40 ? "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/15 border-amber-200 dark:border-amber-500/30" : "text-emerald-600 dark:text-[#39E85B] bg-emerald-50 dark:bg-[#39E85B]/15 border-emerald-200 dark:border-[#39E85B]/30",
       description: `Trailing P/E of ${peRatio}x relative to sector median. EV/EBITDA positioned comfortably within historical cycle.`,
       icon: Coins,
     },
     {
       title: "Profitability",
       score: roe > 15 ? "High Quality" : "Moderate",
-      badgeClass: roe > 15 ? "text-[#39E85B] bg-[#39E85B]/15 border-[#39E85B]/30" : "text-amber-400 bg-amber-500/15 border-amber-500/30",
+      badgeClass: roe > 15 ? "text-emerald-600 dark:text-[#39E85B] bg-emerald-50 dark:bg-[#39E85B]/15 border-emerald-200 dark:border-[#39E85B]/30" : "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/15 border-amber-200 dark:border-amber-500/30",
       description: `ROE of ${roe}% and ROCE of ${roce}%. Sustained pricing power and superior capital efficiency.`,
       icon: TrendingUp,
     },
     {
       title: "Growth",
       score: "Strong",
-      badgeClass: "text-[#39E85B] bg-[#39E85B]/15 border-[#39E85B]/30",
+      badgeClass: "text-emerald-600 dark:text-[#39E85B] bg-emerald-50 dark:bg-[#39E85B]/15 border-emerald-200 dark:border-[#39E85B]/30",
       description: "Consistent 3-year revenue and operating profit expansion above domestic GDP run-rate.",
       icon: Award,
     },
     {
       title: "Financial Health",
       score: debtToEquity < 0.6 ? "Excellent" : "Acceptable",
-      badgeClass: debtToEquity < 0.6 ? "text-[#39E85B] bg-[#39E85B]/15 border-[#39E85B]/30" : "text-amber-400 bg-amber-500/15 border-amber-500/30",
+      badgeClass: debtToEquity < 0.6 ? "text-emerald-600 dark:text-[#39E85B] bg-emerald-50 dark:bg-[#39E85B]/15 border-emerald-200 dark:border-[#39E85B]/30" : "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/15 border-amber-200 dark:border-amber-500/30",
       description: `Conservative debt-to-equity of ${debtToEquity}x with strong interest coverage from operating cash flows.`,
       icon: ShieldCheck,
     },
     {
       title: "Red Flags & Governance",
       score: "0 Red Flags",
-      badgeClass: "text-[#39E85B] bg-[#39E85B]/15 border-[#39E85B]/30",
+      badgeClass: "text-emerald-600 dark:text-[#39E85B] bg-emerald-50 dark:bg-[#39E85B]/15 border-emerald-200 dark:border-[#39E85B]/30",
       description: "Zero promoter pledging, clean statutory auditor opinions, zero ASM/GSM surveillance tags.",
       icon: CheckCircle2,
     },
@@ -201,31 +201,31 @@ export default function CompanyPage() {
 
   return (
     <NavigationShell activePath="/stocks">
-      <div className="space-y-6">
+      <div className="space-y-6 w-full max-w-7xl mx-auto pb-12">
         {/* Breadcrumb Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-[#132B4F]">
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-slate-200 dark:border-[#132B4F]">
           <div className="flex items-center gap-2">
             <Link
               href="/stocks"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#087BEE] hover:text-[#16C8D5] transition"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 dark:text-[#087BEE] hover:text-cyan-600 dark:hover:text-[#16C8D5] transition"
             >
               <ArrowLeft size={14} /> Back to Stocks
             </Link>
-            <span className="text-slate-600">|</span>
-            <span className="text-xs font-mono font-bold text-white">
+            <span className="text-slate-400">|</span>
+            <span className="text-xs font-mono font-bold text-slate-900 dark:text-white">
               {dossier.instrument.symbol} · {dossier.instrument.exchange}
             </span>
           </div>
 
           <div className="flex items-center gap-2">
             {dossier.instrument.data_status === "LIVE_MARKET" || dossier.instrument.data_status === "LIVE" ? (
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#39E85B]/15 text-[#39E85B] border border-[#39E85B]/30 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#39E85B] animate-pulse"></span>
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-50 dark:bg-[#39E85B]/15 text-emerald-700 dark:text-[#39E85B] border border-emerald-200 dark:border-[#39E85B]/30 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-[#39E85B] animate-pulse"></span>
                 LIVE {dossier.instrument.exchange} FEED
               </span>
             ) : (
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                 15-MIN DELAYED FEED
               </span>
             )}
@@ -235,14 +235,14 @@ export default function CompanyPage() {
         {/* Header Title & Actions */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="text-xs font-mono font-semibold uppercase tracking-wider text-[#16C8D5] mb-1">
+            <div className="text-xs font-mono font-semibold uppercase tracking-wider text-cyan-600 dark:text-[#16C8D5] mb-1">
               {dossier.instrument.exchange} · {dossier.instrument.sector}
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-white">
+            <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
               {dossier.instrument.company_name}
             </h1>
-            <p className="text-xs text-slate-400 mt-1">
-              Symbol: <strong className="text-white font-mono">{dossier.instrument.symbol}</strong> · Currency: {dossier.instrument.currency} · System of Record: Neon PostgreSQL
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+              Symbol: <strong className="text-slate-900 dark:text-white font-mono">{dossier.instrument.symbol}</strong> · Currency: {dossier.instrument.currency} · System of Record: Neon PostgreSQL
             </p>
           </div>
 
@@ -250,13 +250,13 @@ export default function CompanyPage() {
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => setIsWatchlistModalOpen(true)}
-              className="px-3 py-2 rounded-lg bg-[#0B1D38] border border-[#132B4F] text-slate-300 hover:text-white hover:border-[#087BEE] transition text-xs font-semibold flex items-center gap-1.5 shadow-sm"
+              className="px-3 py-2 rounded-lg bg-white dark:bg-[#0B1D38] border border-slate-200 dark:border-[#132B4F] text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-blue-500 transition text-xs font-semibold flex items-center gap-1.5 shadow-sm cursor-pointer"
             >
               <Bookmark size={14} /> Watchlist
             </button>
             <button
               onClick={() => setIsSnapshotModalOpen(true)}
-              className="px-3.5 py-2 rounded-lg bg-[#087BEE] hover:bg-[#0769cc] text-white transition text-xs font-semibold flex items-center gap-1.5 shadow-sm"
+              className="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition text-xs font-semibold flex items-center gap-1.5 shadow-sm cursor-pointer"
             >
               <Camera size={14} /> Freeze Snapshot
             </button>
@@ -266,23 +266,23 @@ export default function CompanyPage() {
         {/* Verification Badges */}
         <div className="flex flex-wrap items-center gap-2">
           {dossier.instrument.data_status === "LIVE_MARKET" || dossier.instrument.data_status === "LIVE" ? (
-            <span className="px-2.5 py-1 rounded text-xs text-[#39E85B] border border-[#39E85B]/30 bg-[#39E85B]/10 flex items-center gap-1 font-semibold">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#39E85B]"></span>
+            <span className="px-2.5 py-1 rounded text-xs text-emerald-700 dark:text-[#39E85B] border border-emerald-200 dark:border-[#39E85B]/30 bg-emerald-50 dark:bg-[#39E85B]/10 flex items-center gap-1 font-semibold">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
               LIVE {dossier.instrument.exchange} DATA
             </span>
           ) : (
-            <span className="px-2.5 py-1 rounded text-xs text-amber-300 border border-amber-500/30 bg-amber-500/10 font-semibold flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+            <span className="px-2.5 py-1 rounded text-xs text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 font-semibold flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
               DELAYED 15M (EXCHANGE RULE)
             </span>
           )}
-          <span className="px-2.5 py-1 rounded text-xs text-[#16C8D5] border border-[#16C8D5]/30 bg-[#16C8D5]/10 flex items-center gap-1 font-semibold">
+          <span className="px-2.5 py-1 rounded text-xs text-cyan-700 dark:text-[#16C8D5] border border-cyan-200 dark:border-[#16C8D5]/30 bg-cyan-50 dark:bg-[#16C8D5]/10 flex items-center gap-1 font-semibold">
             <Clock size={12} /> FRESHNESS: CALIBRATED OHLCV
           </span>
-          <span className="px-2.5 py-1 rounded text-xs text-[#16C8D5] border border-[#16C8D5]/30 bg-[#16C8D5]/10">
+          <span className="px-2.5 py-1 rounded text-xs text-cyan-700 dark:text-[#16C8D5] border border-cyan-200 dark:border-[#16C8D5]/30 bg-cyan-50 dark:bg-[#16C8D5]/10">
             Interactive Technical Charts
           </span>
-          <span className="px-2.5 py-1 rounded text-xs text-[#39E85B] border border-[#39E85B]/30 bg-[#39E85B]/10">
+          <span className="px-2.5 py-1 rounded text-xs text-emerald-700 dark:text-[#39E85B] border border-emerald-200 dark:border-[#39E85B]/30 bg-emerald-50 dark:bg-[#39E85B]/10">
             Neon DB Backed
           </span>
         </div>
@@ -302,77 +302,77 @@ export default function CompanyPage() {
         </section>
 
         {/* Research Tabs Navigation */}
-        <div className="flex items-center gap-2 border-b border-[#132B4F] overflow-x-auto scrollbar-none pb-2 pt-2">
+        <div className="flex items-center gap-2 border-b border-slate-200 dark:border-[#132B4F] overflow-x-auto scrollbar-none pb-2 pt-2">
           <button
             onClick={() => setActiveTab("overview")}
-            className={`text-xs px-3.5 py-2 rounded-lg font-bold transition flex items-center gap-1.5 shrink-0 ${
+            className={`text-xs px-3.5 py-2 rounded-xl font-bold transition flex items-center gap-1.5 shrink-0 cursor-pointer ${
               activeTab === "overview"
-                ? "bg-[#087BEE] text-white shadow-md"
-                : "text-slate-400 hover:text-white"
+                ? "bg-blue-600 text-white shadow-sm"
+                : "bg-slate-100 dark:bg-transparent text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
             Executive Overview
           </button>
           <button
             onClick={() => setActiveTab("technicals")}
-            className={`text-xs px-3.5 py-2 rounded-lg font-bold transition flex items-center gap-1.5 shrink-0 ${
+            className={`text-xs px-3.5 py-2 rounded-xl font-bold transition flex items-center gap-1.5 shrink-0 cursor-pointer ${
               activeTab === "technicals"
-                ? "bg-[#087BEE] text-white shadow-md"
-                : "text-slate-400 hover:text-white"
+                ? "bg-blue-600 text-white shadow-sm"
+                : "bg-slate-100 dark:bg-transparent text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
             <Gauge size={13} /> Technical Analysis
           </button>
           <button
             onClick={() => setActiveTab("statements")}
-            className={`text-xs px-3.5 py-2 rounded-lg font-bold transition flex items-center gap-1.5 shrink-0 ${
+            className={`text-xs px-3.5 py-2 rounded-xl font-bold transition flex items-center gap-1.5 shrink-0 cursor-pointer ${
               activeTab === "statements"
-                ? "bg-[#087BEE] text-white shadow-md"
-                : "text-slate-400 hover:text-white"
+                ? "bg-blue-600 text-white shadow-sm"
+                : "bg-slate-100 dark:bg-transparent text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
             <FileSpreadsheet size={13} /> Financial Statements
           </button>
           <button
             onClick={() => setActiveTab("valuation")}
-            className={`text-xs px-3.5 py-2 rounded-lg font-bold transition flex items-center gap-1.5 shrink-0 ${
+            className={`text-xs px-3.5 py-2 rounded-xl font-bold transition flex items-center gap-1.5 shrink-0 cursor-pointer ${
               activeTab === "valuation"
-                ? "bg-[#087BEE] text-white shadow-md"
-                : "text-slate-400 hover:text-white"
+                ? "bg-blue-600 text-white shadow-sm"
+                : "bg-slate-100 dark:bg-transparent text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
             <TrendingUp size={13} /> Valuation & Ratios
           </button>
           <button
             onClick={() => setActiveTab("actions_news")}
-            className={`text-xs px-3.5 py-2 rounded-lg font-bold transition flex items-center gap-1.5 shrink-0 ${
+            className={`text-xs px-3.5 py-2 rounded-xl font-bold transition flex items-center gap-1.5 shrink-0 cursor-pointer ${
               activeTab === "actions_news"
-                ? "bg-[#087BEE] text-white shadow-md"
-                : "text-slate-400 hover:text-white"
+                ? "bg-blue-600 text-white shadow-sm"
+                : "bg-slate-100 dark:bg-transparent text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
             <Newspaper size={13} /> Corporate Actions & News
           </button>
           <button
             onClick={() => setActiveTab("notes")}
-            className={`text-xs px-3.5 py-2 rounded-lg font-bold transition flex items-center gap-1.5 shrink-0 ${
+            className={`text-xs px-3.5 py-2 rounded-xl font-bold transition flex items-center gap-1.5 shrink-0 cursor-pointer ${
               activeTab === "notes"
-                ? "bg-[#087BEE] text-white shadow-md"
-                : "text-slate-400 hover:text-white"
+                ? "bg-blue-600 text-white shadow-sm"
+                : "bg-slate-100 dark:bg-transparent text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
             <BookOpen size={13} /> Research Notes
           </button>
           <button
             onClick={() => setActiveTab("ai_synthesis")}
-            className={`text-xs px-3.5 py-2 rounded-lg font-bold transition flex items-center gap-1.5 shrink-0 ${
+            className={`text-xs px-3.5 py-2 rounded-xl font-bold transition flex items-center gap-1.5 shrink-0 cursor-pointer ${
               activeTab === "ai_synthesis"
-                ? "bg-gradient-to-r from-[#087BEE] to-[#16C8D5] text-white shadow-md"
-                : "text-[#16C8D5] hover:text-white hover:bg-[#132B4F]/40"
+                ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-sm"
+                : "bg-slate-100 dark:bg-transparent text-cyan-600 dark:text-[#16C8D5] hover:text-slate-900 dark:hover:text-white"
             }`}
           >
             <BrainCircuit size={13} /> AI Research Synthesis
-            <span className="text-[9px] px-1.5 py-0.2 bg-[#39E85B]/20 text-[#39E85B] font-extrabold rounded ml-0.5">
+            <span className="text-[9px] px-1.5 py-0.2 bg-emerald-500/20 text-emerald-600 dark:text-[#39E85B] font-extrabold rounded ml-0.5">
               GATED
             </span>
           </button>
@@ -382,17 +382,17 @@ export default function CompanyPage() {
         {activeTab === "overview" && (
           <div className="space-y-6">
             {/* 5-Pillar Investment Scorecard */}
-            <div className="bg-[#0B1D38] border border-[#132B4F] rounded-2xl p-5">
+            <div className="bg-white dark:bg-[#0B1D38] border border-slate-200 dark:border-[#132B4F] rounded-2xl p-5 shadow-sm">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                 <div>
-                  <h2 className="text-base font-bold text-white flex items-center gap-2">
-                    <Award size={18} className="text-[#087BEE]" /> 5-Pillar Fundamental Scorecard
+                  <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <Award size={18} className="text-blue-600 dark:text-[#087BEE]" /> 5-Pillar Fundamental Scorecard
                   </h2>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-600 dark:text-slate-400">
                     Holistic investment evaluation across fundamental pillars, balance sheet strength, and governance checks.
                   </p>
                 </div>
-                <span className="text-xs font-mono text-slate-400">
+                <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
                   Methodology: VerquoAI &amp; Tickertape Benchmark
                 </span>
               </div>
@@ -403,12 +403,12 @@ export default function CompanyPage() {
                   return (
                     <div
                       key={pillar.title}
-                      className="bg-[#07152B] border border-[#132B4F] rounded-xl p-4 flex flex-col justify-between"
+                      className="bg-slate-50 dark:bg-[#07152B] border border-slate-200 dark:border-[#132B4F] rounded-xl p-4 flex flex-col justify-between"
                     >
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
-                            <Icon size={14} className="text-[#16C8D5]" /> {pillar.title}
+                          <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+                            <Icon size={14} className="text-cyan-600 dark:text-[#16C8D5]" /> {pillar.title}
                           </span>
                         </div>
                         <div className="my-1.5">
@@ -418,7 +418,7 @@ export default function CompanyPage() {
                             {pillar.score}
                           </span>
                         </div>
-                        <p className="text-[11px] text-slate-400 leading-relaxed mt-2">
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mt-2">
                           {pillar.description}
                         </p>
                       </div>
@@ -429,21 +429,21 @@ export default function CompanyPage() {
             </div>
 
             {/* Research Summary Overview */}
-            <div className="bg-[#0B1D38] border border-[#132B4F] rounded-2xl p-5">
-              <h2 className="text-base font-bold text-white mb-2">Company Executive Overview</h2>
-              <p className="text-sm text-slate-300 leading-relaxed">{dossier.summary}</p>
+            <div className="bg-white dark:bg-[#0B1D38] border border-slate-200 dark:border-[#132B4F] rounded-2xl p-5 shadow-sm">
+              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">Company Executive Overview</h2>
+              <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-sans">{dossier.summary}</p>
             </div>
 
             {/* Metrics Section with Interactive Evidence Drawer Trigger */}
             <div>
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <h2 className="text-lg font-bold text-white">Core Financial Metrics & Lineage</h2>
-                  <p className="text-xs text-slate-400">
+                  <h2 className="text-lg font-bold text-slate-900 dark:text-white">Core Financial Metrics & Lineage</h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
                     Click any metric card below to open the Evidence Inspector Drawer with formula inputs.
                   </p>
                 </div>
-                <span className="text-xs text-[#16C8D5] flex items-center gap-1 font-medium">
+                <span className="text-xs text-cyan-600 dark:text-[#16C8D5] flex items-center gap-1 font-medium">
                   <Info size={13} /> Click to Inspect Lineage
                 </span>
               </div>
@@ -453,25 +453,25 @@ export default function CompanyPage() {
                   <div
                     key={metric.metric_id}
                     onClick={() => setSelectedMetricId(metric.metric_id)}
-                    className="bg-[#0B1D38] border border-[#132B4F] hover:border-[#087BEE] cursor-pointer rounded-xl p-5 transition group relative shadow-sm"
+                    className="bg-white dark:bg-[#0B1D38] border border-slate-200 dark:border-[#132B4F] hover:border-blue-500 cursor-pointer rounded-xl p-5 transition group relative shadow-sm hover:shadow-md"
                   >
                     <div className="flex items-center justify-between">
-                      <div className="text-xs uppercase tracking-wider text-slate-400 font-semibold group-hover:text-[#16C8D5] transition">
+                      <div className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold group-hover:text-cyan-600 dark:group-hover:text-[#16C8D5] transition">
                         {metric.label}
                       </div>
-                      <ShieldCheck size={14} className="text-slate-500 group-hover:text-[#39E85B] transition" />
+                      <ShieldCheck size={14} className="text-slate-400 group-hover:text-emerald-500 dark:group-hover:text-[#39E85B] transition" />
                     </div>
 
-                    <div className="text-2xl font-extrabold text-white tabular-nums my-2">
+                    <div className="text-2xl font-black text-slate-900 dark:text-white tabular-nums my-2 font-mono">
                       {metric.value.toLocaleString("en-IN")}
-                      <span className="text-base font-normal text-slate-400 ml-1">
+                      <span className="text-base font-normal text-slate-500 dark:text-slate-400 ml-1">
                         {metric.unit === "%" ? "%" : ` ${metric.unit}`}
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-[#132B4F]/60">
+                    <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-100 dark:border-[#132B4F]/60">
                       <span>Period: {metric.period}</span>
-                      <span className="text-[#087BEE] font-medium group-hover:underline">
+                      <span className="text-blue-600 dark:text-[#087BEE] font-medium group-hover:underline">
                         Inspect Evidence →
                       </span>
                     </div>
@@ -482,17 +482,17 @@ export default function CompanyPage() {
 
             {/* Evidence and Provenance Summary */}
             <div>
-              <h2 className="text-lg font-bold text-white mb-3">Source Filings & Provenance</h2>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-3">Source Filings & Provenance</h2>
               <div className="space-y-3">
                 {dossier.evidence.map((e) => (
-                  <div key={e.evidence_id} className="bg-[#0B1D38] border border-[#132B4F] rounded-xl p-4">
+                  <div key={e.evidence_id} className="bg-white dark:bg-[#0B1D38] border border-slate-200 dark:border-[#132B4F] rounded-xl p-4 shadow-sm">
                     <div className="flex items-center justify-between">
-                      <strong className="text-sm font-semibold text-white">{e.source_name}</strong>
-                      <span className="px-2 py-0.5 rounded text-xs font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/30">
+                      <strong className="text-sm font-semibold text-slate-900 dark:text-white">{e.source_name}</strong>
+                      <span className="px-2 py-0.5 rounded text-xs font-semibold bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30">
                         {e.quality_status}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-300 mt-1">{e.note}</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 font-sans">{e.note}</p>
                     <span className="text-[11px] text-slate-400 mt-2 block font-mono">
                       Retrieved: {new Date(e.retrieved_at).toLocaleString()}
                     </span>
@@ -507,59 +507,59 @@ export default function CompanyPage() {
         {activeTab === "technicals" && (
           <div className="space-y-6">
             {/* Technical Stance Summary Gauge */}
-            <div className="p-6 rounded-2xl bg-[#0B1D38] border border-[#132B4F] flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="p-6 rounded-2xl bg-white dark:bg-[#0B1D38] border border-slate-200 dark:border-[#132B4F] flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
               <div className="space-y-2 text-center md:text-left">
                 <div className="flex items-center gap-2 justify-center md:justify-start">
-                  <Gauge size={20} className="text-[#16C8D5]" />
-                  <h3 className="text-lg font-bold text-white">Consensus Technical Stance</h3>
+                  <Gauge size={20} className="text-cyan-600 dark:text-[#16C8D5]" />
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">Consensus Technical Stance</h3>
                 </div>
-                <p className="text-xs text-slate-400 max-w-md">
+                <p className="text-xs text-slate-600 dark:text-slate-400 max-w-md">
                   Synthesized across 14 moving averages, momentum oscillators (RSI, Stochastic, MACD) and volatility bands.
                 </p>
                 <div className="flex items-center gap-3 pt-2 justify-center md:justify-start">
-                  <span className="px-3 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-sm font-bold">
+                  <span className="px-3 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/40 text-sm font-bold">
                     BULLISH BIAS (Strong Buy)
                   </span>
-                  <span className="text-xs font-mono text-slate-400">Score: 11 Buy / 3 Neutral / 1 Sell</span>
+                  <span className="text-xs font-mono text-slate-500 dark:text-slate-400">Score: 11 Buy / 3 Neutral / 1 Sell</span>
                 </div>
               </div>
 
               {/* Gauge Meter Representation */}
               <div className="flex items-center gap-2 font-mono text-xs">
-                <div className="flex flex-col items-center p-3 rounded-xl bg-[#07152B] border border-[#132B4F] min-w-[90px]">
-                  <span className="text-rose-400 font-bold text-lg">1</span>
-                  <span className="text-[10px] text-slate-400">Sell</span>
+                <div className="flex flex-col items-center p-3 rounded-xl bg-slate-50 dark:bg-[#07152B] border border-slate-200 dark:border-[#132B4F] min-w-[90px]">
+                  <span className="text-rose-600 dark:text-rose-400 font-bold text-lg">1</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Sell</span>
                 </div>
-                <div className="flex flex-col items-center p-3 rounded-xl bg-[#07152B] border border-[#132B4F] min-w-[90px]">
-                  <span className="text-slate-300 font-bold text-lg">3</span>
-                  <span className="text-[10px] text-slate-400">Neutral</span>
+                <div className="flex flex-col items-center p-3 rounded-xl bg-slate-50 dark:bg-[#07152B] border border-slate-200 dark:border-[#132B4F] min-w-[90px]">
+                  <span className="text-slate-700 dark:text-slate-300 font-bold text-lg">3</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Neutral</span>
                 </div>
-                <div className="flex flex-col items-center p-3 rounded-xl bg-[#07152B] border border-emerald-500/30 min-w-[90px]">
-                  <span className="text-emerald-400 font-bold text-lg">11</span>
-                  <span className="text-[10px] text-slate-400">Buy</span>
+                <div className="flex flex-col items-center p-3 rounded-xl bg-slate-50 dark:bg-[#07152B] border border-emerald-300 dark:border-emerald-500/30 min-w-[90px]">
+                  <span className="text-emerald-600 dark:text-emerald-400 font-bold text-lg">11</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400">Buy</span>
                 </div>
               </div>
             </div>
 
             {/* Key Moving Averages Table */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="p-5 rounded-2xl bg-[#0B1D38] border border-[#132B4F] space-y-3">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-[#16C8D5] flex items-center gap-2">
+              <div className="p-5 rounded-2xl bg-white dark:bg-[#0B1D38] border border-slate-200 dark:border-[#132B4F] space-y-3 shadow-sm">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-cyan-600 dark:text-[#16C8D5] flex items-center gap-2">
                   <SlidersHorizontal size={15} /> Moving Averages Analysis
                 </h3>
                 <div className="space-y-2 text-xs font-mono">
                   {[
-                    { name: "SMA (20)", val: "₹1,364.50", signal: "BUY", color: "text-emerald-400" },
-                    { name: "SMA (50)", val: "₹1,348.20", signal: "BUY", color: "text-emerald-400" },
-                    { name: "SMA (200)", val: "₹1,312.80", signal: "BUY", color: "text-emerald-400" },
-                    { name: "EMA (20)", val: "₹1,369.10", signal: "BUY", color: "text-emerald-400" },
-                    { name: "EMA (50)", val: "₹1,352.40", signal: "BUY", color: "text-emerald-400" },
-                    { name: "VWAP (Session)", val: "₹1,374.90", signal: "NEUTRAL", color: "text-slate-300" },
+                    { name: "SMA (20)", val: "₹1,364.50", signal: "BUY", color: "text-emerald-600 dark:text-emerald-400" },
+                    { name: "SMA (50)", val: "₹1,348.20", signal: "BUY", color: "text-emerald-600 dark:text-emerald-400" },
+                    { name: "SMA (200)", val: "₹1,312.80", signal: "BUY", color: "text-emerald-600 dark:text-emerald-400" },
+                    { name: "EMA (20)", val: "₹1,369.10", signal: "BUY", color: "text-emerald-600 dark:text-emerald-400" },
+                    { name: "EMA (50)", val: "₹1,352.40", signal: "BUY", color: "text-emerald-600 dark:text-emerald-400" },
+                    { name: "VWAP (Session)", val: "₹1,374.90", signal: "NEUTRAL", color: "text-slate-700 dark:text-slate-300" },
                   ].map((m) => (
-                    <div key={m.name} className="flex justify-between items-center py-2 border-b border-[#132B4F]/60">
-                      <span className="text-slate-400 font-sans">{m.name}</span>
-                      <span className="text-white font-bold">{m.val}</span>
-                      <span className={`font-bold px-2 py-0.5 rounded bg-[#07152B] ${m.color}`}>
+                    <div key={m.name} className="flex justify-between items-center py-2 border-b border-slate-100 dark:border-[#132B4F]/60">
+                      <span className="text-slate-600 dark:text-slate-400 font-sans">{m.name}</span>
+                      <span className="text-slate-900 dark:text-white font-bold">{m.val}</span>
+                      <span className={`font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-[#07152B] ${m.color}`}>
                         {m.signal}
                       </span>
                     </div>
@@ -568,24 +568,24 @@ export default function CompanyPage() {
               </div>
 
               {/* Momentum Oscillators & Classic Pivot Points */}
-              <div className="p-5 rounded-2xl bg-[#0B1D38] border border-[#132B4F] space-y-3">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-amber-400 flex items-center gap-2">
+              <div className="p-5 rounded-2xl bg-white dark:bg-[#0B1D38] border border-slate-200 dark:border-[#132B4F] space-y-3 shadow-sm">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-2">
                   <TrendingUp size={15} /> Oscillators & Classic Pivot Points
                 </h3>
                 <div className="space-y-2 text-xs font-mono">
                   {[
-                    { name: "RSI (14)", val: "58.4", signal: "NEUTRAL", color: "text-slate-300" },
-                    { name: "MACD (12, 26)", val: "+8.42", signal: "BUY", color: "text-emerald-400" },
-                    { name: "Supertrend (10, 3)", val: "₹1,342.00", signal: "BUY", color: "text-emerald-400" },
-                    { name: "Resistance 2 (R2)", val: "₹1,402.50", signal: "LEVEL", color: "text-cyan-400" },
-                    { name: "Resistance 1 (R1)", val: "₹1,388.00", signal: "LEVEL", color: "text-cyan-400" },
-                    { name: "Pivot Point (P)", val: "₹1,371.20", signal: "PIVOT", color: "text-amber-400" },
-                    { name: "Support 1 (S1)", val: "₹1,356.70", signal: "LEVEL", color: "text-rose-400" },
+                    { name: "RSI (14)", val: "58.4", signal: "NEUTRAL", color: "text-slate-700 dark:text-slate-300" },
+                    { name: "MACD (12, 26)", val: "+8.42", signal: "BUY", color: "text-emerald-600 dark:text-emerald-400" },
+                    { name: "Supertrend (10, 3)", val: "₹1,342.00", signal: "BUY", color: "text-emerald-600 dark:text-emerald-400" },
+                    { name: "Resistance 2 (R2)", val: "₹1,402.50", signal: "LEVEL", color: "text-cyan-600 dark:text-cyan-400" },
+                    { name: "Resistance 1 (R1)", val: "₹1,388.00", signal: "LEVEL", color: "text-cyan-600 dark:text-cyan-400" },
+                    { name: "Pivot Point (P)", val: "₹1,371.20", signal: "PIVOT", color: "text-amber-600 dark:text-amber-400" },
+                    { name: "Support 1 (S1)", val: "₹1,356.70", signal: "LEVEL", color: "text-rose-600 dark:text-rose-400" },
                   ].map((o) => (
-                    <div key={o.name} className="flex justify-between items-center py-2 border-b border-[#132B4F]/60">
-                      <span className="text-slate-400 font-sans">{o.name}</span>
-                      <span className="text-white font-bold">{o.val}</span>
-                      <span className={`font-bold px-2 py-0.5 rounded bg-[#07152B] ${o.color}`}>
+                    <div key={o.name} className="flex justify-between items-center py-2 border-b border-slate-100 dark:border-[#132B4F]/60">
+                      <span className="text-slate-600 dark:text-slate-400 font-sans">{o.name}</span>
+                      <span className="text-slate-900 dark:text-white font-bold">{o.val}</span>
+                      <span className={`font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-[#07152B] ${o.color}`}>
                         {o.signal}
                       </span>
                     </div>
@@ -606,78 +606,78 @@ export default function CompanyPage() {
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {/* Valuation Multiples */}
-              <div className="p-5 rounded-2xl bg-[#0B1D38] border border-[#132B4F] space-y-4">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-[#16C8D5]">
+              <div className="p-5 rounded-2xl bg-white dark:bg-[#0B1D38] border border-slate-200 dark:border-[#132B4F] space-y-4 shadow-sm">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-cyan-600 dark:text-[#16C8D5]">
                   Valuation Multiples & Enterprise Value
                 </h3>
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between py-2 border-b border-[#132B4F]/60">
-                    <span className="text-slate-400">Market Capitalization</span>
-                    <strong className="text-white tabular-nums">
+                  <div className="flex justify-between py-2 border-b border-slate-100 dark:border-[#132B4F]/60">
+                    <span className="text-slate-600 dark:text-slate-400">Market Capitalization</span>
+                    <strong className="text-slate-900 dark:text-white tabular-nums">
                       ₹{ratios.valuation.market_cap.toLocaleString("en-IN")} Cr
                     </strong>
                   </div>
-                  <div className="flex justify-between py-2 border-b border-[#132B4F]/60">
-                    <span className="text-slate-400">Enterprise Value (EV)</span>
-                    <strong className="text-white tabular-nums">
+                  <div className="flex justify-between py-2 border-b border-slate-100 dark:border-[#132B4F]/60">
+                    <span className="text-slate-600 dark:text-slate-400">Enterprise Value (EV)</span>
+                    <strong className="text-slate-900 dark:text-white tabular-nums">
                       ₹{ratios.valuation.enterprise_value.toLocaleString("en-IN")} Cr
                     </strong>
                   </div>
-                  <div className="flex justify-between py-2 border-b border-[#132B4F]/60">
-                    <span className="text-slate-400">Trailing P/E Ratio</span>
-                    <strong className="text-white tabular-nums">
+                  <div className="flex justify-between py-2 border-b border-slate-100 dark:border-[#132B4F]/60">
+                    <span className="text-slate-600 dark:text-slate-400">Trailing P/E Ratio</span>
+                    <strong className="text-slate-900 dark:text-white tabular-nums">
                       {ratios.valuation.pe_ratio !== null ? `${ratios.valuation.pe_ratio}x` : "—"}
                     </strong>
                   </div>
                   <div className="flex justify-between py-2">
-                    <span className="text-slate-400">Price to Book (P/B)</span>
-                    <strong className="text-white tabular-nums">{ratios.valuation.pb_ratio}x</strong>
+                    <span className="text-slate-600 dark:text-slate-400">Price to Book (P/B)</span>
+                    <strong className="text-slate-900 dark:text-white tabular-nums">{ratios.valuation.pb_ratio}x</strong>
                   </div>
                 </div>
               </div>
 
               {/* Profitability & Return Profile */}
-              <div className="p-5 rounded-2xl bg-[#0B1D38] border border-[#132B4F] space-y-4">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-[#39E85B]">
+              <div className="p-5 rounded-2xl bg-white dark:bg-[#0B1D38] border border-slate-200 dark:border-[#132B4F] space-y-4 shadow-sm">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-600 dark:text-[#39E85B]">
                   Returns on Capital & Margins
                 </h3>
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between py-2 border-b border-[#132B4F]/60">
-                    <span className="text-slate-400">Return on Equity (ROE)</span>
-                    <strong className="text-[#39E85B] font-bold tabular-nums">
+                  <div className="flex justify-between py-2 border-b border-slate-100 dark:border-[#132B4F]/60">
+                    <span className="text-slate-600 dark:text-slate-400">Return on Equity (ROE)</span>
+                    <strong className="text-emerald-600 dark:text-[#39E85B] font-bold tabular-nums">
                       {ratios.profitability.roe}%
                     </strong>
                   </div>
-                  <div className="flex justify-between py-2 border-b border-[#132B4F]/60">
-                    <span className="text-slate-400">Return on Capital Employed (ROCE)</span>
-                    <strong className="text-white tabular-nums">{ratios.profitability.roce}%</strong>
+                  <div className="flex justify-between py-2 border-b border-slate-100 dark:border-[#132B4F]/60">
+                    <span className="text-slate-600 dark:text-slate-400">Return on Capital Employed (ROCE)</span>
+                    <strong className="text-slate-900 dark:text-white tabular-nums">{ratios.profitability.roce}%</strong>
                   </div>
-                  <div className="flex justify-between py-2 border-b border-[#132B4F]/60">
-                    <span className="text-slate-400">Operating Margin (OPM)</span>
-                    <strong className="text-white tabular-nums">
+                  <div className="flex justify-between py-2 border-b border-slate-100 dark:border-[#132B4F]/60">
+                    <span className="text-slate-600 dark:text-slate-400">Operating Margin (OPM)</span>
+                    <strong className="text-slate-900 dark:text-white tabular-nums">
                       {ratios.profitability.operating_margin}%
                     </strong>
                   </div>
                   <div className="flex justify-between py-2">
-                    <span className="text-slate-400">Net Profit Margin (NPM)</span>
-                    <strong className="text-white tabular-nums">{ratios.profitability.net_margin}%</strong>
+                    <span className="text-slate-600 dark:text-slate-400">Net Profit Margin (NPM)</span>
+                    <strong className="text-slate-900 dark:text-white tabular-nums">{ratios.profitability.net_margin}%</strong>
                   </div>
                 </div>
               </div>
 
               {/* Solvency & Capital Health */}
-              <div className="p-5 rounded-2xl bg-[#0B1D38] border border-[#132B4F] space-y-4">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300">
+              <div className="p-5 rounded-2xl bg-white dark:bg-[#0B1D38] border border-slate-200 dark:border-[#132B4F] space-y-4 shadow-sm">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
                   Solvency & Leverage
                 </h3>
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between py-2 border-b border-[#132B4F]/60">
-                    <span className="text-slate-400">Debt to Equity</span>
-                    <strong className="text-white tabular-nums">{ratios.solvency.debt_to_equity}x</strong>
+                  <div className="flex justify-between py-2 border-b border-slate-100 dark:border-[#132B4F]/60">
+                    <span className="text-slate-600 dark:text-slate-400">Debt to Equity</span>
+                    <strong className="text-slate-900 dark:text-white tabular-nums">{ratios.solvency.debt_to_equity}x</strong>
                   </div>
                   <div className="flex justify-between py-2">
-                    <span className="text-slate-400">Interest Coverage Ratio</span>
-                    <strong className="text-white tabular-nums">
+                    <span className="text-slate-600 dark:text-slate-400">Interest Coverage Ratio</span>
+                    <strong className="text-slate-900 dark:text-white tabular-nums">
                       {ratios.solvency.interest_coverage}x
                     </strong>
                   </div>
@@ -685,24 +685,24 @@ export default function CompanyPage() {
               </div>
 
               {/* Cash Flow Quality */}
-              <div className="p-5 rounded-2xl bg-[#0B1D38] border border-[#132B4F] space-y-4">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-[#16C8D5]">
+              <div className="p-5 rounded-2xl bg-white dark:bg-[#0B1D38] border border-slate-200 dark:border-[#132B4F] space-y-4 shadow-sm">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-cyan-600 dark:text-[#16C8D5]">
                   Free Cash Flow Conversion
                 </h3>
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between py-2 border-b border-[#132B4F]/60">
-                    <span className="text-slate-400">Free Cash Flow (FCF)</span>
-                    <strong className="text-[#16C8D5] font-bold tabular-nums">
+                  <div className="flex justify-between py-2 border-b border-slate-100 dark:border-[#132B4F]/60">
+                    <span className="text-slate-600 dark:text-slate-400">Free Cash Flow (FCF)</span>
+                    <strong className="text-cyan-600 dark:text-[#16C8D5] font-bold tabular-nums">
                       ₹{ratios.cash_flow.fcf.toLocaleString("en-IN")} Cr
                     </strong>
                   </div>
-                  <div className="flex justify-between py-2 border-b border-[#132B4F]/60">
-                    <span className="text-slate-400">FCF Yield (FCF / EV)</span>
-                    <strong className="text-white tabular-nums">{ratios.cash_flow.fcf_yield}%</strong>
+                  <div className="flex justify-between py-2 border-b border-slate-100 dark:border-[#132B4F]/60">
+                    <span className="text-slate-600 dark:text-slate-400">FCF Yield (FCF / EV)</span>
+                    <strong className="text-slate-900 dark:text-white tabular-nums">{ratios.cash_flow.fcf_yield}%</strong>
                   </div>
                   <div className="flex justify-between py-2">
-                    <span className="text-slate-400">CFO to PAT Ratio</span>
-                    <strong className="text-white tabular-nums">{ratios.cash_flow.cfo_to_pat}x</strong>
+                    <span className="text-slate-600 dark:text-slate-400">CFO to PAT Ratio</span>
+                    <strong className="text-slate-900 dark:text-white tabular-nums">{ratios.cash_flow.cfo_to_pat}x</strong>
                   </div>
                 </div>
               </div>
@@ -714,32 +714,32 @@ export default function CompanyPage() {
         {activeTab === "actions_news" && (
           <div className="space-y-6">
             {/* Corporate Actions Feed */}
-            <div className="bg-[#0B1D38] border border-[#132B4F] rounded-2xl p-5">
+            <div className="bg-white dark:bg-[#0B1D38] border border-slate-200 dark:border-[#132B4F] rounded-2xl p-5 shadow-sm">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-base font-bold text-white flex items-center gap-2">
-                  <Calendar size={18} className="text-[#087BEE]" /> Corporate Actions Timeline
+                <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <Calendar size={18} className="text-blue-600 dark:text-[#087BEE]" /> Corporate Actions Timeline
                 </h2>
-                <span className="text-xs font-mono text-slate-400">BSE &amp; NSE Verified Filings</span>
+                <span className="text-xs font-mono text-slate-500 dark:text-slate-400">BSE &amp; NSE Verified Filings</span>
               </div>
 
               <div className="space-y-3">
                 {corporateActions.map((action, idx) => (
                   <div
                     key={idx}
-                    className="p-4 rounded-xl bg-[#07152B] border border-[#132B4F] flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                    className="p-4 rounded-xl bg-slate-50 dark:bg-[#07152B] border border-slate-200 dark:border-[#132B4F] flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                   >
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#087BEE]/15 text-[#087BEE] border border-[#087BEE]/30">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-50 dark:bg-[#087BEE]/15 text-blue-700 dark:text-[#087BEE] border border-blue-200 dark:border-[#087BEE]/30">
                           {action.type}
                         </span>
-                        <span className="text-xs font-mono text-slate-400">{action.date}</span>
-                        <span className="px-1.5 py-0.2 rounded text-[10px] font-medium bg-[#39E85B]/15 text-[#39E85B]">
+                        <span className="text-xs font-mono text-slate-500 dark:text-slate-400">{action.date}</span>
+                        <span className="px-1.5 py-0.2 rounded text-[10px] font-medium bg-emerald-50 dark:bg-[#39E85B]/15 text-emerald-700 dark:text-[#39E85B]">
                           {action.status}
                         </span>
                       </div>
-                      <h3 className="text-sm font-bold text-white">{action.title}</h3>
-                      <p className="text-xs text-slate-400 mt-1">{action.details}</p>
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-white">{action.title}</h3>
+                      <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{action.details}</p>
                     </div>
                   </div>
                 ))}
@@ -749,16 +749,16 @@ export default function CompanyPage() {
             {/* Filtered Company News Intelligence Wire */}
             <div>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Newspaper size={18} className="text-[#16C8D5]" /> News Intelligence & Impact Wire
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <Newspaper size={18} className="text-cyan-600 dark:text-[#16C8D5]" /> News Intelligence & Impact Wire
                 </h2>
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-slate-500 dark:text-slate-400">
                   {companyNews.length} verified stories tagged to {symbol}
                 </span>
               </div>
 
               {companyNews.length === 0 ? (
-                <div className="p-8 rounded-2xl bg-[#0B1D38] border border-[#132B4F] text-center text-sm text-slate-400">
+                <div className="p-8 rounded-2xl bg-white dark:bg-[#0B1D38] border border-slate-200 dark:border-[#132B4F] text-center text-sm text-slate-500 dark:text-slate-400 shadow-sm">
                   No direct news stories recorded in this 24-hour cycle for {symbol}.
                 </div>
               ) : (
@@ -789,7 +789,7 @@ export default function CompanyPage() {
         )}
 
         {/* Mandatory Research Disclaimer */}
-        <div className="my-8 p-4 rounded-xl bg-[#0B1D38] border border-amber-800/40 text-amber-200/90 text-xs leading-relaxed">
+        <div className="my-8 p-4 rounded-xl bg-amber-50 dark:bg-[#0B1D38] border border-amber-200 dark:border-amber-800/40 text-amber-800 dark:text-amber-200/90 text-xs leading-relaxed shadow-sm font-sans">
           {dossier.disclaimer}
         </div>
       </div>

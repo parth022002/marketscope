@@ -4,35 +4,35 @@ import BrandLogo from "@/components/BrandLogo";
 
 export default function DisclaimerPage() {
   return (
-    <div className="shell min-h-screen bg-[#07152B] text-slate-200 py-10 px-6">
+    <div className="shell min-h-screen bg-slate-50 dark:bg-[#07152B] text-slate-800 dark:text-slate-200 py-10 px-6 transition-colors">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Top Branding & Navigation */}
         <div className="flex items-center justify-between pb-2">
           <BrandLogo variant="inline" size={32} />
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-xs font-semibold text-[#087BEE] hover:text-[#16C8D5] transition"
+            className="inline-flex items-center gap-2 text-xs font-semibold text-blue-600 dark:text-[#087BEE] hover:text-cyan-600 dark:hover:text-[#16C8D5] transition"
           >
             <ArrowLeft size={14} /> Back to MarketScope.io
           </Link>
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#132B4F] pb-6">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-[#132B4F] pb-6">
           <div>
-            <h1 className="text-2xl font-bold text-white">Regulatory Disclaimer &amp; Risk Disclosures</h1>
-            <p className="text-xs text-slate-400 mt-1">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Regulatory Disclaimer &amp; Risk Disclosures</h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               Statutory Research Platform Notice | Securities Market Risk Warning
             </p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-[#0B1D38] border border-[#132B4F] flex items-center justify-center text-amber-400">
+          <div className="w-10 h-10 rounded-xl bg-white dark:bg-[#0B1D38] border border-slate-200 dark:border-[#132B4F] flex items-center justify-center text-amber-500 dark:text-amber-400 shadow-sm">
             <Scale size={20} />
           </div>
         </div>
 
         {/* Highlighted Warning Banner */}
-        <div className="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-2 text-xs text-amber-200 leading-relaxed">
-          <div className="flex items-center gap-2 font-bold text-amber-300 text-sm">
+        <div className="p-5 rounded-2xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 space-y-2 text-xs text-amber-800 dark:text-amber-200 leading-relaxed shadow-sm">
+          <div className="flex items-center gap-2 font-bold text-amber-700 dark:text-amber-300 text-sm">
             <AlertTriangle size={16} /> IMPORTANT STATUTORY NOTICE (SEBI REGULATIONS)
           </div>
           <p>
@@ -41,16 +41,16 @@ export default function DisclaimerPage() {
         </div>
 
         {/* Detailed Risk Warnings */}
-        <div className="space-y-6 text-xs text-slate-300 leading-relaxed">
+        <div className="space-y-6 text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-sans">
           <section className="space-y-2">
-            <h2 className="text-sm font-bold text-white flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-amber-400"></span>
               1. No Investment Advice or Buy/Sell Recommendations
             </h2>
             <p>
               Nothing published on this website, including but not limited to company dossiers, canonical financial statements, deterministic ratios (e.g., P/E, ROE, Debt/Equity, Free Cash Flow), peer comparison rankings, screener outputs, or AI-generated research syntheses, constitutes:
             </p>
-            <ul className="list-disc list-inside space-y-1 pl-2 text-slate-400">
+            <ul className="list-disc list-inside space-y-1 pl-2 text-slate-600 dark:text-slate-400">
               <li>Investment advice or financial consulting.</li>
               <li>A research report as defined under SEBI (Research Analysts) Regulations, 2014.</li>
               <li>An endorsement, recommendation, or solicitation to buy, sell, subscribe to, or hold any security.</li>
@@ -59,11 +59,11 @@ export default function DisclaimerPage() {
           </section>
 
           <section className="space-y-2">
-            <h2 className="text-sm font-bold text-white flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-amber-400"></span>
               2. Securities Market Risk Warning
             </h2>
-            <p className="p-3 rounded-lg bg-[#0B1D38] border border-[#132B4F] text-slate-300">
+            <p className="p-3 rounded-lg bg-white dark:bg-[#0B1D38] border border-slate-200 dark:border-[#132B4F] text-slate-700 dark:text-slate-300 shadow-sm">
               <em>&quot;Investment in securities market are subject to market risks. Read all the related documents carefully before investing.&quot;</em>
             </p>
             <p>
@@ -72,8 +72,8 @@ export default function DisclaimerPage() {
           </section>
 
           <section className="space-y-2">
-            <h2 className="text-sm font-bold text-white flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-amber-400"></span>
               3. Retrieval-Augmented AI Synthesis Guardrails
             </h2>
             <p>
@@ -82,8 +82,8 @@ export default function DisclaimerPage() {
           </section>
 
           <section className="space-y-2">
-            <h2 className="text-sm font-bold text-white flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-amber-400"></span>
               4. Independent Due Diligence
             </h2>
             <p>
@@ -93,12 +93,12 @@ export default function DisclaimerPage() {
         </div>
 
         {/* Footer Navigation */}
-        <div className="pt-6 border-t border-[#132B4F] flex flex-wrap items-center justify-between gap-4 text-xs text-slate-500">
+        <div className="pt-6 border-t border-slate-200 dark:border-[#132B4F] flex flex-wrap items-center justify-between gap-4 text-xs text-slate-500">
           <div>&copy; 2026 MarketScope.io. All rights reserved.</div>
           <div className="flex gap-4">
-            <Link href="/terms" className="hover:text-slate-300">Terms of Service</Link>
-            <Link href="/privacy" className="hover:text-slate-300">Privacy Policy</Link>
-            <Link href="/workspace" className="hover:text-slate-300">Workspace &amp; Privacy</Link>
+            <Link href="/terms" className="hover:text-slate-800 dark:hover:text-slate-300">Terms of Service</Link>
+            <Link href="/privacy" className="hover:text-slate-800 dark:hover:text-slate-300">Privacy Policy</Link>
+            <Link href="/workspace" className="hover:text-slate-800 dark:hover:text-slate-300">Workspace &amp; Privacy</Link>
           </div>
         </div>
       </div>

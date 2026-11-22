@@ -21,22 +21,6 @@ interface NewsCardProps {
 }
 
 export default function NewsCard({ news, compact = false }: NewsCardProps) {
-  // Format verified timestamp
-  const getFormattedTime = (dateStr: string) => {
-    try {
-      const d = new Date(dateStr);
-      return d.toLocaleDateString("en-IN", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } catch {
-      return "Verified Report";
-    }
-  };
-
   const getTimeAgo = (dateStr: string) => {
     try {
       const diffMinutes = Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000);
@@ -50,47 +34,45 @@ export default function NewsCard({ news, compact = false }: NewsCardProps) {
     }
   };
 
-  // Source Credibility Tier badge
   const renderSourceTierBadge = () => {
     if (news.source_tier === "TIER_1_PRIMARY_OFFICIAL") {
       return (
-        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1">
-          <ShieldCheck size={11} className="text-amber-400" /> TIER 1 PRIMARY OFFICIAL
+        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/15 text-amber-500 border border-amber-500/30 flex items-center gap-1">
+          <ShieldCheck size={11} className="text-amber-500" /> TIER 1 PRIMARY
         </span>
       );
     }
     return (
-      <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-blue-600/15 text-blue-300 border border-blue-500/30 flex items-center gap-1">
-        <Sparkles size={11} className="text-blue-400" /> TIER 2 JOURNALISM
+      <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-blue-500/15 text-blue-500 border border-blue-500/30 flex items-center gap-1">
+        <Sparkles size={11} className="text-blue-500" /> TIER 2 JOURNALISM
       </span>
     );
   };
 
-  // Verification Status badge
   const renderVerificationBadge = () => {
     switch (news.verification_status) {
       case "PRIMARY_SOURCE_CONFIRMED":
         return (
-          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
-            <ShieldCheck size={11} className="text-emerald-400" /> PRIMARY SOURCE CONFIRMED
+          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 flex items-center gap-1">
+            <ShieldCheck size={11} className="text-emerald-500" /> VERIFIED
           </span>
         );
       case "MULTIPLE_SOURCES_REPORTED":
         return (
-          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 flex items-center gap-1">
-            <Layers size={11} className="text-cyan-400" /> MULTI-SOURCE CORROBORATED
+          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 border border-cyan-500/30 flex items-center gap-1">
+            <Layers size={11} className="text-cyan-500" /> MULTI-SOURCE
           </span>
         );
       case "DISPUTED":
         return (
-          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-red-500/20 text-red-400 border border-red-500/40 flex items-center gap-1 animate-pulse">
+          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-500/20 text-rose-500 border border-rose-500/40 flex items-center gap-1 animate-pulse">
             <AlertTriangle size={11} /> DISPUTED
           </span>
         );
       default:
         return (
-          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#071426] text-slate-300 border border-[#162C4E]">
-            SINGLE CREDIBLE SOURCE
+          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-slate-100 dark:bg-[#071426] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-[#162C4E]">
+            CREDIBLE
           </span>
         );
     }
@@ -102,7 +84,7 @@ export default function NewsCard({ news, compact = false }: NewsCardProps) {
   const entities = news.related_entities || news.entities || [];
 
   return (
-    <article className="p-5 rounded-2xl bg-[#0B1930] hover:bg-[#10223B] border border-[#162C4E] hover:border-blue-500/50 transition-all duration-200 flex flex-col justify-between group space-y-3.5 shadow-sm hover:shadow-xl hover:-translate-y-0.5">
+    <article className="p-5 rounded-2xl bg-white dark:bg-[#0B1930] hover:bg-slate-50 dark:hover:bg-[#10223B] border border-slate-200 dark:border-[#162C4E] hover:border-blue-400 dark:hover:border-blue-500/50 transition-all duration-200 flex flex-col justify-between group space-y-3.5 shadow-xs hover:shadow-xl hover:-translate-y-0.5">
       {/* Top Meta Line: Tiers & Verification */}
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
         <div className="flex flex-wrap items-center gap-1.5">
@@ -110,9 +92,9 @@ export default function NewsCard({ news, compact = false }: NewsCardProps) {
           {renderVerificationBadge()}
         </div>
 
-        <div className="flex items-center gap-2 text-slate-400 text-[11px] font-mono">
-          <span className="px-1.5 py-0.5 rounded bg-[#071426] border border-[#162C4E] text-slate-300">
-            {news.relevance_score}/100 Relevance
+        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-[11px] font-mono">
+          <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-[#071426] border border-slate-200 dark:border-[#162C4E] text-slate-700 dark:text-slate-300 font-bold">
+            {news.relevance_score}/100 Rel
           </span>
           <span className="flex items-center gap-1">
             <Clock size={11} /> {getTimeAgo(news.published_at)}
@@ -121,27 +103,27 @@ export default function NewsCard({ news, compact = false }: NewsCardProps) {
       </div>
 
       {/* Publisher & Category Line */}
-      <div className="flex items-center justify-between text-xs text-slate-400 font-mono">
+      <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-mono">
         <div className="flex items-center gap-2">
-          <span className="text-white font-bold">{publisher}</span>
+          <span className="text-slate-900 dark:text-white font-bold">{publisher}</span>
           <span>·</span>
-          <span className="text-slate-400">{news.category}</span>
+          <span>{news.category}</span>
         </div>
         <span className="flex items-center gap-1 text-[11px]">
           <Globe size={11} /> {news.country}
         </span>
       </div>
 
-      {/* Headline & Grounded Summary */}
+      {/* Headline & Summary */}
       <div className="space-y-1.5 flex-1">
         <Link
           href={`/news/${news.id}`}
-          className="text-sm md:text-base font-bold text-white group-hover:text-cyan-400 transition leading-snug block"
+          className="text-sm md:text-base font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-cyan-400 transition leading-snug block"
         >
           {title}
         </Link>
         {!compact && news.summary && (
-          <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed font-sans">
+          <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed font-sans">
             {news.summary}
           </p>
         )}
@@ -149,9 +131,9 @@ export default function NewsCard({ news, compact = false }: NewsCardProps) {
 
       {/* Primary Evidence Lineage Bar */}
       {news.evidence_items && news.evidence_items.length > 0 && (
-        <div className="p-2 rounded-xl bg-[#071426] border border-[#162C4E] flex items-center justify-between text-[11px] font-mono">
-          <div className="flex items-center gap-1.5 text-slate-300 truncate">
-            <FileCheck2 size={12} className="text-emerald-400 shrink-0" />
+        <div className="p-2 rounded-xl bg-slate-50 dark:bg-[#071426] border border-slate-200 dark:border-[#162C4E] flex items-center justify-between text-[11px] font-mono">
+          <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 truncate">
+            <FileCheck2 size={12} className="text-emerald-500 shrink-0" />
             <span className="truncate">Evidence: {news.evidence_items[0].title}</span>
           </div>
           {news.evidence_items[0].document_hash && (
@@ -163,21 +145,21 @@ export default function NewsCard({ news, compact = false }: NewsCardProps) {
       )}
 
       {/* Bottom Action & Entity Tags */}
-      <div className="pt-3 border-t border-[#162C4E] flex flex-wrap items-center justify-between gap-2 text-xs">
+      <div className="pt-3 border-t border-slate-200 dark:border-[#162C4E] flex flex-wrap items-center justify-between gap-2 text-xs">
         <div className="flex flex-wrap items-center gap-1.5">
           {entities.slice(0, 3).map((ent, idx) => (
             ent.symbol ? (
               <Link
                 key={idx}
                 href={`/company/${ent.symbol.toLowerCase()}`}
-                className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-[#071426] hover:bg-blue-600/30 border border-[#162C4E] text-cyan-300 hover:text-white transition"
+                className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-100 dark:bg-[#071426] hover:bg-blue-50 dark:hover:bg-blue-600/30 border border-slate-200 dark:border-[#162C4E] text-blue-600 dark:text-cyan-300 hover:text-blue-700 transition"
               >
                 {ent.symbol}
               </Link>
             ) : (
               <span
                 key={idx}
-                className="px-2 py-0.5 rounded-md text-[10px] font-mono bg-[#071426] border border-[#162C4E] text-slate-400"
+                className="px-2 py-0.5 rounded-md text-[10px] font-mono bg-slate-100 dark:bg-[#071426] border border-slate-200 dark:border-[#162C4E] text-slate-500 dark:text-slate-400"
               >
                 {ent.name}
               </span>
@@ -191,7 +173,7 @@ export default function NewsCard({ news, compact = false }: NewsCardProps) {
               href={externalUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-[#071426] border border-transparent hover:border-[#162C4E] transition"
+              className="p-1 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#071426] border border-transparent hover:border-slate-200 dark:hover:border-[#162C4E] transition"
               title="Open primary publisher disclosure"
             >
               <ExternalLink size={13} />
@@ -199,7 +181,7 @@ export default function NewsCard({ news, compact = false }: NewsCardProps) {
           )}
           <Link
             href={`/news/${news.id}`}
-            className="flex items-center gap-1 text-[11px] font-bold text-blue-400 hover:text-cyan-300 transition"
+            className="flex items-center gap-1 text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:text-cyan-500 transition"
           >
             Dossier <ArrowRight size={12} />
           </Link>

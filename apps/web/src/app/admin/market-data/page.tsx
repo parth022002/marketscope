@@ -54,15 +54,15 @@ export default function AdminMarketDataPage() {
     <NavigationShell activePath="/admin/market-data">
       <div className="space-y-8 w-full max-w-7xl mx-auto pb-12">
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#162C4E]">
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-[#162C4E]">
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-wider text-cyan-400 uppercase">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-wider text-cyan-600 dark:text-cyan-400 uppercase">
               <Server size={14} /> Market Data Infrastructure Administration
             </div>
-            <h1 className="text-2xl md:text-3xl font-black text-white mt-1 tracking-tight">
+            <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white mt-1 tracking-tight">
               Provider Capabilities & Ingestion Health
             </h1>
-            <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed font-sans">
+            <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 max-w-2xl leading-relaxed font-sans">
               Real-time monitoring of integrated market data feeds, licensing tiers, ingestion modes, API quotas, latency benchmarks, and SEBI / DPDP compliance statuses.
             </p>
           </div>
@@ -78,71 +78,71 @@ export default function AdminMarketDataPage() {
 
         {/* System Summary KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-[#0B1528] border border-[#162C4E] rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
+          <div className="bg-white dark:bg-[#0B1528] border border-slate-200 dark:border-[#162C4E] rounded-2xl p-5 shadow-sm">
+            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-medium">
               <span>Integrated Providers</span>
-              <Database size={16} className="text-cyan-400" />
+              <Database size={16} className="text-cyan-600 dark:text-cyan-400" />
             </div>
-            <div className="text-2xl font-black text-white mt-2 font-mono">
+            <div className="text-2xl font-black text-slate-900 dark:text-white mt-2 font-mono">
               {providersData?.active_providers || 6} / {providersData?.total_providers || 6} Active
             </div>
-            <p className="text-[11px] text-emerald-400 mt-1 flex items-center gap-1">
+            <p className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1">
               <CheckCircle2 size={12} /> All primary gateways online
             </p>
           </div>
 
-          <div className="bg-[#0B1528] border border-[#162C4E] rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
+          <div className="bg-white dark:bg-[#0B1528] border border-slate-200 dark:border-[#162C4E] rounded-2xl p-5 shadow-sm">
+            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-medium">
               <span>Avg Feed Latency</span>
-              <Activity size={16} className="text-blue-400" />
+              <Activity size={16} className="text-blue-500 dark:text-blue-400" />
             </div>
-            <div className="text-2xl font-black text-white mt-2 font-mono">
+            <div className="text-2xl font-black text-slate-900 dark:text-white mt-2 font-mono">
               235 ms
             </div>
-            <p className="text-[11px] text-slate-400 mt-1">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
               Optimal sub-second ingestion
             </p>
           </div>
 
-          <div className="bg-[#0B1528] border border-[#162C4E] rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
+          <div className="bg-white dark:bg-[#0B1528] border border-slate-200 dark:border-[#162C4E] rounded-2xl p-5 shadow-sm">
+            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-medium">
               <span>Monitored Instruments</span>
-              <Layers size={16} className="text-purple-400" />
+              <Layers size={16} className="text-purple-500 dark:text-purple-400" />
             </div>
-            <div className="text-2xl font-black text-white mt-2 font-mono">
+            <div className="text-2xl font-black text-slate-900 dark:text-white mt-2 font-mono">
               {qualityData?.total_instruments_monitored || 120}+ Assets
             </div>
-            <p className="text-[11px] text-slate-400 mt-1">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
               Across 20 universal asset classes
             </p>
           </div>
 
-          <div className="bg-[#0B1528] border border-[#162C4E] rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
+          <div className="bg-white dark:bg-[#0B1528] border border-slate-200 dark:border-[#162C4E] rounded-2xl p-5 shadow-sm">
+            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-medium">
               <span>Regulatory Stance</span>
-              <Shield size={16} className="text-emerald-400" />
+              <Shield size={16} className="text-emerald-600 dark:text-emerald-400" />
             </div>
-            <div className="text-2xl font-black text-emerald-400 mt-2 font-mono">
+            <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-2 font-mono">
               Verified
             </div>
-            <p className="text-[11px] text-slate-400 mt-1">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
               Strict Non-Brokerage / SEBI / LRS
             </p>
           </div>
         </div>
 
         {/* Data Providers Table */}
-        <div className="bg-[#0B1528] border border-[#162C4E] rounded-2xl p-6 shadow-sm space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-[#162C4E]">
+        <div className="bg-white dark:bg-[#0B1528] border border-slate-200 dark:border-[#162C4E] rounded-2xl p-6 shadow-sm space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-[#162C4E]">
             <div>
-              <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
-                <Zap size={18} className="text-cyan-400" /> Authoritative Data Providers & Gateway Capabilities
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                <Zap size={18} className="text-cyan-600 dark:text-cyan-400" /> Authoritative Data Providers & Gateway Capabilities
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 Breakdown of licensed commercial, open-access, and direct exchange feeds powering MarketScope.io.
               </p>
             </div>
-            <span className="text-xs font-mono font-bold px-2.5 py-1 bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded-lg">
+            <span className="text-xs font-mono font-bold px-2.5 py-1 bg-cyan-50 dark:bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-200 dark:border-cyan-500/20 rounded-lg">
               Engine Mode: {providersData?.engine_mode || "HYBRID_LIVE_INTEGRATED"}
             </span>
           </div>
@@ -150,7 +150,7 @@ export default function AdminMarketDataPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-[#162C4E] text-slate-400 font-mono">
+                <tr className="border-b border-slate-200 dark:border-[#162C4E] text-slate-500 dark:text-slate-400 font-mono">
                   <th className="py-3 px-3">Provider / Gateway</th>
                   <th className="py-3 px-3">Licensing Tier</th>
                   <th className="py-3 px-3">Asset Coverage</th>
@@ -160,7 +160,7 @@ export default function AdminMarketDataPage() {
                   <th className="py-3 px-3">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#162C4E]/60 text-slate-200">
+              <tbody className="divide-y divide-slate-100 dark:divide-[#162C4E]/60 text-slate-700 dark:text-slate-200">
                 {(providersData?.providers || [
                   {
                     provider_id: "live_exchange_feed",
@@ -241,18 +241,18 @@ export default function AdminMarketDataPage() {
                     compliance_classification: "RBI Statutory Reference Rates",
                   },
                 ]).map((p) => (
-                  <tr key={p.provider_id} className="hover:bg-[#10223D]/50 transition">
+                  <tr key={p.provider_id} className="hover:bg-slate-50 dark:hover:bg-[#10223D]/50 transition">
                     <td className="py-3.5 px-3">
-                      <div className="font-bold text-white text-sm">{p.name}</div>
-                      <div className="text-[10px] text-slate-400 font-mono mt-0.5">{p.compliance_classification}</div>
+                      <div className="font-bold text-slate-900 dark:text-white text-sm">{p.name}</div>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">{p.compliance_classification}</div>
                     </td>
                     <td className="py-3.5 px-3">
                       <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
                         p.tier === "COMMERCIAL"
-                          ? "bg-purple-500/10 text-purple-400 border border-purple-500/20"
+                          ? "bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-500/20"
                           : p.tier === "PARTNER"
-                          ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
-                          : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                          ? "bg-cyan-50 dark:bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border border-cyan-200 dark:border-cyan-500/20"
+                          : "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20"
                       }`}>
                         {p.tier}
                       </span>
@@ -260,23 +260,23 @@ export default function AdminMarketDataPage() {
                     <td className="py-3.5 px-3">
                       <div className="flex flex-wrap gap-1 max-w-[200px]">
                         {p.supported_asset_classes.map((ac) => (
-                          <span key={ac} className="text-[10px] bg-[#162C4E] px-1.5 py-0.5 rounded text-slate-300">
+                          <span key={ac} className="text-[10px] bg-slate-100 dark:bg-[#162C4E] px-1.5 py-0.5 rounded text-slate-700 dark:text-slate-300">
                             {ac}
                           </span>
                         ))}
                       </div>
                     </td>
-                    <td className="py-3.5 px-3 font-mono text-[11px] text-slate-300">
+                    <td className="py-3.5 px-3 font-mono text-[11px] text-slate-600 dark:text-slate-300">
                       {p.supported_exchanges.join(", ")}
                     </td>
-                    <td className="py-3.5 px-3 font-mono text-slate-300">
+                    <td className="py-3.5 px-3 font-mono text-slate-600 dark:text-slate-300">
                       {p.data_lag}
                     </td>
-                    <td className="py-3.5 px-3 font-mono text-cyan-400 font-bold">
+                    <td className="py-3.5 px-3 font-mono text-cyan-600 dark:text-cyan-400 font-bold">
                       {p.latency_ms} ms
                     </td>
                     <td className="py-3.5 px-3">
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-500/20">
                         <CheckCircle2 size={12} /> {p.status}
                       </span>
                     </td>
@@ -288,11 +288,11 @@ export default function AdminMarketDataPage() {
         </div>
 
         {/* Legal & Non-Brokerage Architecture Notice */}
-        <div className="bg-[#0B1528] border border-blue-500/30 rounded-2xl p-6 shadow-sm space-y-3">
-          <div className="flex items-center gap-2 text-blue-400 font-bold text-sm">
+        <div className="bg-white dark:bg-[#0B1528] border border-blue-200 dark:border-blue-500/30 rounded-2xl p-6 shadow-sm space-y-3">
+          <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold text-sm">
             <Shield size={18} /> Statutory Compliance Architecture & Non-Brokerage Guarantee
           </div>
-          <p className="text-xs text-slate-300 leading-relaxed">
+          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-sans">
             MarketScope.io is designed strictly as a non-brokerage market intelligence and financial research platform under Indian law. It does not solicit deposits, provide portfolio management services, execute trades, or hold client collateral. International market data and classifications conform strictly to the Reserve Bank of India Liberalised Remittance Scheme (RBI LRS, Master Direction No. 7/2015-16), Foreign Exchange Management Act (FEMA 1999), and SEBI guidelines.
           </p>
         </div>

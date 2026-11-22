@@ -48,14 +48,6 @@ export default function MarketOverviewCard({
         return `£${val.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       case "JPY":
         return `¥${val.toLocaleString("ja-JP", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
-      case "HKD":
-        return `HK$${val.toLocaleString("zh-HK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-      case "CNY":
-        return `¥${val.toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-      case "KRW":
-        return `₩${val.toLocaleString("ko-KR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-      case "AUD":
-        return `A$${val.toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       default:
         return `${val.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
@@ -85,63 +77,63 @@ export default function MarketOverviewCard({
           ? `/company/${symbol.toLowerCase()}`
           : "/markets"
       }
-      className="p-4 rounded-2xl bg-[#0B1930] hover:bg-[#10223B] border border-[#162C4E] hover:border-blue-500/50 transition-all duration-200 flex flex-col justify-between group shadow-sm hover:shadow-lg hover:-translate-y-0.5"
+      className="p-4 rounded-2xl bg-white dark:bg-[#0B1930] hover:bg-slate-50 dark:hover:bg-[#10223B] border border-slate-200 dark:border-[#162C4E] hover:border-blue-400 dark:hover:border-blue-500/50 transition-all duration-200 flex flex-col justify-between group shadow-xs hover:shadow-lg hover:-translate-y-0.5"
     >
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-1.5">
-            <span className="text-xs font-bold text-white group-hover:text-cyan-400 transition">
+            <span className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-cyan-400 transition">
               {symbol}
             </span>
-            <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#071426] text-slate-400 border border-[#162C4E]">
+            <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-slate-100 dark:bg-[#071426] text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-[#162C4E]">
               {exchange}
             </span>
           </div>
           {name && (
-            <p className="text-[10px] text-slate-400 truncate max-w-[120px] mt-0.5">
+            <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate max-w-[120px] mt-0.5">
               {name}
-            </p>
+            </div>
           )}
         </div>
 
+        {data_status && (
+          <span
+            className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded uppercase ${
+              data_status === "LIVE"
+                ? "bg-emerald-500/15 text-emerald-500 border border-emerald-500/30"
+                : data_status === "DELAYED_15M"
+                ? "bg-amber-500/15 text-amber-500 border border-amber-500/30"
+                : "bg-slate-500/15 text-slate-400 border border-slate-500/30"
+            }`}
+          >
+            {data_status === "LIVE" ? "LIVE" : data_status === "DELAYED_15M" ? "15M" : "EOD"}
+          </span>
+        )}
+      </div>
+
+      <div className="my-2.5">
+        <div className="text-base font-black text-slate-900 dark:text-white tabular-nums tracking-tight">
+          {formatPrice(price, currency)}
+        </div>
         <div
-          className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold flex items-center gap-0.5 ${
-            isPositive
-              ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
-              : "bg-red-500/15 text-red-400 border border-red-500/30"
+          className={`flex items-center gap-1 text-[11px] font-bold mt-0.5 ${
+            isPositive ? "text-emerald-500" : "text-rose-500"
           }`}
         >
-          {isPositive ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
-          {isPositive ? "+" : ""}
-          {change_pct.toFixed(2)}%
+          {isPositive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+          <span>
+            {formatChangeText()} ({isPositive ? "+" : ""}
+            {change_pct.toFixed(2)}%)
+          </span>
         </div>
       </div>
 
-      <div className="flex items-end justify-between mt-3 pt-2 border-t border-[#162C4E]/60">
-        <div>
-          <div className="text-base font-extrabold font-mono text-white tabular-nums">
-            {formatPrice(price, currency)}
-          </div>
-          <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-400">
-            <span>{formatChangeText()}</span>
-            {data_status && (
-              <span className={`text-[8px] px-1 py-0.2 rounded font-bold uppercase ${
-                data_status === "LIVE" ? "bg-emerald-500/20 text-emerald-400" :
-                data_status === "DELAYED_15M" ? "bg-amber-500/20 text-amber-300" :
-                data_status === "CLOSED" ? "bg-slate-700/40 text-slate-400" :
-                data_status === "EOD" ? "bg-cyan-500/20 text-cyan-300" : "bg-purple-500/20 text-purple-300"
-              }`}>
-                {data_status === "DELAYED_15M" ? "15M" : data_status === "SYNTHETIC_DEVELOPMENT" ? "DEV" : data_status}
-              </span>
-            )}
-          </div>
-        </div>
-
+      <div className="pt-2 border-t border-slate-100 dark:border-[#162C4E]/60">
         <MarketSparkline
           data={defaultSparkline}
           isPositive={isPositive}
-          width={80}
-          height={28}
+          width={130}
+          height={26}
         />
       </div>
     </Link>

@@ -74,7 +74,7 @@ export default function NewsDetailPage() {
   if (loading) {
     return (
       <NavigationShell activePath="/news">
-        <div className="p-16 text-center text-slate-400 text-xs font-mono animate-pulse">
+        <div className="p-16 text-center text-slate-500 dark:text-slate-400 text-xs font-mono animate-pulse">
           Loading verified financial intelligence dossier...
         </div>
       </NavigationShell>
@@ -84,14 +84,14 @@ export default function NewsDetailPage() {
   if (!story) {
     return (
       <NavigationShell activePath="/news">
-        <div className="p-12 text-center space-y-3 bg-[#0B1930] border border-[#162C4E] rounded-3xl max-w-lg mx-auto">
-          <h2 className="text-base font-bold text-white">Story Not Found</h2>
-          <p className="text-xs text-slate-400">
+        <div className="p-12 text-center space-y-3 bg-white dark:bg-[#0B1930] border border-slate-200 dark:border-[#162C4E] rounded-3xl max-w-lg mx-auto shadow-sm">
+          <h2 className="text-base font-bold text-slate-900 dark:text-white">Story Not Found</h2>
+          <p className="text-xs text-slate-600 dark:text-slate-400">
             The requested intelligence report could not be found or has been withdrawn under correction policy.
           </p>
           <Link
             href="/news"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition shadow-md"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition shadow-sm"
           >
             <ArrowLeft size={14} /> Back to News Intelligence
           </Link>
@@ -107,46 +107,46 @@ export default function NewsDetailPage() {
 
   return (
     <NavigationShell activePath="/news">
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="max-w-4xl mx-auto space-y-6 pb-12">
         {/* Navigation Breadcrumb & Trust Status */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#162C4E]">
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200 dark:border-[#162C4E]">
           <Link
             href="/news"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-400 hover:text-cyan-300 transition"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-cyan-600 dark:hover:text-cyan-300 transition"
           >
             <ArrowLeft size={14} /> Back to News Intelligence Wire
           </Link>
 
           <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
             {story.source_tier === "TIER_1_PRIMARY_OFFICIAL" ? (
-              <span className="px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1 font-bold">
-                <ShieldCheck size={12} className="text-amber-400" /> TIER 1 PRIMARY OFFICIAL
+              <span className="px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30 flex items-center gap-1 font-bold">
+                <ShieldCheck size={12} className="text-amber-500 dark:text-amber-400" /> TIER 1 PRIMARY OFFICIAL
               </span>
             ) : (
-              <span className="px-2.5 py-1 rounded-full bg-blue-600/15 text-blue-300 border border-blue-500/30 flex items-center gap-1 font-semibold">
-                <Sparkles size={12} className="text-cyan-400" /> TIER 2 JOURNALISM
+              <span className="px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-600/15 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30 flex items-center gap-1 font-semibold">
+                <Sparkles size={12} className="text-cyan-600 dark:text-cyan-400" /> TIER 2 JOURNALISM
               </span>
             )}
 
             {story.verification_status === "PRIMARY_SOURCE_CONFIRMED" ? (
-              <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 font-bold">
-                <CheckCircle2 size={12} className="text-emerald-400" /> PRIMARY CONFIRMED
+              <span className="px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 flex items-center gap-1 font-bold">
+                <CheckCircle2 size={12} className="text-emerald-600 dark:text-emerald-400" /> PRIMARY CONFIRMED
               </span>
             ) : (
-              <span className="px-2.5 py-1 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 flex items-center gap-1 font-semibold">
-                <Layers size={12} className="text-cyan-400" /> MULTI-SOURCE CORROBORATED
+              <span className="px-2.5 py-1 rounded-full bg-cyan-50 dark:bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-500/30 flex items-center gap-1 font-semibold">
+                <Layers size={12} className="text-cyan-600 dark:text-cyan-400" /> MULTI-SOURCE CORROBORATED
               </span>
             )}
           </div>
         </div>
 
         {/* Headline & Metadata Dossier Banner */}
-        <div className="space-y-4 p-6 rounded-3xl bg-[#0B1930] border border-[#162C4E] shadow-xl">
-          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400 font-mono">
+        <div className="space-y-4 p-6 rounded-3xl bg-white dark:bg-[#0B1930] border border-slate-200 dark:border-[#162C4E] shadow-sm dark:shadow-xl">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400 font-mono">
             <div className="flex items-center gap-2">
-              <span className="text-white font-bold text-sm">{publisher}</span>
+              <span className="text-slate-900 dark:text-white font-bold text-sm">{publisher}</span>
               <span>·</span>
-              <span className="text-cyan-400">{story.category}</span>
+              <span className="text-cyan-600 dark:text-cyan-400">{story.category}</span>
               <span>·</span>
               <span className="flex items-center gap-1">
                 <Globe size={12} /> {story.country}
@@ -154,27 +154,27 @@ export default function NewsDetailPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1 text-[11px] text-slate-300">
+              <span className="flex items-center gap-1 text-[11px] text-slate-600 dark:text-slate-300">
                 <Clock size={12} /> {new Date(story.published_at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST
               </span>
               {story.publication_time_verified && (
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30">
                   Verified Timestamp
                 </span>
               )}
             </div>
           </div>
 
-          <h1 className="text-2xl md:text-3xl font-black text-white leading-tight tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white leading-tight tracking-tight">
             {title}
           </h1>
 
-          <p className="text-sm md:text-base text-slate-200 leading-relaxed font-sans">
+          <p className="text-sm md:text-base text-slate-700 dark:text-slate-200 leading-relaxed font-sans">
             {story.summary}
           </p>
 
           {/* Action Row: Primary Link & Discrepancy Button */}
-          <div className="pt-3 border-t border-[#162C4E] flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="pt-3 border-t border-slate-100 dark:border-[#162C4E] flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2">
               {externalUrl && (
                 <a
@@ -193,7 +193,7 @@ export default function NewsDetailPage() {
                 setDisputeSuccessReportId(null);
                 setDisputeModalOpen(true);
               }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#071426] hover:bg-red-500/10 border border-[#162C4E] hover:border-red-500/40 text-slate-300 hover:text-red-400 transition font-mono text-[11px]"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-[#071426] hover:bg-rose-50 dark:hover:bg-red-500/10 border border-slate-200 dark:border-[#162C4E] hover:border-rose-300 dark:hover:border-red-500/40 text-slate-600 dark:text-slate-300 hover:text-rose-600 dark:hover:text-red-400 transition font-mono text-[11px]"
             >
               <Flag size={12} /> Report Factual Discrepancy
             </button>
@@ -202,14 +202,14 @@ export default function NewsDetailPage() {
 
         {/* Key Verified Facts Box */}
         {story.key_facts && story.key_facts.length > 0 && (
-          <div className="p-6 rounded-3xl bg-[#0B1930] border border-[#162C4E] space-y-3 shadow-lg">
-            <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
-              <CheckCircle2 size={15} className="text-emerald-400" /> Verified Core Disclosures &amp; Key Facts
+          <div className="p-6 rounded-3xl bg-white dark:bg-[#0B1930] border border-slate-200 dark:border-[#162C4E] space-y-3 shadow-sm dark:shadow-lg">
+            <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400 flex items-center gap-2">
+              <CheckCircle2 size={15} className="text-emerald-600 dark:text-emerald-400" /> Verified Core Disclosures &amp; Key Facts
             </h3>
-            <ul className="space-y-2.5 text-xs md:text-sm text-slate-200">
+            <ul className="space-y-2.5 text-xs md:text-sm text-slate-700 dark:text-slate-200">
               {story.key_facts.map((fact, idx) => (
                 <li key={idx} className="flex items-start gap-2.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 shrink-0" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 dark:bg-cyan-400 mt-2 shrink-0" />
                   <span className="leading-relaxed font-sans">{fact}</span>
                 </li>
               ))}
@@ -219,12 +219,12 @@ export default function NewsDetailPage() {
 
         {/* Primary Evidence Lineage Panel */}
         {story.evidence_items && story.evidence_items.length > 0 && (
-          <div className="p-6 rounded-3xl bg-[#0B1930] border border-[#162C4E] space-y-4 shadow-lg">
+          <div className="p-6 rounded-3xl bg-white dark:bg-[#0B1930] border border-slate-200 dark:border-[#162C4E] space-y-4 shadow-sm dark:shadow-lg">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+              <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
                 <FileCheck2 size={16} /> Primary Source Evidence &amp; Filing Lineage
               </h3>
-              <span className="text-[10px] font-mono text-slate-400 px-2 py-0.5 rounded bg-[#071426] border border-[#162C4E]">
+              <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded bg-slate-100 dark:bg-[#071426] border border-slate-200 dark:border-[#162C4E]">
                 {story.evidence_items.length} Verifiable Record(s)
               </span>
             </div>
@@ -233,18 +233,18 @@ export default function NewsDetailPage() {
               {story.evidence_items.map((ev, idx) => (
                 <div
                   key={idx}
-                  className="p-4 rounded-2xl bg-[#071426] border border-[#162C4E] space-y-2 text-xs font-mono"
+                  className="p-4 rounded-2xl bg-slate-50 dark:bg-[#071426] border border-slate-200 dark:border-[#162C4E] space-y-2 text-xs font-mono"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="font-bold text-white">{ev.title}</span>
-                    <span className="px-2 py-0.5 rounded text-[10px] bg-blue-600/20 text-blue-300 border border-blue-500/30">
+                    <span className="font-bold text-slate-900 dark:text-white">{ev.title}</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] bg-blue-50 dark:bg-blue-600/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30">
                       {ev.evidence_type}
                     </span>
                   </div>
-                  <div className="text-slate-400 text-[11px] flex flex-wrap items-center gap-3">
-                    <span>Authority: <strong className="text-slate-200">{ev.publisher_or_authority}</strong></span>
+                  <div className="text-slate-500 dark:text-slate-400 text-[11px] flex flex-wrap items-center gap-3">
+                    <span>Authority: <strong className="text-slate-800 dark:text-slate-200">{ev.publisher_or_authority}</strong></span>
                     {ev.document_hash && (
-                      <span>SHA-256 Hash: <strong className="text-emerald-400">{ev.document_hash.slice(0, 16)}...</strong></span>
+                      <span>SHA-256 Hash: <strong className="text-emerald-600 dark:text-emerald-400">{ev.document_hash.slice(0, 16)}...</strong></span>
                     )}
                   </div>
                   {ev.url && (
@@ -253,7 +253,7 @@ export default function NewsDetailPage() {
                         href={ev.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-blue-400 hover:text-cyan-300 transition text-[11px]"
+                        className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:text-cyan-600 dark:hover:text-cyan-300 transition text-[11px]"
                       >
                         Inspect Official Filing / Gazette <ExternalLink size={11} />
                       </a>
@@ -270,9 +270,9 @@ export default function NewsDetailPage() {
 
         {/* Associated Corporate Entities */}
         {entities.length > 0 && (
-          <div className="p-5 rounded-2xl bg-[#0B1930] border border-[#162C4E] space-y-3">
-            <h4 className="text-xs font-mono font-bold uppercase text-slate-400 flex items-center gap-1.5">
-              <Building2 size={13} className="text-cyan-400" /> Linked Instruments &amp; Companies
+          <div className="p-5 rounded-2xl bg-white dark:bg-[#0B1930] border border-slate-200 dark:border-[#162C4E] space-y-3 shadow-sm">
+            <h4 className="text-xs font-mono font-bold uppercase text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+              <Building2 size={13} className="text-cyan-600 dark:text-cyan-400" /> Linked Instruments &amp; Companies
             </h4>
             <div className="flex flex-wrap items-center gap-2">
               {entities.map((ent, idx) => (
@@ -280,15 +280,15 @@ export default function NewsDetailPage() {
                   <Link
                     key={idx}
                     href={`/company/${ent.symbol.toLowerCase()}`}
-                    className="px-3 py-1.5 rounded-xl bg-[#071426] hover:bg-blue-600/20 border border-[#162C4E] hover:border-blue-500/40 text-xs font-mono font-bold text-cyan-300 transition flex items-center gap-1.5"
+                    className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-[#071426] hover:bg-blue-50 dark:hover:bg-blue-600/20 border border-slate-200 dark:border-[#162C4E] hover:border-blue-500/40 text-xs font-mono font-bold text-cyan-700 dark:text-cyan-300 transition flex items-center gap-1.5"
                   >
                     <span>{ent.symbol}</span>
-                    <span className="text-[10px] text-slate-400 font-normal">({ent.name})</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-normal">({ent.name})</span>
                   </Link>
                 ) : (
                   <span
                     key={idx}
-                    className="px-3 py-1.5 rounded-xl bg-[#071426] border border-[#162C4E] text-xs font-mono text-slate-300"
+                    className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-[#071426] border border-slate-200 dark:border-[#162C4E] text-xs font-mono text-slate-700 dark:text-slate-300"
                   >
                     {ent.name}
                   </span>
@@ -300,32 +300,32 @@ export default function NewsDetailPage() {
 
         {/* ─────────────────── Dispute / Discrepancy Reporting Modal ─────────────────── */}
         {disputeModalOpen && (
-          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-[#0B1930] border border-[#162C4E] rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative">
-              <div className="flex items-center justify-between pb-3 border-b border-[#162C4E]">
-                <div className="flex items-center gap-2 text-white font-bold text-sm">
-                  <Flag size={16} className="text-red-400" />
+          <div className="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-[#0B1930] border border-slate-200 dark:border-[#162C4E] rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-[#162C4E]">
+                <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm">
+                  <Flag size={16} className="text-rose-500 dark:text-red-400" />
                   <span>Report Fact Discrepancy or Missing Correction</span>
                 </div>
                 <button
                   onClick={() => setDisputeModalOpen(false)}
-                  className="p-1 rounded-lg text-slate-400 hover:text-white"
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white"
                 >
                   <X size={18} />
                 </button>
               </div>
 
               {disputeSuccessReportId ? (
-                <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-center space-y-2">
-                  <CheckCircle2 size={32} className="mx-auto text-emerald-400" />
-                  <h4 className="text-white font-bold text-sm">Discrepancy Report Registered</h4>
-                  <p className="text-xs text-slate-300">
+                <div className="p-5 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-center space-y-2">
+                  <CheckCircle2 size={32} className="mx-auto text-emerald-600 dark:text-emerald-400" />
+                  <h4 className="text-slate-900 dark:text-white font-bold text-sm">Discrepancy Report Registered</h4>
+                  <p className="text-xs text-slate-600 dark:text-slate-300">
                     Your report has been logged under audit ID{" "}
-                    <strong className="text-cyan-300 font-mono">{disputeSuccessReportId}</strong> and queued for review.
+                    <strong className="text-cyan-600 dark:text-cyan-300 font-mono">{disputeSuccessReportId}</strong> and queued for review.
                   </p>
                   <button
                     onClick={() => setDisputeModalOpen(false)}
-                    className="mt-3 px-4 py-1.5 rounded-xl bg-blue-600 text-white font-bold text-xs"
+                    className="mt-3 px-4 py-1.5 rounded-xl bg-blue-600 text-white font-bold text-xs shadow-sm"
                   >
                     Close
                   </button>
@@ -333,11 +333,11 @@ export default function NewsDetailPage() {
               ) : (
                 <form onSubmit={handleDisputeSubmit} className="space-y-4 text-xs">
                   <div className="space-y-1">
-                    <label className="text-slate-300 font-semibold block">Discrepancy Category</label>
+                    <label className="text-slate-700 dark:text-slate-300 font-semibold block">Discrepancy Category</label>
                     <select
                       value={disputeCategory}
                       onChange={(e) => setDisputeCategory(e.target.value)}
-                      className="w-full bg-[#071426] border border-[#162C4E] rounded-xl p-2.5 text-white focus:outline-none focus:border-blue-500"
+                      className="w-full bg-slate-50 dark:bg-[#071426] border border-slate-200 dark:border-[#162C4E] rounded-xl p-2.5 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
                     >
                       <option value="INCORRECT_FIGURE">Incorrect Financial Figure / Metric</option>
                       <option value="MISATTRIBUTED_ENTITY">Misattributed Company / Entity</option>
@@ -347,25 +347,25 @@ export default function NewsDetailPage() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-slate-300 font-semibold block">Discrepancy Description &amp; Details</label>
+                    <label className="text-slate-700 dark:text-slate-300 font-semibold block">Discrepancy Description &amp; Details</label>
                     <textarea
                       required
                       rows={3}
                       value={disputeDescription}
                       onChange={(e) => setDisputeDescription(e.target.value)}
                       placeholder="Explain what figure or assertion is incorrect, citing the specific paragraph or primary source..."
-                      className="w-full bg-[#071426] border border-[#162C4E] rounded-xl p-2.5 text-white focus:outline-none focus:border-blue-500 resize-none"
+                      className="w-full bg-slate-50 dark:bg-[#071426] border border-slate-200 dark:border-[#162C4E] rounded-xl p-2.5 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 resize-none"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-slate-300 font-semibold block">External Evidence URL (Optional)</label>
+                    <label className="text-slate-700 dark:text-slate-300 font-semibold block">External Evidence URL (Optional)</label>
                     <input
                       type="url"
                       value={disputeEvidenceUrl}
                       onChange={(e) => setDisputeEvidenceUrl(e.target.value)}
                       placeholder="https://..."
-                      className="w-full bg-[#071426] border border-[#162C4E] rounded-xl p-2.5 text-white focus:outline-none focus:border-blue-500"
+                      className="w-full bg-slate-50 dark:bg-[#071426] border border-slate-200 dark:border-[#162C4E] rounded-xl p-2.5 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
                     />
                   </div>
 
@@ -373,14 +373,14 @@ export default function NewsDetailPage() {
                     <button
                       type="button"
                       onClick={() => setDisputeModalOpen(false)}
-                      className="px-4 py-2 rounded-xl bg-[#071426] text-slate-300 hover:text-white border border-[#162C4E]"
+                      className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-[#071426] text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-[#162C4E]"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={disputeSubmitting}
-                      className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold transition flex items-center gap-1.5"
+                      className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold transition flex items-center gap-1.5 shadow-sm"
                     >
                       <Send size={13} /> {disputeSubmitting ? "Submitting..." : "Submit Audit Report"}
                     </button>
