@@ -15,6 +15,8 @@ from app.api.chart_routes import chart_router
 from app.api.news_routes import news_router
 from app.api.calendar_routes import calendar_router
 from app.api.assistant_routes import assistant_router
+from app.api.quant_routes import quant_router
+from app.core.middleware import CorrelationIdMiddleware, SecurityHeadersMiddleware
 
 # Optional Sentry Error Telemetry Initialization
 sentry_dsn = os.getenv("SENTRY_DSN", "")
@@ -49,6 +51,9 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(CorrelationIdMiddleware)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"] if settings.app_env == "development" else settings.cors_origins,
@@ -58,6 +63,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(quant_router, prefix="/api/v1")
 app.include_router(calendar_router, prefix="/api/v1")
 app.include_router(assistant_router, prefix="/api/v1")
 app.include_router(chart_router, prefix="/api/v1")

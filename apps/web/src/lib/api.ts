@@ -1,6 +1,6 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
-const SERVER_API_BASE = process.env.API_INTERNAL_BASE_URL ?? API_BASE;
-const getApiBase = () => (typeof window === "undefined" ? SERVER_API_BASE : API_BASE);
+export const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+export const SERVER_API_BASE = process.env.API_INTERNAL_BASE_URL ?? API_BASE;
+export const getApiBase = () => (typeof window === "undefined" ? SERVER_API_BASE : API_BASE);
 
 export const DEFAULT_WORKSPACE_ID = "11111111-1111-1111-1111-111111111111";
 
@@ -2102,6 +2102,124 @@ export async function submitAssistantFeedback(payload: {
     body: JSON.stringify(payload),
   });
 }
+
+// ─── Quantitative Intelligence & Multi-Agent Architecture ────────────────────
+
+export type QFactorContribution = {
+  factor_name: string;
+  weight: number;
+  raw_score: number;
+  weighted_score: number;
+  contribution_type: "POSITIVE" | "NEUTRAL" | "NEGATIVE";
+  key_driver: string;
+};
+
+export type QIntelligenceScorecard = {
+  symbol: string;
+  company_name: string;
+  composite_q_score: number;
+  composite_rating: "STRONG" | "FAVORABLE" | "BALANCED" | "VULNERABLE" | "UNDERPERFORMING";
+  confidence_level: number;
+  data_coverage_pct: number;
+  data_freshness_state: string;
+  factor_breakdown: QFactorContribution[];
+  regime_context: string;
+  anomaly_penalty_applied: number;
+  top_strengths: string[];
+  top_risks: string[];
+  methodology_version: string;
+  non_advisory_disclaimer: string;
+};
+
+export type RiskMetricsReport = {
+  symbol: string;
+  timeframe_days: number;
+  annualized_volatility: number;
+  ewma_volatility: number;
+  beta: number;
+  var_95_daily: number;
+  var_99_daily: number;
+  cvar_95_daily: number;
+  max_drawdown: number;
+  max_drawdown_pct: number;
+  sharpe_ratio: number;
+  sortino_ratio: number;
+  calmar_ratio: number;
+  downside_deviation: number;
+  risk_free_rate_pct: number;
+  data_points: number;
+  risk_level: "LOW" | "MODERATE" | "ELEVATED" | "HIGH";
+  methodology_notes: string;
+};
+
+export type RegimeStateOutput = {
+  benchmark_symbol: string;
+  dominant_regime: string;
+  volatility_regime: string;
+  trend_regime: string;
+  breadth_regime: string;
+  liquidity_regime: string;
+  risk_appetite: string;
+  regime_confidence: number;
+  indicator_inputs: Record<string, any>;
+  regime_implications: string[];
+};
+
+export type StandardResearchDossier = {
+  executive_summary: string;
+  research_question: string;
+  verified_facts: string[];
+  analytical_findings: string[];
+  quantitative_evidence: Record<string, any>;
+  relevant_news_and_events: string[];
+  risks_and_uncertainties: string[];
+  alternative_interpretations: string[];
+  source_citations: AssistantCitation[];
+  data_freshness_and_limitations: string;
+  methodology: string;
+  non_advisory_disclaimer: string;
+};
+
+export async function getQIntelligenceScorecard(symbol: string): Promise<QIntelligenceScorecard> {
+  const response = await fetch(`${getApiBase()}/api/v1/quant/q-score/${encodeURIComponent(symbol)}`, {
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Unable to retrieve Q-Intelligence scorecard");
+  return response.json();
+}
+
+export async function getRiskMetrics(symbol: string, days: number = 30): Promise<RiskMetricsReport> {
+  const response = await fetch(`${getApiBase()}/api/v1/quant/risk/${encodeURIComponent(symbol)}?days=${days}`, {
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Unable to retrieve risk metrics");
+  return response.json();
+}
+
+export async function getMarketRegime(benchmark: string = "NIFTY 50"): Promise<RegimeStateOutput> {
+  const response = await fetch(`${getApiBase()}/api/v1/quant/regime?benchmark=${encodeURIComponent(benchmark)}`, {
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Unable to retrieve market regime");
+  return response.json();
+}
+
+export async function getStandardAIDossier(symbol: string): Promise<StandardResearchDossier> {
+  const response = await fetch(`${getApiBase()}/api/v1/ai/dossier/${encodeURIComponent(symbol)}`, {
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Unable to generate AI research dossier");
+  return response.json();
+}
+
+export async function listSpecialistAgents(): Promise<{ count: number; agents: any[] }> {
+  const response = await fetch(`${getApiBase()}/api/v1/ai/agents`, {
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Unable to list specialist agents");
+  return response.json();
+}
+
 
 
 

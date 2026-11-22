@@ -1,56 +1,62 @@
-# MarketScope.io — Database Architecture
+# Database Architecture Specification
+**Platform:** MarketScope.io  
+**Database Engine:** PostgreSQL 16 (Neon Serverless Compatible)  
 
-## 1. Overview
-MarketScope.io uses **PostgreSQL 16** (hosted on **Neon Serverless**) managed via **SQLAlchemy 2.0** and **Alembic** migrations.
+## 1. Relational Entity-Relationship Diagram
 
-## 2. Relational Schema Design
 ```mermaid
 erDiagram
-    INSTRUMENTS ||--o{ QUOTES : has
-    INSTRUMENTS ||--o{ FUNDAMENTALS : has
-    INSTRUMENTS ||--o{ NEWS_ARTICLES : mentions
-    USERS ||--o{ WATCHLISTS : owns
-    USERS ||--o{ CHART_LAYOUTS : saves
-    USERS ||--o{ PAPER_ACCOUNTS : owns
-    PAPER_ACCOUNTS ||--o{ PAPER_POSITIONS : holds
-    PAPER_ACCOUNTS ||--o{ PAPER_ORDERS : executes
+    WORKSPACES ||--o{ WORKSPACE_MEMBERSHIPS : contains
+    USERS ||--o{ WORKSPACE_MEMBERSHIPS : holds
+    ISSUERS ||--o{ INSTRUMENTS : lists
+    INSTRUMENTS ||--o{ FINANCIAL_FACTS : records
+    DATA_PROVIDERS ||--o{ PROVIDER_ENTITLEMENTS : grants
+    DATA_PROVIDERS ||--o{ FINANCIAL_FACTS : supplies
+    METRIC_DEFINITIONS ||--o{ METRIC_OBSERVATIONS : calculates
+    INSTRUMENTS ||--o{ METRIC_OBSERVATIONS : measures
+    WORKSPACES ||--o{ RESEARCH_NOTES : owns
+    WORKSPACES ||--o{ RESEARCH_SNAPSHOTS : preserves
+    WORKSPACES ||--o{ WATCHLISTS : maintains
+    WATCHLISTS ||--o{ WATCHLIST_ITEMS : contains
+    WORKSPACES ||--o{ SAVED_SCREENS : saves
 
-    INSTRUMENTS {
-        string symbol PK
-        string exchange_id
-        string company_name
-        string isin
-        string sector
-        string industry
-        string country
-    }
-    QUOTES {
-        string symbol FK
-        datetime timestamp PK
-        float open
-        float high
-        float low
-        float close
-        bigint volume
-        string provenance
+    WORKSPACES {
+        uuid id PK
+        text name
+        timestamptz created_at
     }
     USERS {
-        string user_id PK
-        string email
-        string clerk_id
-        datetime created_at
+        uuid id PK
+        text external_identity_id
+        text email
+        text display_name
     }
-    CHART_LAYOUTS {
-        string id PK
-        string user_id FK
-        string name
-        string layout_mode
-        json slots_data
-        datetime updated_at
+    INSTRUMENTS {
+        uuid id PK
+        uuid issuer_id FK
+        text symbol
+        text exchange_code
+        text isin
+        text currency
+    }
+    FINANCIAL_FACTS {
+        uuid id PK
+        uuid instrument_id FK
+        text fact_key
+        numeric value_numeric
+        text unit
+        timestamptz period_end
+    }
+    RESEARCH_SNAPSHOTS {
+        uuid id PK
+        uuid workspace_id FK
+        jsonb payload
+        text checksum
+        timestamptz data_as_of
     }
 ```
 
-## 3. Indexing & Optimization Strategy
-- **Composite Index**: `(symbol, timestamp DESC)` on `QUOTES` table to provide O(log N) bar retrieval for charting.
-- **Trigram Search Index**: `GIN` trigram indexes on `INSTRUMENTS.company_name` and `INSTRUMENTS.symbol` for instant sub-10ms universal search queries.
-- **Connection Pool Tuning**: `pool_pre_ping=True`, `pool_recycle=300`, `pool_size=5`, `max_overflow=10`, and `connect_timeout=5` prevent dropped connections when Neon PostgreSQL resumes from idle sleep.
+## 2. Pooling & Resilience Configuration
+- Managed via `app.core.database.py` with SQLAlchemy 2.0 and modern Psycopg 3.
+- `pool_size=5`, `max_overflow=10`, `pool_recycle=300`, `pool_pre_ping=True` preventing stale pooled connections on serverless Neon.
+- Serverless SSL enforcement (`sslmode=require` for neon.tech).
