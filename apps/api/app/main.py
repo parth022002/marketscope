@@ -1,9 +1,11 @@
 import os
+import time
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 from app.core.config import settings
-from app.core.database import SessionLocal
+from app.core.database import SessionLocal, engine
 from app.core.seed import seed_database
 from app.api.routes import router
 from app.api.websocket_routes import ws_router
@@ -46,6 +48,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"] if settings.app_env == "development" else settings.cors_origins,
+    allow_origin_regex=r"^https:\/\/.*\.onrender\.com$",
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
@@ -63,5 +66,44 @@ def health():
         "status": "ok",
         "service": "marketscope-api",
         "environment": settings.app_env,
-        "database": "neon-postgresql",
+        "version": "0.2.0",
+        "timestamp": time.time(),
+    }
+
+
+@app.get("/health/live")
+def health_live():
+    return {
+        "status": "alive",
+        "service": "marketscope-api",
+        "timestamp": time.time(),
+    }
+
+
+@app.get("/health/ready")
+def health_ready():
+    db_status = "disconnected"
+    db_latency_ms = None
+    try:
+        t0 = time.perf_counter()
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        elapsed = (time.perf_counter() - t0) * 1000.0
+        db_status = "connected"
+        db_latency_ms = round(elapsed, 2)
+    except Exception as e:
+        db_status = f"unreachable: {type(e).__name__}"
+
+    is_ready = (db_status == "connected") or (settings.app_env == "development")
+
+    return {
+        "status": "ready" if is_ready else "degraded",
+        "service": "marketscope-api",
+        "environment": settings.app_env,
+        "database": {
+            "status": db_status,
+            "latency_ms": db_latency_ms,
+        },
+        "cache": "in-memory-event-bus",
+        "timestamp": time.time(),
     }

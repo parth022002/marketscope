@@ -20,6 +20,8 @@ Welcome to the official technical and architectural documentation library for **
 ## 2. Requirements Specifications
 - **[PRODUCT_REQUIREMENTS.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/requirements/PRODUCT_REQUIREMENTS.md)**: Detailed functional and non-functional requirements.
 - **[SECURITY_PRIVACY_REQUIREMENTS.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/requirements/SECURITY_PRIVACY_REQUIREMENTS.md)**: Non-custodial guardrails, data masking, and access policies.
+- **[REQUIREMENTS_TRACEABILITY_MATRIX.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/requirements/REQUIREMENTS_TRACEABILITY_MATRIX.md)**: Traceability matrix.
+- **[USER_JOURNEY.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/requirements/USER_JOURNEY.md)**: Core user flow definitions.
 
 ---
 
@@ -48,14 +50,29 @@ Welcome to the official technical and architectural documentation library for **
 
 ---
 
-## 5. Market Data & Licensing
+## 5. Render Cloud Deployment
+- **[RENDER_DEPLOYMENT_GUIDE.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/deployment/RENDER_DEPLOYMENT_GUIDE.md)**: Step-by-step instructions for Render Blueprint and Dashboard web service deployment.
+- **[RENDER_ENVIRONMENT_VARIABLES.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/deployment/RENDER_ENVIRONMENT_VARIABLES.md)**: Complete variable definitions, defaults, and requirements.
+- **[BACKEND_DEPLOYMENT_TROUBLESHOOTING.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/deployment/BACKEND_DEPLOYMENT_TROUBLESHOOTING.md)**: Detailed root-cause analysis and remediation of 15-minute timeout errors.
+
+---
+
+## 6. Code Quality & API Audits
+- **[CODE_QUALITY_REPORT.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/quality/CODE_QUALITY_REPORT.md)**: Architecture audit, dependency management, and code hygiene.
+- **[API_ENDPOINT_AUDIT.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/quality/API_ENDPOINT_AUDIT.md)**: Complete inventory of all implemented REST and WebSocket API routes.
+- **[PRODUCTION_READINESS_REPORT.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/quality/PRODUCTION_READINESS_REPORT.md)**: Official production sign-off.
+
+---
+
+## 7. Market Data & Licensing
 - **[DATA_PROVIDERS.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/data/DATA_PROVIDERS.md)**: Authorized data feeds, endpoint mapping, and failover logic.
 - **[DATA_RIGHTS.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/data/DATA_RIGHTS.md)**: Non-display redistribution compliance, attribution, and disclaimers.
 - **[DATA_FRESHNESS.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/data/DATA_FRESHNESS.md)**: Provenance standards (`LIVE`, `DELAYED_15M`, `CALIBRATED_EOD`).
 
 ---
 
-## 6. Security, Privacy & Compliance
+## 8. Security, Privacy & Compliance
+- **[SECURITY_AUDIT_REPORT.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/security/SECURITY_AUDIT_REPORT.md)**: Threat vectors, authentication, and container security audit.
 - **[SECURITY_POLICY.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/security/SECURITY_POLICY.md)**: Vulnerability disclosure, container security, and secret handling.
 - **[PRIVACY_POLICY.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/security/PRIVACY_POLICY.md)**: User data minimization and privacy standards.
 - **[TRUST_AND_TRANSPARENCY.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/security/TRUST_AND_TRANSPARENCY.md)**: Educational disclosures and non-custodial boundaries.
@@ -63,15 +80,18 @@ Welcome to the official technical and architectural documentation library for **
 
 ---
 
-## 7. Testing & Quality Assurance
+## 9. Testing & Quality Assurance
+- **[BACKEND_TEST_REPORT.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/testing/BACKEND_TEST_REPORT.md)**: 106 passed pytest integration tests report.
+- **[FRONTEND_TEST_REPORT.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/testing/FRONTEND_TEST_REPORT.md)**: 28 Next.js pages compilation report.
+- **[END_TO_END_TEST_REPORT.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/testing/END_TO_END_TEST_REPORT.md)**: Primary user journeys verification.
 - **[TESTING_STRATEGY.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/testing/TESTING_STRATEGY.md)**: Testing pyramid and methodology.
 - **[TEST_CASES.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/testing/TEST_CASES.md)**: Comprehensive test cases register (TC-001 through TC-017).
-- **[TEST_EXECUTION_RESULTS.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/testing/TEST_EXECUTION_RESULTS.md)**: Automated test execution log (21 passing tests).
+- **[TEST_EXECUTION_RESULTS.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/testing/TEST_EXECUTION_RESULTS.md)**: Automated test execution log (106 passing tests).
 - **[FINAL_TEST_REPORT.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/testing/FINAL_TEST_REPORT.md)**: Verification and quality assurance sign-off.
 
 ---
 
-## 8. Operations & Production
+## 10. Operations & Runbooks
 - **[SETUP_GUIDE.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/operations/SETUP_GUIDE.md)**: Local developer setup instructions.
 - **[ENVIRONMENT_CONFIGURATION.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/operations/ENVIRONMENT_CONFIGURATION.md)**: Complete environment variable reference.
 - **[DEPLOYMENT_GUIDE.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/operations/DEPLOYMENT_GUIDE.md)**: Render, Docker, and Neon deployment procedures.

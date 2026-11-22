@@ -1,3 +1,4 @@
+import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -31,7 +32,18 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins(self) -> list[str]:
-        return [origin.strip() for origin in self.api_cors_origins.split(",") if origin.strip()]
+        raw = os.getenv("CORS_ORIGINS", os.getenv("API_CORS_ORIGINS", self.api_cors_origins))
+        origins = [origin.strip() for origin in raw.split(",") if origin.strip()]
+        defaults = [
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "https://marketscope.io",
+            "https://www.marketscope.io",
+        ]
+        for d in defaults:
+            if d not in origins:
+                origins.append(d)
+        return origins
 
 
 settings = Settings()

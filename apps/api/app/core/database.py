@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 from app.core.config import settings
 
-raw_db_url = os.getenv("DATABASE_URL", settings.database_url)
+raw_db_url = os.getenv("DATABASE_POOL_URL") or os.getenv("DATABASE_URL") or settings.database_url
 
 # Ensure modern psycopg 3 dialect scheme is used by SQLAlchemy
 if raw_db_url.startswith("postgresql://"):
@@ -15,8 +15,12 @@ else:
 
 # Configure connection pooling and SSL settings for Neon serverless
 connect_args = {}
-if "sqlite" not in sqlalchemy_db_url:
+if "sqlite" in sqlalchemy_db_url:
+    connect_args["check_same_thread"] = False
+else:
     connect_args["connect_timeout"] = 5
+    if "neon.tech" in sqlalchemy_db_url and "sslmode" not in sqlalchemy_db_url:
+        connect_args["sslmode"] = "require"
 
 engine = create_engine(
     sqlalchemy_db_url,

@@ -14,16 +14,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
 COPY requirements.txt .
-RUN pip install --user -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Final Runtime Image
 FROM python:3.12-slim AS runner
 
 WORKDIR /app
 
-ENV PATH=/root/.local/bin:$PATH \
+ENV PATH="/opt/venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
+    PYTHONPATH="/app:/app/apps/api" \
     PORT=8000
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -35,12 +39,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN groupadd -g 1001 appgroup && \
     useradd -u 1001 -g appgroup -s /bin/sh appuser
 
-COPY --from=builder /root/.local /home/appuser/.local
-ENV PATH=/home/appuser/.local/bin:$PATH
+COPY --from=builder /opt/venv /opt/venv
 
 COPY . /app
 
-RUN chown -R appuser:appgroup /app
+RUN chown -R appuser:appgroup /app /opt/venv
 USER appuser
 
 EXPOSE 8000 10000
@@ -48,4 +51,4 @@ EXPOSE 8000 10000
 HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=3 \
   CMD curl -f http://localhost:${PORT:-8000}/health || exit 1
 
-CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 2"]
+CMD ["sh", "-c", "if [ -d 'apps/api' ]; then exec uvicorn app.main:app --app-dir apps/api --host 0.0.0.0 --port ${PORT:-8000} --workers 2; else exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 2; fi"]

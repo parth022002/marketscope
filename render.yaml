@@ -1,11 +1,11 @@
 services:
-  # ─── MarketScope.io Backend API ───
+  # ─── MarketScope.io Backend API (FastAPI) ───
   - type: web
     name: marketscope-api
     env: docker
     dockerfilePath: ./apps/api/Dockerfile
-    dockerContext: ./apps/api
-    plan: standard
+    dockerContext: .
+    plan: free
     region: singapore
     healthCheckPath: /health
     envVars:
@@ -42,11 +42,11 @@ services:
       - key: OPENROUTER_API_KEY
         sync: false
 
-  # ─── MarketScope.io Web Frontend ───
+  # ─── MarketScope.io Web Frontend (Next.js 15) ───
   - type: web
     name: marketscope-web
     env: node
-    plan: standard
+    plan: free
     region: singapore
     rootDir: apps/web
     buildCommand: npm ci && npm run build

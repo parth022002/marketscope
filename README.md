@@ -179,7 +179,7 @@ apps/api/.venv/Scripts/python.exe -m pytest apps/api/tests/ -v
 ```
 Output:
 ```
-============================= 21 passed in 4.38s ==============================
+======================= 106 passed, 1 warning in 5.56s ========================
 ```
 
 ### Run Frontend Static Typecheck & Build
@@ -198,12 +198,16 @@ Output:
 
 ## 7. Render Cloud Deployment
 
-MarketScope.io is configured for automated deployment on **Render**:
+MarketScope.io is configured for turnkey automated deployment on **Render**:
 - **Dynamic Port Binding**: Automatically binds to `0.0.0.0:${PORT:-8000}`.
 - **Connection Resiliency**: Configured with 5-second connection timeouts and pool pre-pinging to prevent serverless database hangs.
-- **Zero-Dependency Health Check**: `GET /health` returns status without blocking on database locks.
+- **Zero-Dependency Health Probes**: `/health`, `/health/live`, and `/health/ready` endpoints.
+- **CORS Protection**: Auto-matches `https://*.onrender.com` staging and production web apps.
 
-For full deployment instructions, see **[DEPLOYMENT_GUIDE.md](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/operations/DEPLOYMENT_GUIDE.md)**.
+For complete deployment runbooks, see:
+- **[Render Deployment Guide](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/deployment/RENDER_DEPLOYMENT_GUIDE.md)**
+- **[Render Environment Variables](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/deployment/RENDER_ENVIRONMENT_VARIABLES.md)**
+- **[Deployment Troubleshooting](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/deployment/BACKEND_DEPLOYMENT_TROUBLESHOOTING.md)**
 
 ---
 
