@@ -14,6 +14,10 @@ else:
     sqlalchemy_db_url = raw_db_url
 
 # Configure connection pooling and SSL settings for Neon serverless
+connect_args = {}
+if "sqlite" not in sqlalchemy_db_url:
+    connect_args["connect_timeout"] = 5
+
 engine = create_engine(
     sqlalchemy_db_url,
     pool_pre_ping=True,
@@ -21,6 +25,7 @@ engine = create_engine(
     pool_size=5,
     max_overflow=10,
     echo=False,
+    connect_args=connect_args,
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
