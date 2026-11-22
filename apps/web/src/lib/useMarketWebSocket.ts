@@ -22,8 +22,21 @@ export function useMarketWebSocket(options: UseMarketWebSocketOptions = {}) {
 
   const getWsUrl = useCallback(() => {
     if (typeof window === "undefined") return "";
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const host = process.env.NEXT_PUBLIC_WS_HOST || "localhost:8000";
+    let host = process.env.NEXT_PUBLIC_WS_HOST;
+    let protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+
+    if (!host && process.env.NEXT_PUBLIC_API_BASE_URL) {
+      try {
+        const parsed = new URL(process.env.NEXT_PUBLIC_API_BASE_URL);
+        host = parsed.host;
+        protocol = parsed.protocol === "https:" ? "wss:" : "ws:";
+      } catch {}
+    }
+
+    if (!host) {
+      host = window.location.hostname === "localhost" ? "localhost:8000" : window.location.host;
+    }
+
     return `${protocol}//${host}/ws/v1/market-data`;
   }, []);
 

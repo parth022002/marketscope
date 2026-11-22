@@ -34,7 +34,8 @@ export default function AnimatedBackground() {
 
     window.addEventListener("resize", handleResize);
 
-    const particleCount = Math.min(Math.floor((width * height) / 36000), 38);
+    // Dynamic particles for constellation mesh
+    const particleCount = Math.min(Math.floor((width * height) / 38000), 42);
     const particles: Array<{
       x: number;
       y: number;
@@ -48,30 +49,55 @@ export default function AnimatedBackground() {
       particles.push({
         x: Math.random() * width,
         y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.28,
-        vy: (Math.random() - 0.5) * 0.28,
+        vx: (Math.random() - 0.5) * 0.22,
+        vy: (Math.random() - 0.5) * 0.22,
         radius: Math.random() * 1.5 + 0.8,
         alpha: Math.random() * 0.35 + 0.12,
       });
     }
 
     const isLight = theme === "light";
+    let gridOffset = 0;
 
     const render = () => {
       ctx.clearRect(0, 0, width, height);
 
-      // Draw faint constellation links
+      // 1. Subtle moving financial grid
+      gridOffset = (gridOffset + 0.08) % 48;
+      const gridSize = 48;
+      ctx.lineWidth = 0.5;
+      ctx.strokeStyle = isLight
+        ? "rgba(148, 163, 184, 0.06)"
+        : "rgba(30, 58, 102, 0.12)";
+
+      // Vertical lines
+      for (let x = 0; x <= width; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+      }
+
+      // Horizontal lines with slow drift
+      for (let y = gridOffset; y <= height; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+
+      // 2. Faint constellation links between particles
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
           const dx = particles[i].x - particles[j].x;
           const dy = particles[i].y - particles[j].y;
           const dist = Math.sqrt(dx * dx + dy * dy);
 
-          if (dist < 130) {
-            const lineAlpha = (1 - dist / 130) * (isLight ? 0.08 : 0.12);
+          if (dist < 135) {
+            const lineAlpha = (1 - dist / 135) * (isLight ? 0.08 : 0.14);
             ctx.strokeStyle = isLight
               ? `rgba(37, 99, 235, ${lineAlpha})`
-              : `rgba(34, 211, 238, ${lineAlpha})`;
+              : `rgba(56, 189, 248, ${lineAlpha})`;
             ctx.lineWidth = 0.75;
             ctx.beginPath();
             ctx.moveTo(particles[i].x, particles[i].y);
@@ -81,7 +107,7 @@ export default function AnimatedBackground() {
         }
       }
 
-      // Draw particles
+      // 3. Floating particles
       for (const p of particles) {
         p.x += p.vx;
         p.y += p.vy;
@@ -92,8 +118,8 @@ export default function AnimatedBackground() {
         if (p.y > height) p.y = 0;
 
         ctx.fillStyle = isLight
-          ? `rgba(59, 130, 246, ${p.alpha * 0.6})`
-          : `rgba(59, 130, 246, ${p.alpha})`;
+          ? `rgba(37, 99, 235, ${p.alpha * 0.6})`
+          : `rgba(56, 189, 248, ${p.alpha * 0.8})`;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
         ctx.fill();
@@ -112,23 +138,26 @@ export default function AnimatedBackground() {
 
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-      {/* Ambient Gradient Glow Orbs */}
+      {/* Ambient Moving Gradient Orbs */}
       <div
-        className={`absolute -top-40 left-1/4 w-[600px] h-[600px] rounded-full blur-[140px] pointer-events-none transition-opacity duration-500 ${
-          theme === "light"
-            ? "bg-blue-300/20"
-            : "bg-blue-600/10"
+        className={`absolute -top-40 left-1/4 w-[650px] h-[650px] rounded-full blur-[140px] pointer-events-none transition-opacity duration-700 animate-pulse ${
+          theme === "light" ? "bg-blue-300/20" : "bg-blue-600/12"
         }`}
+        style={{ animationDuration: "8s" }}
       />
       <div
-        className={`absolute top-1/3 -right-40 w-[500px] h-[500px] rounded-full blur-[140px] pointer-events-none transition-opacity duration-500 ${
-          theme === "light"
-            ? "bg-cyan-300/15"
-            : "bg-cyan-500/08"
+        className={`absolute top-1/3 -right-40 w-[550px] h-[550px] rounded-full blur-[140px] pointer-events-none transition-opacity duration-700 animate-pulse ${
+          theme === "light" ? "bg-cyan-300/15" : "bg-cyan-500/10"
+        }`}
+        style={{ animationDuration: "10s" }}
+      />
+      <div
+        className={`absolute -bottom-20 left-1/3 w-[500px] h-[500px] rounded-full blur-[130px] pointer-events-none transition-opacity duration-700 ${
+          theme === "light" ? "bg-indigo-300/15" : "bg-indigo-600/08"
         }`}
       />
 
-      {/* HTML5 Canvas for Constellation Matrix */}
+      {/* HTML5 Canvas for Constellation Matrix & Grid */}
       <canvas ref={canvasRef} className="w-full h-full block" />
     </div>
   );

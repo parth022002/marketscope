@@ -45,11 +45,22 @@ interface NavigationShellProps {
   activePath?: string;
 }
 
+const PRIMARY_NAV = [
+  { label: "Home", href: "/" },
+  { label: "Markets", href: "/markets" },
+  { label: "Stocks", href: "/stocks" },
+  { label: "Screener", href: "/screener" },
+  { label: "News", href: "/news" },
+  { label: "Research", href: "/research" },
+  { label: "About", href: "/about" },
+];
+
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
   { label: "Charts Terminal", href: "/charts", icon: BarChart2, badge: "PRO" },
   { label: "Markets Hub", href: "/markets", icon: Globe },
   { label: "Stocks Discovery", href: "/stocks", icon: TrendingUp },
+  { label: "Research Hub", href: "/research", icon: Sparkles, badge: "NEW" },
   { label: "Options & Derivatives", href: "/derivatives", icon: Activity, badge: "GREEKS" },
   { label: "Market Flow", href: "/market-intelligence", icon: Sparkles },
   { label: "Screeners", href: "/screener", icon: Filter },
@@ -60,6 +71,7 @@ const NAV_ITEMS = [
   { label: "Peer Comparison", href: "/compare", icon: BarChart3 },
   { label: "Watchlists", href: "/watchlists", icon: Bookmark },
   { label: "Calendar & Events", href: "/calendar", icon: Calendar },
+  { label: "About Platform", href: "/about", icon: BookOpen },
   { label: "Data Quality & Feeds", href: "/admin/market-data", icon: Server },
   { label: "Workspace & Privacy", href: "/workspace", icon: ShieldCheck },
 ];
@@ -217,8 +229,35 @@ export default function NavigationShell({ children, activePath }: NavigationShel
           </div>
         </div>
 
+        {/* Primary Desktop Navigation Links */}
+        <nav className="hidden lg:flex items-center gap-1 xl:gap-1.5 ml-2 xl:ml-4">
+          {PRIMARY_NAV.map((item) => {
+            const isActive =
+              item.href === "/"
+                ? currentPath === "/"
+                : currentPath.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition ${
+                  isActive
+                    ? isLight
+                      ? "text-blue-600 bg-blue-50 font-bold"
+                      : "text-white bg-blue-600/25 border border-blue-500/30 font-bold"
+                    : isLight
+                    ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    : "text-slate-300 hover:text-white hover:bg-[#0B1930]"
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+
         {/* Global Terminal Search Bar / Command Palette Trigger */}
-        <div className="flex-1 max-w-lg mx-4 hidden md:block">
+        <div className="flex-1 max-w-xs xl:max-w-md mx-2 xl:mx-4 hidden md:block">
           <button
             onClick={() => setIsCommandPaletteOpen(true)}
             className={`w-full flex items-center justify-between rounded-xl pl-3.5 pr-2.5 py-1.5 text-xs transition border text-left shadow-xs ${
