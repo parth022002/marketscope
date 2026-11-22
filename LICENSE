@@ -1,0 +1,53 @@
+MarketScope.io Software License
+==================================
+
+Copyright (c) 2024-2026 MarketScope.io Contributors and Authors.
+All rights reserved.
+
+1. PROPRIETARY APPLICATION SOURCE CODE & BRAND ASSETS
+-----------------------------------------------------
+The original source code, proprietary algorithms, financial models, user interfaces,
+database schemas, branding, logos, trademarks, and visual designs of the MarketScope.io
+platform are proprietary and confidential unless explicitly designated otherwise.
+
+Unauthorized copying, modification, reverse engineering, redistribution, sublicensing,
+or commercial exploitation of MarketScope.io proprietary source code, software,
+or digital assets without explicit prior written authorization from MarketScope.io
+is strictly prohibited.
+
+2. THIRD-PARTY OPEN-SOURCE LICENSES
+-----------------------------------
+MarketScope.io incorporates and links to various open-source third-party libraries,
+frameworks, and dependencies. Each third-party component is governed by its own
+respective open-source license, including but not limited to:
+- MIT License
+- Apache License, Version 2.0
+- BSD 2-Clause and BSD 3-Clause Licenses
+- ISC License
+- GNU Lesser General Public License (LGPL), Version 3.0
+- Mozilla Public License (MPL), Version 2.0
+- SIL Open Font License, Version 1.1
+
+Nothing in this License limits, modifies, or overrides any rights granted to users
+under the respective third-party open-source licenses. For complete third-party
+copyright notices, license grants, and source code availability, please refer to
+the `NOTICE` and `THIRD_PARTY_NOTICES.md` files included in this repository or visit
+the `/acknowledgements` and `/licenses` pages within the MarketScope.io application.
+
+3. FINANCIAL MARKET DATA & REGULATORY DISCLAIMER
+------------------------------------------------
+MarketScope.io is strictly an educational research and financial intelligence platform.
+All market data, financial ratios, stock screening outputs, derivatives metrics,
+and backtest simulations are provided for informational and analytical purposes only.
+MarketScope.io does not execute real-money trades, provide investment advice,
+or custody customer funds. Market data feeds retain the intellectual property rights
+of their respective exchanges (NSE, BSE, NYSE, NASDAQ, MCX) and data providers.
+
+4. DISCLAIMER OF WARRANTIES & LIMITATION OF LIABILITY
+-----------------------------------------------------
+THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS, COPYRIGHT
+HOLDERS, OR CONTRIBUTORS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

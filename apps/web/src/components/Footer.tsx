@@ -255,6 +255,16 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/acknowledgements" className="hover:text-blue-600 dark:hover:text-cyan-400 transition">
+                  Third-Party Acknowledgements
+                </Link>
+              </li>
+              <li>
+                <Link href="/licenses" className="hover:text-blue-600 dark:hover:text-cyan-400 transition">
+                  Software Licenses &amp; SBOM
+                </Link>
+              </li>
+              <li>
                 <Link
                   href="/disclaimer"
                   className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-cyan-400 transition"
@@ -278,13 +288,21 @@ export default function Footer() {
           </div>
 
           {/* Centre: Legal Links */}
-          <div className="flex items-center gap-3 font-medium">
+          <div className="flex flex-wrap items-center justify-center gap-2.5 font-medium">
             <Link href="/privacy" className="hover:text-slate-900 dark:hover:text-white transition">
               Privacy
             </Link>
             <span className="text-slate-300 dark:text-slate-600">|</span>
             <Link href="/terms" className="hover:text-slate-900 dark:hover:text-white transition">
               Terms
+            </Link>
+            <span className="text-slate-300 dark:text-slate-600">|</span>
+            <Link href="/acknowledgements" className="hover:text-slate-900 dark:hover:text-white transition">
+              Acknowledgements
+            </Link>
+            <span className="text-slate-300 dark:text-slate-600">|</span>
+            <Link href="/licenses" className="hover:text-slate-900 dark:hover:text-white transition">
+              Licenses
             </Link>
             <span className="text-slate-300 dark:text-slate-600">|</span>
             <Link href="/privacy-security-trust" className="hover:text-slate-900 dark:hover:text-white transition">

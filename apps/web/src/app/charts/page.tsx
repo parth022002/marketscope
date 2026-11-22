@@ -167,6 +167,13 @@ export default function ChartsTerminalPage() {
             <Link href="/backtesting" className="px-2 py-1 rounded hover:bg-slate-800 hover:text-slate-200">
               Backtesting
             </Link>
+            <Link
+              href="/acknowledgements"
+              className="hidden xl:inline-flex px-1.5 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-sky-400 bg-slate-800/60"
+              title="Charting powered by TradingView Lightweight Charts (Apache 2.0)"
+            >
+              Lightweight Charts™
+            </Link>
           </div>
 
           <button
