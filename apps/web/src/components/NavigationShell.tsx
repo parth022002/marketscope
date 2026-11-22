@@ -34,6 +34,7 @@ import MarketTicker from "@/components/MarketTicker";
 import Footer from "@/components/Footer";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import { useTheme } from "./ThemeProvider";
+import { searchInstruments, type Instrument } from "@/lib/api";
 
 interface NavigationShellProps {
   children: React.ReactNode;
@@ -55,15 +56,27 @@ const NAV_ITEMS = [
   { label: "Workspace & Privacy", href: "/workspace", icon: ShieldCheck },
 ];
 
-const QUICK_SEARCH_ITEMS = [
-  { type: "EQUITY", symbol: "RELIANCE", name: "Reliance Industries Ltd", href: "/company/reliance", price: "₹1,377.50", chg: "+0.14%" },
-  { type: "EQUITY", symbol: "TCS", name: "Tata Consultancy Services", href: "/company/tcs", price: "₹4,180.20", chg: "+1.10%" },
-  { type: "EQUITY", symbol: "INFY", name: "Infosys Ltd", href: "/company/infy", price: "₹1,885.60", chg: "-0.65%" },
-  { type: "EQUITY", symbol: "TATAMOTORS", name: "Tata Motors Ltd", href: "/company/tatamotors", price: "₹942.50", chg: "+1.97%" },
-  { type: "INDEX", symbol: "NIFTY 50", name: "NSE Benchmark Index", href: "/markets", price: "25,800.60", chg: "+1.12%" },
-  { type: "INDEX", symbol: "SENSEX", name: "BSE Benchmark Index", href: "/markets", price: "83,919.71", chg: "+1.08%" },
-  { type: "COMMODITY", symbol: "GOLD", name: "Gold 24K Spot (MCX)", href: "/markets", price: "₹76,450", chg: "+0.45%" },
-  { type: "COMMODITY", symbol: "BRENT", name: "Brent Crude Oil", href: "/markets", price: "$74.20", chg: "-0.85%" },
+interface PaletteItem {
+  type: string;
+  symbol: string;
+  name: string;
+  href: string;
+  price?: string;
+  chg?: string;
+  exchange?: string;
+  isin?: string | null;
+  has_multiple_listings?: boolean;
+}
+
+const QUICK_SEARCH_ITEMS: PaletteItem[] = [
+  { type: "EQUITY", symbol: "RELIANCE", name: "Reliance Industries Ltd", href: "/company/reliance", price: "₹1,377.50", chg: "+0.14%", exchange: "NSE" },
+  { type: "EQUITY", symbol: "TCS", name: "Tata Consultancy Services", href: "/company/tcs", price: "₹4,180.20", chg: "+1.10%", exchange: "NSE" },
+  { type: "EQUITY", symbol: "INFY", name: "Infosys Ltd", href: "/company/infy", price: "₹1,885.60", chg: "-0.65%", exchange: "NSE", has_multiple_listings: true },
+  { type: "EQUITY", symbol: "TATAMOTORS", name: "Tata Motors Ltd", href: "/company/tatamotors", price: "₹942.50", chg: "+1.97%", exchange: "NSE", has_multiple_listings: true },
+  { type: "INDEX", symbol: "NIFTY 50", name: "NSE Benchmark Index", href: "/markets", price: "25,800.60", chg: "+1.12%", exchange: "NSE" },
+  { type: "INDEX", symbol: "SENSEX", name: "BSE Benchmark Index", href: "/markets", price: "83,919.71", chg: "+1.08%", exchange: "BSE" },
+  { type: "COMMODITY", symbol: "GOLD", name: "Gold 24K Spot (MCX)", href: "/markets", price: "₹76,450", chg: "+0.45%", exchange: "MCX" },
+  { type: "COMMODITY", symbol: "BRENT", name: "Brent Crude Oil", href: "/markets", price: "$74.20", chg: "-0.85%", exchange: "ICE" },
   { type: "PAGE", symbol: "SCREENER", name: "Quantitative Stock Screener", href: "/screener" },
   { type: "PAGE", symbol: "NEWS", name: "Verified Financial Wire", href: "/news" },
   { type: "PAGE", symbol: "CALENDAR", name: "Global Economic Calendar", href: "/calendar" },
@@ -79,6 +92,8 @@ export default function NavigationShell({ children, activePath }: NavigationShel
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [paletteQuery, setPaletteQuery] = useState("");
+  const [serverResults, setServerResults] = useState<Instrument[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   // Keyboard shortcut Ctrl+K to open Command Palette, Escape to close
   useEffect(() => {
@@ -94,11 +109,63 @@ export default function NavigationShell({ children, activePath }: NavigationShel
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const filteredPalette = QUICK_SEARCH_ITEMS.filter(
+  // Debounced server search against Universal Instrument Master
+  useEffect(() => {
+    const q = paletteQuery.trim();
+    if (!q) {
+      setServerResults([]);
+      setIsSearching(false);
+      return;
+    }
+    setIsSearching(true);
+    const timer = setTimeout(() => {
+      searchInstruments(q, { limit: 10 })
+        .then((items) => {
+          setServerResults(items || []);
+        })
+        .catch(() => {
+          setServerResults([]);
+        })
+        .finally(() => {
+          setIsSearching(false);
+        });
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [paletteQuery]);
+
+  const matchingStaticPages = QUICK_SEARCH_ITEMS.filter(
     (i) =>
-      i.symbol.toLowerCase().includes(paletteQuery.toLowerCase()) ||
-      i.name.toLowerCase().includes(paletteQuery.toLowerCase())
+      i.type === "PAGE" &&
+      (i.symbol.toLowerCase().includes(paletteQuery.toLowerCase()) ||
+        i.name.toLowerCase().includes(paletteQuery.toLowerCase()))
   );
+
+  const displayedItems: PaletteItem[] =
+    paletteQuery.trim().length === 0
+      ? QUICK_SEARCH_ITEMS
+      : [
+          ...matchingStaticPages,
+          ...serverResults.map((item) => ({
+            type: item.security_type || "EQUITY",
+            symbol: item.symbol,
+            name: item.display_name || item.company_name,
+            href: `/company/${item.symbol.toLowerCase()}`,
+            price:
+              item.price !== undefined
+                ? item.currency === "INR"
+                  ? `₹${item.price.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                  : `$${item.price.toFixed(2)}`
+                : undefined,
+            chg:
+              item.change_pct !== undefined
+                ? `${item.change_pct >= 0 ? "+" : ""}${item.change_pct.toFixed(2)}%`
+                : undefined,
+            exchange: item.exchange,
+            isin: item.isin,
+            has_multiple_listings: item.has_multiple_listings,
+          })),
+        ];
 
   const isLight = theme === "light";
 
@@ -431,37 +498,41 @@ export default function NavigationShell({ children, activePath }: NavigationShel
               <input
                 type="text"
                 autoFocus
-                placeholder="Type a company, symbol, or command..."
+                placeholder="Search symbol, company name, or ISIN (e.g. INFY, Apple, Reliance)..."
                 value={paletteQuery}
                 onChange={(e) => setPaletteQuery(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && filteredPalette.length > 0) {
-                    router.push(filteredPalette[0].href);
+                  if (e.key === "Enter" && displayedItems.length > 0) {
+                    router.push(displayedItems[0].href);
                     setIsCommandPaletteOpen(false);
                   }
                 }}
                 className="w-full bg-transparent outline-none text-sm text-inherit placeholder-slate-400 font-sans"
               />
-              <button
-                onClick={() => setIsCommandPaletteOpen(false)}
-                className="p-1 rounded text-slate-400 hover:text-inherit"
-              >
-                <X size={16} />
-              </button>
+              {isSearching ? (
+                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin shrink-0" />
+              ) : (
+                <button
+                  onClick={() => setIsCommandPaletteOpen(false)}
+                  className="p-1 rounded text-slate-400 hover:text-inherit"
+                >
+                  <X size={16} />
+                </button>
+              )}
             </div>
 
             {/* Quick Results List */}
             <div className="max-h-80 overflow-y-auto p-2 space-y-1 text-xs">
-              {filteredPalette.length === 0 ? (
+              {displayedItems.length === 0 ? (
                 <div className="p-6 text-center text-slate-400">
-                  No matching instruments or pages found.
+                  {isSearching ? "Searching global instrument master..." : "No matching instruments or pages found."}
                 </div>
               ) : (
-                filteredPalette.map((item) => {
+                displayedItems.map((item, idx) => {
                   const isUp = item.chg?.startsWith("+");
                   return (
                     <button
-                      key={item.symbol}
+                      key={`${item.symbol}-${item.exchange || idx}`}
                       onClick={() => {
                         router.push(item.href);
                         setIsCommandPaletteOpen(false);
@@ -489,8 +560,21 @@ export default function NavigationShell({ children, activePath }: NavigationShel
                         <div>
                           <div className="font-bold flex items-center gap-1.5">
                             <span>{item.symbol}</span>
+                            {item.exchange && (
+                              <span className="text-[10px] font-mono font-bold px-1 py-0.2 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                                {item.exchange}
+                              </span>
+                            )}
+                            {item.has_multiple_listings && (
+                              <span className="text-[9px] font-sans font-medium px-1 py-0.2 rounded bg-indigo-500/15 text-indigo-400">
+                                Multi-Listed
+                              </span>
+                            )}
                           </div>
-                          <div className="text-[11px] text-slate-400 font-sans">{item.name}</div>
+                          <div className="text-[11px] text-slate-400 font-sans truncate max-w-xs md:max-w-sm">
+                            {item.name}
+                            {item.isin && <span className="ml-1.5 font-mono text-[10px] opacity-75">· {item.isin}</span>}
+                          </div>
                         </div>
                       </div>
 

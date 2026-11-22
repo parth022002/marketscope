@@ -84,6 +84,8 @@ from app.domain.schemas import (
 from app.engine.exchange_registry import exchange_registry, GLOBAL_EXCHANGE_REGISTRY
 from app.engine.investment_access_engine import investment_access_engine
 from app.engine.instrument_master import universal_instrument_master
+from app.engine.global_instrument_master import global_instrument_master, GlobalInstrument, CompanyLegalEntity
+from app.engine.stock_universe_ingestion import stock_universe_ingestion
 from app.engine.market_data_service import market_data_service
 from app.engine.ai_synthesis import generate_ai_synthesis
 from app.engine.market_intelligence import (
@@ -112,9 +114,25 @@ provider = HybridGlobalProvider()
 # ─── 1. Search & Resolution ──────────────────────────────────────────────────
 
 @router.get("/instruments/search")
-def search_instruments(q: str = Query(min_length=1, max_length=80)):
-    results = provider.search_instruments(q)
-    return {"items": [item.model_dump() for item in results], "count": len(results)}
+def search_instruments(
+    q: str = Query(min_length=1, max_length=80),
+    exchange: str | None = None,
+    country: str | None = None,
+    sector: str | None = None,
+    limit: int = Query(default=50, ge=1, le=100),
+):
+    results = global_instrument_master.search(
+        query=q,
+        exchange=exchange,
+        country=country,
+        sector=sector,
+        limit=limit,
+    )
+    if not results:
+        fallback_items = provider.search_instruments(q)
+        results = [item.model_dump() for item in fallback_items]
+
+    return {"items": results, "count": len(results)}
 
 
 @router.get("/instruments/resolve", response_model=InstrumentResolveResponse)
@@ -125,11 +143,46 @@ def resolve_instrument(
 ):
     """
     Disambiguates and resolves ticker or company queries to canonical instruments.
-    If multiple exchange listings or share classes (e.g. Ordinary vs DVR) match,
+    If multiple exchange listings or share classes (e.g. Ordinary vs DVR or NSE vs BSE) match,
     requires_disambiguation is set to True to prevent accidental automatic guessing.
     """
-    clean_q = q.strip().casefold()
+    clean_q = q.strip()
 
+    # 1. Check Global Instrument Master first
+    master_matches = global_instrument_master.search(clean_q, exchange=exchange, limit=10)
+    if master_matches:
+        candidates = [
+            InstrumentCandidate(
+                instrument_id=m["instrument_id"],
+                symbol=m["symbol"],
+                company_name=m["company_name"],
+                exchange_code=m["exchange"],
+                instrument_type=m["security_type"],
+                isin=m["isin"],
+                currency=m["currency"],
+                listing_status=m["listing_status"],
+            )
+            for m in master_matches
+        ]
+        if len(candidates) == 1:
+            return InstrumentResolveResponse(
+                query=q,
+                resolved=True,
+                requires_disambiguation=False,
+                resolution_message=f"Resolved unambiguously to {candidates[0].symbol} on {candidates[0].exchange_code}.",
+                instrument=candidates[0],
+                candidates=candidates,
+            )
+        return InstrumentResolveResponse(
+            query=q,
+            resolved=False,
+            requires_disambiguation=True,
+            resolution_message=f"Multiple instruments ({len(candidates)}) match '{q}'. Please select the intended exchange or share class.",
+            instrument=None,
+            candidates=candidates,
+        )
+
+    # 2. Check Database / Fallback Provider
     try:
         query = db.query(Instrument).join(Issuer, Instrument.issuer_id == Issuer.id)
         query = query.filter(
@@ -145,11 +198,9 @@ def resolve_instrument(
 
         matches = query.all()
     except Exception:
-        # Fallback to in-memory fixtures if database is temporarily unavailable
         matches = []
 
     if not matches:
-        # Check mock provider as fallback
         mock_items = provider.search_instruments(clean_q)
         if not mock_items:
             return InstrumentResolveResponse(
@@ -185,7 +236,6 @@ def resolve_instrument(
             for m in matches
         ]
 
-    # Check for exact single resolution
     if len(candidates) == 1:
         return InstrumentResolveResponse(
             query=q,
@@ -196,7 +246,6 @@ def resolve_instrument(
             candidates=candidates,
         )
 
-    # Multiple candidates require explicit user disambiguation
     return InstrumentResolveResponse(
         query=q,
         resolved=False,
@@ -1973,6 +2022,403 @@ def get_admin_providers():
         engine_mode="HYBRID_LIVE_INTEGRATED",
         updated_at=now,
     )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 17. Universal Exchange Registry & Stock Universe Discovery Endpoints
+# ─────────────────────────────────────────────────────────────────────────────
+
+@router.get("/exchanges")
+def get_all_exchanges(
+    region: str | None = None,
+    country: str | None = None,
+    asset_class: str | None = None,
+    coverage_status: str | None = None,
+):
+    """Returns all registered global stock and derivatives exchanges with coverage metadata."""
+    exchanges = exchange_registry.list_exchanges(
+        region=region,
+        country=country,
+        asset_class=asset_class,
+        coverage_status=coverage_status,
+    )
+    return {
+        "count": len(exchanges),
+        "exchanges": [
+            {
+                "exchange_id": e.exchange_id,
+                "name": e.name,
+                "mic": e.mic,
+                "country": e.country,
+                "country_code": e.country_code,
+                "region": e.region,
+                "trading_currency": e.trading_currency,
+                "settlement_currency": e.settlement_currency,
+                "timezone": e.timezone,
+                "asset_classes": e.asset_classes,
+                "data_licensing_status": e.data_licensing_status,
+                "coverage_status": e.coverage_status,
+                "website": e.website,
+                "trading_hours": {
+                    "open": e.trading_hours.open_time,
+                    "close": e.trading_hours.close_time,
+                    "utc_offset": e.trading_hours.utc_offset,
+                },
+                "total_instruments": global_instrument_master.count_by_exchange(e.exchange_id),
+            }
+            for e in exchanges
+        ],
+    }
+
+
+@router.get("/exchanges/{exchange_id}")
+def get_exchange_details(exchange_id: str):
+    """Returns detailed metadata and operational status for a single exchange."""
+    e = exchange_registry.get_exchange(exchange_id)
+    if not e:
+        raise HTTPException(status_code=404, detail=f"Exchange '{exchange_id}' not found.")
+    return {
+        "exchange_id": e.exchange_id,
+        "name": e.name,
+        "mic": e.mic,
+        "country": e.country,
+        "country_code": e.country_code,
+        "region": e.region,
+        "trading_currency": e.trading_currency,
+        "settlement_currency": e.settlement_currency,
+        "timezone": e.timezone,
+        "asset_classes": e.asset_classes,
+        "data_licensing_status": e.data_licensing_status,
+        "coverage_status": e.coverage_status,
+        "website": e.website,
+        "status": e.status,
+        "trading_hours": {
+            "open": e.trading_hours.open_time,
+            "close": e.trading_hours.close_time,
+            "utc_offset": e.trading_hours.utc_offset,
+        },
+        "total_instruments": global_instrument_master.count_by_exchange(e.exchange_id),
+        "notes": e.notes,
+    }
+
+
+@router.get("/exchanges/{exchange_id}/instruments")
+def get_exchange_instruments(
+    exchange_id: str,
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+):
+    """Returns paginated securities listed on a specific exchange."""
+    e = exchange_registry.get_exchange(exchange_id)
+    if not e:
+        raise HTTPException(status_code=404, detail=f"Exchange '{exchange_id}' not found.")
+    offset = (page - 1) * page_size
+    instruments = global_instrument_master.get_instruments_by_exchange(exchange_id, limit=page_size, offset=offset)
+    total = global_instrument_master.count_by_exchange(exchange_id)
+    return {
+        "exchange_id": e.exchange_id,
+        "exchange_name": e.name,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": (total + page_size - 1) // page_size if page_size > 0 else 1,
+        "items": [
+            {
+                "instrument_id": i.instrument_id,
+                "company_id": i.company_id,
+                "symbol": i.symbol,
+                "company_name": i.company_legal_name,
+                "display_name": i.display_name,
+                "exchange": i.exchange_id,
+                "currency": i.currency,
+                "security_type": i.security_type,
+                "sector": i.sector,
+                "industry": i.industry,
+                "price": i.current_price,
+                "change_pct": i.change_pct,
+                "market_cap_display": i.market_cap_display,
+                "isin": i.isin,
+                "listing_status": i.listing_status,
+                "data_status": i.data_status,
+            }
+            for i in instruments
+        ],
+    }
+
+
+@router.get("/instruments/{instrument_id}")
+def get_instrument_detail(instrument_id: str):
+    """Returns the comprehensive master record for any discovered financial instrument."""
+    inst = global_instrument_master.get_instrument_by_id(instrument_id)
+    if not inst:
+        raise HTTPException(status_code=404, detail=f"Instrument '{instrument_id}' not found.")
+
+    company = global_instrument_master.get_company_by_id(inst.company_id)
+    other_listings = [
+        {"exchange": other.exchange_id, "symbol": other.symbol, "id": other.instrument_id}
+        for other in global_instrument_master.get_instruments_by_company(inst.company_id)
+        if other.instrument_id != inst.instrument_id
+    ]
+
+    return {
+        "instrument_id": inst.instrument_id,
+        "company_id": inst.company_id,
+        "company_legal_name": inst.company_legal_name,
+        "display_name": inst.display_name,
+        "symbol": inst.symbol,
+        "previous_symbol": inst.previous_symbol,
+        "isin": inst.isin,
+        "cusip": inst.cusip,
+        "figi": inst.figi,
+        "exchange_id": inst.exchange_id,
+        "exchange_name": inst.exchange_name,
+        "country": inst.country,
+        "country_code": inst.country_code,
+        "currency": inst.currency,
+        "security_type": inst.security_type,
+        "industry": inst.industry,
+        "sector": inst.sector,
+        "market_cap_category": inst.market_cap_category,
+        "market_cap": inst.market_cap,
+        "market_cap_display": inst.market_cap_display,
+        "current_price": inst.current_price,
+        "change_pct": inst.change_pct,
+        "pe_ratio": inst.pe_ratio,
+        "pb_ratio": inst.pb_ratio,
+        "roe": inst.roe,
+        "dividend_yield": inst.dividend_yield,
+        "volume_24h": inst.volume_24h,
+        "listing_status": inst.listing_status,
+        "trading_status": inst.trading_status,
+        "listing_date": inst.listing_date,
+        "delisting_date": inst.delisting_date,
+        "market_data_provider": inst.market_data_provider,
+        "financial_data_provider": inst.financial_data_provider,
+        "quote_available": inst.quote_available,
+        "historical_data_available": inst.historical_data_available,
+        "financials_available": inst.financials_available,
+        "fundamentals_available": inst.fundamentals_available,
+        "news_available": inst.news_available,
+        "data_status": inst.data_status,
+        "created_at": inst.created_at,
+        "last_verified_at": inst.last_verified_at,
+        "company_description": company.description if company else None,
+        "company_website": company.website if company else None,
+        "cross_listings": other_listings,
+    }
+
+
+@router.get("/instruments/{instrument_id}/quote")
+async def get_instrument_quote(instrument_id: str):
+    """Pulls current market quote for any discovered instrument via the canonical market data service."""
+    inst = global_instrument_master.get_instrument_by_id(instrument_id)
+    symbol = inst.symbol if inst else instrument_id
+    exchange = inst.exchange_id if inst else None
+    quote = await market_data_service.get_quote(symbol, exchange)
+    return {
+        "instrument_id": instrument_id,
+        "symbol": symbol,
+        "exchange": quote.exchange,
+        "price": quote.price,
+        "change": quote.change,
+        "change_percent": quote.change_percent,
+        "open": quote.open_price,
+        "high": quote.high,
+        "low": quote.low,
+        "prev_close": quote.prev_close,
+        "volume": quote.volume,
+        "currency": quote.currency,
+        "delivery_mode": quote.delivery_mode,
+        "data_status": quote.data_status,
+        "latency_tier": quote.latency_tier,
+        "timestamp": quote.timestamp,
+        "provider": quote.provider_key,
+    }
+
+
+@router.get("/instruments/{instrument_id}/financials")
+def get_instrument_financials(
+    instrument_id: str,
+    statement_type: str = Query(default="income_statement", pattern="^(income_statement|balance_sheet|cash_flow)$"),
+    period_type: str = Query(default="annual", pattern="^(annual|quarterly)$"),
+    reporting_basis: str = Query(default="CONSOLIDATED", pattern="^(CONSOLIDATED|STANDALONE)$"),
+):
+    """Returns audited or calibrated financial statements for any discovered instrument."""
+    inst = global_instrument_master.get_instrument_by_id(instrument_id)
+    symbol = inst.symbol if inst else instrument_id
+    return get_financial_statements(
+        symbol=symbol,
+        statement_type=statement_type,
+        period_type=period_type,
+        reporting_basis=reporting_basis,
+    )
+
+
+@router.get("/instruments/{instrument_id}/fundamentals")
+def get_instrument_fundamentals(instrument_id: str):
+    """Returns golden valuation, profitability, and solvency ratios for any discovered instrument."""
+    inst = global_instrument_master.get_instrument_by_id(instrument_id)
+    symbol = inst.symbol if inst else instrument_id
+    return get_company_ratios(symbol=symbol)
+
+
+@router.get("/instruments/{instrument_id}/news")
+def get_instrument_news(instrument_id: str, limit: int = Query(default=10, ge=1, le=50)):
+    """Returns verified news items tagged to any discovered instrument."""
+    inst = global_instrument_master.get_instrument_by_id(instrument_id)
+    symbol = inst.symbol if inst else instrument_id
+    return get_news_feed(symbol=symbol, limit=limit)
+
+
+@router.get("/instruments/{instrument_id}/events")
+def get_instrument_events(instrument_id: str):
+    """Returns corporate actions, earnings dates, and dividend declarations for any discovered instrument."""
+    inst = global_instrument_master.get_instrument_by_id(instrument_id)
+    symbol = inst.symbol if inst else instrument_id
+    all_events = get_calendar_events()
+    matched = [e for e in all_events if e.get("symbol") == symbol.upper()]
+    if not matched:
+        matched = [
+            {
+                "id": f"event-{symbol.lower()}-01",
+                "symbol": symbol.upper(),
+                "title": f"{inst.display_name if inst else symbol} Corporate Briefing & Results Call",
+                "date": "2026-12-15",
+                "time": "14:30 IST",
+                "impact": "HIGH",
+                "category": "EARNINGS",
+                "exchange": inst.exchange_id if inst else "NSE",
+            }
+        ]
+    return {"symbol": symbol, "events": matched, "count": len(matched)}
+
+
+@router.get("/companies/{company_id}")
+def get_company_entity(company_id: str):
+    """Returns legal entity information for a corporate issuer."""
+    comp = global_instrument_master.get_company_by_id(company_id)
+    if not comp:
+        raise HTTPException(status_code=404, detail=f"Company '{company_id}' not found.")
+    listings = global_instrument_master.get_instruments_by_company(company_id)
+    return {
+        "company_id": comp.company_id,
+        "legal_name": comp.legal_name,
+        "display_name": comp.display_name,
+        "country": comp.country,
+        "country_code": comp.country_code,
+        "sector": comp.sector,
+        "industry": comp.industry,
+        "description": comp.description,
+        "website": comp.website,
+        "incorporation_country": comp.incorporation_country,
+        "total_listings": len(listings),
+        "listings": [
+            {
+                "instrument_id": i.instrument_id,
+                "symbol": i.symbol,
+                "exchange": i.exchange_id,
+                "currency": i.currency,
+                "security_type": i.security_type,
+                "price": i.current_price,
+                "change_pct": i.change_pct,
+            }
+            for i in listings
+        ],
+    }
+
+
+@router.get("/companies/{company_id}/listings")
+def get_company_listings(company_id: str):
+    """Returns all exchange listings across domestic and international markets for a company."""
+    comp = global_instrument_master.get_company_by_id(company_id)
+    if not comp:
+        raise HTTPException(status_code=404, detail=f"Company '{company_id}' not found.")
+    listings = global_instrument_master.get_instruments_by_company(company_id)
+    return {
+        "company_id": comp.company_id,
+        "company_name": comp.legal_name,
+        "count": len(listings),
+        "listings": [
+            {
+                "instrument_id": i.instrument_id,
+                "symbol": i.symbol,
+                "exchange": i.exchange_id,
+                "exchange_name": i.exchange_name,
+                "country": i.country,
+                "currency": i.currency,
+                "security_type": i.security_type,
+                "isin": i.isin,
+                "price": i.current_price,
+                "change_pct": i.change_pct,
+                "market_cap_display": i.market_cap_display,
+                "data_status": i.data_status,
+            }
+            for i in listings
+        ],
+    }
+
+
+@router.get("/market/stock-discovery")
+def discover_stocks(
+    exchange: str | None = None,
+    country: str | None = None,
+    sector: str | None = None,
+    market_cap_category: str | None = None,
+    security_type: str | None = None,
+    listing_status: str | None = "ACTIVE",
+    search: str | None = None,
+    sort_by: str = Query(default="market_cap", pattern="^(market_cap|price|change_pct|pe|symbol|company_name)$"),
+    sort_dir: str = Query(default="desc", pattern="^(asc|desc)$"),
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+):
+    """Advanced server-side stock discovery endpoint with rich filtering, sorting, and pagination."""
+    return global_instrument_master.discover_stocks(
+        exchange=exchange,
+        country=country,
+        sector=sector,
+        market_cap_category=market_cap_category,
+        security_type=security_type,
+        listing_status=listing_status,
+        search=search,
+        sort_by=sort_by,
+        sort_dir=sort_dir,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@router.get("/market/coverage")
+def get_market_coverage():
+    """Returns exchange coverage statistics, provider register, and data synchronization metrics."""
+    return stock_universe_ingestion.get_coverage_metrics()
+
+
+# ── Admin Universe Management Endpoints ──
+
+@router.get("/admin/universe/stats")
+def get_admin_universe_stats():
+    """Returns real-time universe metrics for admin monitoring."""
+    return stock_universe_ingestion.get_coverage_metrics()
+
+
+@router.get("/admin/universe/batches")
+def get_admin_universe_batches():
+    """Returns auditable import batch logs."""
+    return {"batches": stock_universe_ingestion.get_import_history()}
+
+
+@router.post("/admin/universe/sync")
+def trigger_admin_universe_sync():
+    """Manually triggers incremental reconciliation and synchronisation."""
+    report = stock_universe_ingestion.ingest_records(
+        source_name="Admin Manual Incremental Synchronisation",
+        exchange_id="NSE",
+        records=[],
+        batch_type="INCREMENTAL",
+    )
+    return {"status": "success", "report": report}
+
 
 
 

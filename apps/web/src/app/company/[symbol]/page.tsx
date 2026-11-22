@@ -32,9 +32,11 @@ import {
   getDossier,
   getCompanyRatios,
   getNewsFeed,
+  getCompanyListings,
   type Dossier,
   type CompanyRatios,
   type NewsItem,
+  type CompanyListingsResponse,
 } from "@/lib/api";
 import EvidenceDrawer from "@/components/EvidenceDrawer";
 import ResearchNotesPanel from "@/components/ResearchNotesPanel";
@@ -64,6 +66,7 @@ export default function CompanyPage() {
   const [dossier, setDossier] = useState<Dossier | null>(null);
   const [ratios, setRatios] = useState<CompanyRatios | null>(null);
   const [companyNews, setCompanyNews] = useState<NewsItem[]>([]);
+  const [listingsData, setListingsData] = useState<CompanyListingsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -78,22 +81,30 @@ export default function CompanyPage() {
   const [isWatchlistModalOpen, setIsWatchlistModalOpen] = useState(false);
 
   useEffect(() => {
-    if (!instrumentId) return;
+    if (!rawSymbol) return;
     setLoading(true);
 
     Promise.all([
-      getDossier(instrumentId),
+      getDossier(rawSymbol).catch(() => getDossier(instrumentId)),
       getCompanyRatios(symbol).catch(() => null),
       getNewsFeed({ symbol }).catch(() => []),
+      getCompanyListings(rawSymbol).catch(() => null),
     ])
-      .then(([dossierData, ratiosData, newsData]) => {
+      .then(([dossierData, ratiosData, newsData, listData]) => {
         setDossier(dossierData);
         setRatios(ratiosData);
         setCompanyNews(newsData || []);
+        if (listData?.listings && listData.listings.length > 0) {
+          setListingsData(listData);
+        } else if (dossierData?.instrument && (dossierData.instrument as any).company_id) {
+          getCompanyListings((dossierData.instrument as any).company_id)
+            .then(setListingsData)
+            .catch(() => {});
+        }
       })
       .catch(() => setError("Company dossier not found or API service offline."))
       .finally(() => setLoading(false));
-  }, [instrumentId, symbol]);
+  }, [rawSymbol, instrumentId, symbol]);
 
   if (loading) {
     return (
@@ -231,6 +242,47 @@ export default function CompanyPage() {
             )}
           </div>
         </div>
+
+        {/* Cross-Listing & Multi-Share Class Navigation Bar */}
+        {listingsData && listingsData.listings && listingsData.listings.length > 1 && (
+          <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-2xl bg-slate-100/80 dark:bg-[#0B1D38] border border-slate-200 dark:border-[#132B4F] shadow-xs text-xs animate-in fade-in">
+            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-mono text-[11px]">
+              <Layers size={14} className="text-blue-500" />
+              <span className="font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                Cross-Listings &amp; Share Classes ({listingsData.listings.length}):
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5">
+              {listingsData.listings.map((l) => {
+                const isActive = l.symbol.toUpperCase() === symbol;
+                const isUsd = l.currency === "USD";
+                return (
+                  <Link
+                    key={l.instrument_id}
+                    href={`/company/${l.symbol.toLowerCase()}`}
+                    className={`px-3 py-1.5 rounded-xl font-mono text-[11px] transition flex items-center gap-2 border ${
+                      isActive
+                        ? "bg-blue-600 text-white font-bold border-blue-600 shadow-xs"
+                        : "bg-white dark:bg-[#07152B] border-slate-200 dark:border-[#132B4F] text-slate-700 dark:text-slate-300 hover:border-blue-500 hover:text-slate-900 dark:hover:text-white"
+                    }`}
+                  >
+                    <span className="font-bold">{l.symbol}</span>
+                    <span className={`text-[10px] px-1 py-0.2 rounded ${isActive ? "bg-blue-700 text-blue-100" : "bg-slate-100 dark:bg-[#0B1930] text-slate-500"}`}>
+                      {l.exchange}
+                    </span>
+                    <span className="font-semibold tabular-nums">
+                      {isUsd ? "$" : "₹"}
+                      {l.price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                    {l.security_type === "ADR" && (
+                      <span className="text-[9px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-300">ADR</span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Header Title & Actions */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

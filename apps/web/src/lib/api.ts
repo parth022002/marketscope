@@ -14,6 +14,21 @@ export type Instrument = {
   sector: string;
   currency: string;
   data_status: string;
+  display_name?: string;
+  company_id?: string;
+  exchange_name?: string;
+  country?: string;
+  country_code?: string;
+  security_type?: string;
+  isin?: string | null;
+  industry?: string;
+  price?: number;
+  change_pct?: number;
+  market_cap?: number;
+  market_cap_display?: string;
+  score?: number;
+  match_reason?: string;
+  has_multiple_listings?: boolean;
 };
 
 export type Metric = {
@@ -235,14 +250,28 @@ export type ResearchSnapshot = {
 
 // ─── API Functions ───────────────────────────────────────────────────────────
 
-export async function searchInstruments(query: string): Promise<Instrument[]> {
+export async function searchInstruments(
+  query: string,
+  options?: {
+    exchange?: string;
+    country?: string;
+    sector?: string;
+    limit?: number;
+  }
+): Promise<Instrument[]> {
+  const params = new URLSearchParams({ q: query });
+  if (options?.exchange) params.set("exchange", options.exchange);
+  if (options?.country) params.set("country", options.country);
+  if (options?.sector) params.set("sector", options.sector);
+  if (options?.limit) params.set("limit", String(options.limit));
+
   const response = await fetch(
-    `${getApiBase()}/api/v1/instruments/search?q=${encodeURIComponent(query)}`,
+    `${getApiBase()}/api/v1/instruments/search?${params.toString()}`,
     { cache: "no-store" }
   );
   if (!response.ok) throw new Error("Unable to search instruments");
   const data = await response.json();
-  return data.items as Instrument[];
+  return (data.items || []) as Instrument[];
 }
 
 export async function resolveInstrument(query: string, exchange?: string): Promise<ResolveResponse> {
@@ -1399,6 +1428,129 @@ export async function getAdminProviders(): Promise<AdminProvidersOverview> {
   if (!response.ok) throw new Error("Unable to retrieve admin providers status");
   return response.json();
 }
+
+export type StockDiscoveryItem = {
+  instrument_id: string;
+  symbol: string;
+  name: string;
+  display_name: string;
+  company_id: string;
+  exchange: string;
+  exchange_name: string;
+  country: string;
+  country_code: string;
+  currency: string;
+  security_type: string;
+  isin: string | null;
+  sector: string;
+  industry: string;
+  price: number;
+  change_pct: number;
+  market_cap: number;
+  market_cap_display: string;
+  market_cap_category: string;
+  pe_ratio: number | null;
+  pb_ratio: number | null;
+  roe_pct: number | null;
+  week_52_high: number;
+  week_52_low: number;
+  volume: number;
+  data_status: string;
+  has_multiple_listings: boolean;
+  total_listings: number;
+};
+
+export type StockDiscoveryResponse = {
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+  filters_applied: Record<string, any>;
+  results: StockDiscoveryItem[];
+};
+
+export type CompanyListingItem = {
+  instrument_id: string;
+  symbol: string;
+  exchange: string;
+  exchange_name: string;
+  country: string;
+  currency: string;
+  security_type: string;
+  isin: string | null;
+  price: number;
+  change_pct: number;
+  market_cap_display: string;
+  data_status: string;
+};
+
+export type CompanyListingsResponse = {
+  company_id: string;
+  company_name: string;
+  count: number;
+  listings: CompanyListingItem[];
+};
+
+export type MarketCoverageResponse = {
+  total_instruments: number;
+  total_companies: number;
+  active_listings: number;
+  exchanges_covered: number;
+  by_exchange: Record<string, number>;
+  by_country: Record<string, number>;
+  by_sector: Record<string, number>;
+  cross_listings_count: number;
+  timestamp: string;
+  status: string;
+  providers: any[];
+};
+
+export async function getStockDiscovery(params?: {
+  exchange?: string;
+  country?: string;
+  sector?: string;
+  market_cap_category?: string;
+  security_type?: string;
+  listing_status?: string;
+  search?: string;
+  sort_by?: string;
+  sort_dir?: string;
+  page?: number;
+  page_size?: number;
+}): Promise<StockDiscoveryResponse> {
+  const query = new URLSearchParams();
+  if (params?.exchange) query.set("exchange", params.exchange);
+  if (params?.country) query.set("country", params.country);
+  if (params?.sector) query.set("sector", params.sector);
+  if (params?.market_cap_category) query.set("market_cap_category", params.market_cap_category);
+  if (params?.security_type) query.set("security_type", params.security_type);
+  if (params?.listing_status) query.set("listing_status", params.listing_status);
+  if (params?.search) query.set("search", params.search);
+  if (params?.sort_by) query.set("sort_by", params.sort_by);
+  if (params?.sort_dir) query.set("sort_dir", params.sort_dir);
+  if (params?.page) query.set("page", String(params.page));
+  if (params?.page_size) query.set("page_size", String(params.page_size));
+
+  const url = `${getApiBase()}/api/v1/market/stock-discovery?${query.toString()}`;
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to discover stocks");
+  return response.json();
+}
+
+export async function getCompanyListings(companyId: string): Promise<CompanyListingsResponse> {
+  const url = `${getApiBase()}/api/v1/companies/${encodeURIComponent(companyId)}/listings`;
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to retrieve company listings");
+  return response.json();
+}
+
+export async function getMarketCoverage(): Promise<MarketCoverageResponse> {
+  const url = `${getApiBase()}/api/v1/market/coverage`;
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) throw new Error("Unable to retrieve market coverage");
+  return response.json();
+}
+
 
 
 

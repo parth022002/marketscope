@@ -35,6 +35,7 @@ class ExchangeMetadata:
     data_licensing_status: str  # "LICENSED_DISPLAY", "DELAYED_15M", "EOD_RESTRICTED", "OPEN_ACCESS", "PROPRIETARY"
     website: str
     status: str = "ACTIVE"
+    coverage_status: str = "VERIFIED"  # "VERIFIED", "IMPORTED", "PARTIALLY_AVAILABLE", "REQUIRES_LICENCE", "PROVIDER_UNAVAILABLE"
     notes: str = ""
 
 
@@ -638,6 +639,126 @@ GLOBAL_EXCHANGE_REGISTRY: dict[str, ExchangeMetadata] = {
         data_licensing_status="DELAYED_15M",
         website="https://www.b3.com.br",
         notes="Latin America's leading stock and derivatives exchange, home to the Ibovespa index.",
+        coverage_status="IMPORTED",
+    ),
+    "AMEX": ExchangeMetadata(
+        exchange_id="AMEX",
+        name="NYSE American (formerly AMEX)",
+        mic="XASE",
+        country="United States",
+        country_code="US",
+        region="Americas",
+        trading_currency="USD",
+        settlement_currency="USD",
+        timezone="America/New_York",
+        trading_hours=TradingHours(open_time="09:30", close_time="16:00", utc_offset="-05:00"),
+        asset_classes=["EQUITY", "ETF", "OPTION"],
+        data_licensing_status="LICENSED_DISPLAY",
+        website="https://www.nyse.com",
+        notes="Primary market for small to mid-cap emerging growth companies.",
+        coverage_status="VERIFIED",
+    ),
+    "ARCA": ExchangeMetadata(
+        exchange_id="ARCA",
+        name="NYSE Arca",
+        mic="ARCX",
+        country="United States",
+        country_code="US",
+        region="Americas",
+        trading_currency="USD",
+        settlement_currency="USD",
+        timezone="America/New_York",
+        trading_hours=TradingHours(open_time="09:30", close_time="16:00", utc_offset="-05:00"),
+        asset_classes=["EQUITY", "ETF"],
+        data_licensing_status="LICENSED_DISPLAY",
+        website="https://www.nyse.com",
+        notes="Leading U.S. exchange for listing and trading of exchange-traded funds (ETFs).",
+        coverage_status="VERIFIED",
+    ),
+    "TSXV": ExchangeMetadata(
+        exchange_id="TSXV",
+        name="TSX Venture Exchange",
+        mic="XTSX",
+        country="Canada",
+        country_code="CA",
+        region="Americas",
+        trading_currency="CAD",
+        settlement_currency="CAD",
+        timezone="America/Toronto",
+        trading_hours=TradingHours(open_time="09:30", close_time="16:00", utc_offset="-05:00"),
+        asset_classes=["EQUITY"],
+        data_licensing_status="DELAYED_15M",
+        website="https://www.tsx.com",
+        notes="Public venture capital marketplace for emerging companies in mining and technology.",
+        coverage_status="PARTIALLY_AVAILABLE",
+    ),
+    "CSE": ExchangeMetadata(
+        exchange_id="CSE",
+        name="Canadian Securities Exchange",
+        mic="XCNQ",
+        country="Canada",
+        country_code="CA",
+        region="Americas",
+        trading_currency="CAD",
+        settlement_currency="CAD",
+        timezone="America/Toronto",
+        trading_hours=TradingHours(open_time="09:30", close_time="16:00", utc_offset="-05:00"),
+        asset_classes=["EQUITY"],
+        data_licensing_status="DELAYED_15M",
+        website="https://thecse.com",
+        notes="Alternative Canadian exchange for micro-cap and growth issuers.",
+        coverage_status="PARTIALLY_AVAILABLE",
+    ),
+    "AIM": ExchangeMetadata(
+        exchange_id="AIM",
+        name="London Stock Exchange AIM",
+        mic="AIMX",
+        country="United Kingdom",
+        country_code="GB",
+        region="Europe",
+        trading_currency="GBP",
+        settlement_currency="GBP",
+        timezone="Europe/London",
+        trading_hours=TradingHours(open_time="08:00", close_time="16:30", utc_offset="+00:00"),
+        asset_classes=["EQUITY"],
+        data_licensing_status="DELAYED_15M",
+        website="https://www.londonstockexchange.com",
+        notes="Sub-market of London Stock Exchange for smaller, high-growth companies.",
+        coverage_status="PARTIALLY_AVAILABLE",
+    ),
+    "TWSE": ExchangeMetadata(
+        exchange_id="TWSE",
+        name="Taiwan Stock Exchange",
+        mic="XTAI",
+        country="Taiwan",
+        country_code="TW",
+        region="Asia-Pacific",
+        trading_currency="TWD",
+        settlement_currency="TWD",
+        timezone="Asia/Taipei",
+        trading_hours=TradingHours(open_time="09:00", close_time="13:30", utc_offset="+08:00"),
+        asset_classes=["EQUITY", "ETF"],
+        data_licensing_status="LICENSED_DISPLAY",
+        website="https://www.twse.com.tw",
+        notes="Leading semiconductor and electronics liquidity hub in East Asia, home to TSMC.",
+        coverage_status="VERIFIED",
+    ),
+    "JSE": ExchangeMetadata(
+        exchange_id="JSE",
+        name="Johannesburg Stock Exchange",
+        mic="XJSE",
+        country="South Africa",
+        country_code="ZA",
+        region="Middle East & Africa",
+        trading_currency="ZAR",
+        settlement_currency="ZAR",
+        timezone="Africa/Johannesburg",
+        trading_hours=TradingHours(open_time="09:00", close_time="17:00", utc_offset="+02:00"),
+        asset_classes=["EQUITY", "COMMODITY", "BOND"],
+        data_licensing_status="DELAYED_15M",
+        website="https://www.jse.co.za",
+        notes="Largest stock exchange on the African continent.",
+        coverage_status="IMPORTED",
     ),
     "FOREX": ExchangeMetadata(
         exchange_id="FOREX",
@@ -658,6 +779,7 @@ GLOBAL_EXCHANGE_REGISTRY: dict[str, ExchangeMetadata] = {
         data_licensing_status="OPEN_ACCESS",
         website="https://www.bis.org",
         notes="Global 24/5 FX institutional market and benchmark fixing venue.",
+        coverage_status="VERIFIED",
     ),
 }
 
@@ -671,11 +793,15 @@ class ExchangeRegistryService:
     def get_exchange(self, exchange_id: str) -> ExchangeMetadata | None:
         return self._registry.get(exchange_id.upper().strip())
 
+    def list_all(self) -> list[ExchangeMetadata]:
+        return list(self._registry.values())
+
     def list_exchanges(
         self,
         region: str | None = None,
         country: str | None = None,
         asset_class: str | None = None,
+        coverage_status: str | None = None,
     ) -> list[ExchangeMetadata]:
         results = list(self._registry.values())
         if region:
@@ -684,7 +810,31 @@ class ExchangeRegistryService:
             results = [e for e in results if e.country.lower() == country.lower() or e.country_code.lower() == country.lower()]
         if asset_class:
             results = [e for e in results if asset_class.upper() in e.asset_classes]
+        if coverage_status:
+            results = [e for e in results if e.coverage_status.upper() == coverage_status.upper()]
         return results
+
+    def get_coverage_summary(self) -> dict[str, Any]:
+        """Calculates exchange coverage counts grouped by tier."""
+        total = len(self._registry)
+        verified = sum(1 for e in self._registry.values() if e.coverage_status == "VERIFIED")
+        imported = sum(1 for e in self._registry.values() if e.coverage_status == "IMPORTED")
+        partial = sum(1 for e in self._registry.values() if e.coverage_status == "PARTIALLY_AVAILABLE")
+        regions = {}
+        by_country = {}
+        for e in self._registry.values():
+            regions[e.region] = regions.get(e.region, 0) + 1
+            by_country[e.country] = by_country.get(e.country, 0) + 1
+
+        return {
+            "total_exchanges": total,
+            "total_exchanges_configured": total,
+            "verified_exchanges": verified,
+            "imported_exchanges": imported,
+            "partially_available_exchanges": partial,
+            "regions": regions,
+            "by_country": by_country,
+        }
 
     def resolve_exchange_from_symbol(self, raw_symbol: str) -> tuple[str, str]:
         """
