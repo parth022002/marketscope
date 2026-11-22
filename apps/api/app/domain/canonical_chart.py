@@ -52,6 +52,7 @@ class IndicatorType(str, Enum):
     ATR = "ATR"
     STOCHASTIC = "STOCHASTIC"
     OBV = "OBV"
+    ADX = "ADX"
     WMA = "WMA"
     HMA = "HMA"
     STOCH_RSI = "STOCH_RSI"

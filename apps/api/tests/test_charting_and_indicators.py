@@ -222,3 +222,49 @@ def test_chart_layouts_lifecycle():
     # Delete layout
     del_res = client.delete(f"/api/v1/chart/layouts/{layout_id}")
     assert del_res.status_code == 200
+
+
+def test_indicator_adx_wilder_bounds():
+    """Verify ADX indicator calculation, Wilder smoothing, and directional indices."""
+    res = client.get("/api/v1/instruments/RELIANCE/indicators?indicator=ADX&period=14&limit=80")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["indicator_type"] == "ADX"
+    assert len(data["data"]) > 0
+    for pt in data["data"]:
+        vals = pt["values"]
+        assert "adx" in vals
+        assert "plus_di" in vals
+        assert "minus_di" in vals
+        assert 0.0 <= vals["adx"] <= 100.0
+        assert vals["plus_di"] >= 0.0
+        assert vals["minus_di"] >= 0.0
+
+
+def test_indicator_vwap_and_atr():
+    """Verify VWAP volume weighting and ATR volatility bounds."""
+    # Test VWAP
+    res_vwap = client.get("/api/v1/instruments/RELIANCE/indicators?indicator=VWAP&limit=60")
+    assert res_vwap.status_code == 200
+    vwap_data = res_vwap.json()
+    assert len(vwap_data["data"]) > 0
+    assert "vwap" in vwap_data["data"][0]["values"]
+    assert vwap_data["data"][0]["values"]["vwap"] > 0
+
+    # Test ATR
+    res_atr = client.get("/api/v1/instruments/RELIANCE/indicators?indicator=ATR&period=14&limit=60")
+    assert res_atr.status_code == 200
+    atr_data = res_atr.json()
+    assert len(atr_data["data"]) > 0
+    assert "atr" in atr_data["data"][0]["values"]
+    assert atr_data["data"][0]["values"]["atr"] > 0
+
+
+def test_indicator_obv_cumulative_flow():
+    """Verify On-Balance Volume (OBV) volume accumulation."""
+    res = client.get("/api/v1/instruments/RELIANCE/indicators?indicator=OBV&limit=60")
+    assert res.status_code == 200
+    data = res.json()
+    assert len(data["data"]) > 0
+    assert "obv" in data["data"][0]["values"]
+

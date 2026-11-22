@@ -518,3 +518,96 @@ class TechnicalIndicatorsEngine:
             cmf = (sum_mfv / sum_vol) if sum_vol > 0 else 0.0
             results.append(IndicatorDataPoint(time=bars[i].time, values={"cmf": round(cmf, 4)}))
         return results
+
+    @staticmethod
+    def calculate_adx(bars: Sequence[OHLCVBar], period: int = 14) -> list[IndicatorDataPoint]:
+        """
+        Average Directional Index (ADX) by J. Welles Wilder.
+        Calculates Trend Strength (0-100), +DI and -DI.
+        """
+        if len(bars) < period * 2:
+            return []
+
+        trs: list[float] = []
+        plus_dms: list[float] = []
+        minus_dms: list[float] = []
+
+        for i in range(1, len(bars)):
+            h = float(bars[i].high)
+            l = float(bars[i].low)
+            prev_c = float(bars[i - 1].close)
+            prev_h = float(bars[i - 1].high)
+            prev_l = float(bars[i - 1].low)
+
+            tr = max(h - l, abs(h - prev_c), abs(l - prev_c))
+            trs.append(tr)
+
+            up_move = h - prev_h
+            down_move = prev_l - l
+
+            if up_move > down_move and up_move > 0:
+                plus_dms.append(up_move)
+            else:
+                plus_dms.append(0.0)
+
+            if down_move > up_move and down_move > 0:
+                minus_dms.append(down_move)
+            else:
+                minus_dms.append(0.0)
+
+        # Initial sum for Wilder smoothing
+        smoothed_tr = sum(trs[:period])
+        smoothed_plus_dm = sum(plus_dms[:period])
+        smoothed_minus_dm = sum(minus_dms[:period])
+
+        dx_list: list[float] = []
+        times: list[Any] = []
+        pdi_list: list[float] = []
+        ndi_list: list[float] = []
+
+        for i in range(period, len(trs)):
+            smoothed_tr = smoothed_tr - (smoothed_tr / period) + trs[i]
+            smoothed_plus_dm = smoothed_plus_dm - (smoothed_plus_dm / period) + plus_dms[i]
+            smoothed_minus_dm = smoothed_minus_dm - (smoothed_minus_dm / period) + minus_dms[i]
+
+            plus_di = (100.0 * smoothed_plus_dm / smoothed_tr) if smoothed_tr > 0 else 0.0
+            minus_di = (100.0 * smoothed_minus_dm / smoothed_tr) if smoothed_tr > 0 else 0.0
+
+            di_sum = plus_di + minus_di
+            dx = (100.0 * abs(plus_di - minus_di) / di_sum) if di_sum > 0 else 0.0
+
+            dx_list.append(dx)
+            pdi_list.append(plus_di)
+            ndi_list.append(minus_di)
+            times.append(bars[i + 1].time)
+
+        if len(dx_list) < period:
+            return []
+
+        # Initial ADX is average of first period DX values
+        adx = sum(dx_list[:period]) / period
+        results: list[IndicatorDataPoint] = [
+            IndicatorDataPoint(
+                time=times[period - 1],
+                values={
+                    "adx": round(adx, 2),
+                    "plus_di": round(pdi_list[period - 1], 2),
+                    "minus_di": round(ndi_list[period - 1], 2),
+                },
+            )
+        ]
+
+        for i in range(period, len(dx_list)):
+            adx = (adx * (period - 1) + dx_list[i]) / period
+            results.append(
+                IndicatorDataPoint(
+                    time=times[i],
+                    values={
+                        "adx": round(adx, 2),
+                        "plus_di": round(pdi_list[i], 2),
+                        "minus_di": round(ndi_list[i], 2),
+                    },
+                )
+            )
+
+        return results

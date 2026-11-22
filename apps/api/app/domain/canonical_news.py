@@ -6,7 +6,7 @@ evidence lineages, story clusters, and correction audit models.
 
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Sequence
+from typing import Any, Sequence
 from pydantic import BaseModel, Field, HttpUrl
 
 

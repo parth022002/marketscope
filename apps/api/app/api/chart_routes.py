@@ -121,6 +121,8 @@ async def get_instrument_indicator(
         data_points = TechnicalIndicatorsEngine.calculate_keltner(bars, ema_period=period)
     elif indicator == IndicatorType.CMF:
         data_points = TechnicalIndicatorsEngine.calculate_cmf(bars, period=period)
+    elif indicator == IndicatorType.ADX:
+        data_points = TechnicalIndicatorsEngine.calculate_adx(bars, period=period)
 
     return CalculatedIndicatorResponse(
         symbol=symbol.upper(),
