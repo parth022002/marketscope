@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
 from app.api.news_routes import news_router
+from app.api.chart_routes import chart_router
 from app.core.database import get_db
 from app.domain.models import (
     Workspace,
@@ -1421,6 +1422,8 @@ def get_market_heatmap(
 # Verified News & Trust Intelligence System Router Mount
 # ─────────────────────────────────────────────────────────────────────────────
 router.include_router(news_router)
+router.include_router(chart_router)
+
 
 
 

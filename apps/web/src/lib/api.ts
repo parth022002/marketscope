@@ -909,6 +909,132 @@ export async function getCalendarEvents(eventType?: string): Promise<CalendarEve
   return response.json();
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Charting, OHLCV, Drawing Tools & Alerts Types & Methods
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type ChartBar = {
+  time: number | string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+};
+
+export type ChartDataResponse = {
+  instrument_id: string;
+  symbol: string;
+  exchange: string;
+  currency: string;
+  timeframe: string;
+  data_status: string;
+  data_source: string;
+  last_timestamp: string;
+  exchange_timezone: string;
+  bars: ChartBar[];
+};
+
+export type UserChartDrawing = {
+  drawing_id: string;
+  instrument_id: string;
+  timeframe: string;
+  tool_type: string;
+  points: { time: number | string; price: number }[];
+  style: Record<string, unknown>;
+  created_at: string;
+};
+
+export type PriceAlert = {
+  alert_id: string;
+  instrument_id: string;
+  symbol: string;
+  condition_type: "CROSS_ABOVE" | "CROSS_BELOW" | "PCT_CHANGE_ABOVE" | "PCT_CHANGE_BELOW" | "VOLUME_ABOVE";
+  target_value: number;
+  current_value?: number | null;
+  is_active: boolean;
+  triggered_at?: string | null;
+  note?: string | null;
+  created_at: string;
+};
+
+export async function getInstrumentOHLCV(symbol: string, timeframe = "1D", limit = 120): Promise<ChartBar[]> {
+  const response = await fetch(`${getApiBase()}/api/v1/instruments/${encodeURIComponent(symbol)}/ohlcv?timeframe=${encodeURIComponent(timeframe)}&limit=${limit}`, {
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Unable to retrieve instrument OHLCV bars");
+  return response.json();
+}
+
+export async function getInstrumentChart(symbol: string, timeframe = "1D", limit = 120): Promise<ChartDataResponse> {
+  const response = await fetch(`${getApiBase()}/api/v1/instruments/${encodeURIComponent(symbol)}/chart?timeframe=${encodeURIComponent(timeframe)}&limit=${limit}`, {
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Unable to retrieve instrument chart data");
+  return response.json();
+}
+
+export async function getUserDrawings(instrumentId: string, timeframe?: string): Promise<UserChartDrawing[]> {
+  let url = `${getApiBase()}/api/v1/chart/drawings?instrument_id=${encodeURIComponent(instrumentId)}`;
+  if (timeframe) url += `&timeframe=${encodeURIComponent(timeframe)}`;
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) return [];
+  return response.json();
+}
+
+export async function saveUserDrawing(payload: {
+  instrument_id: string;
+  timeframe: string;
+  tool_type: string;
+  points: { time: number | string; price: number }[];
+  style?: Record<string, unknown>;
+}): Promise<UserChartDrawing> {
+  const response = await fetch(`${getApiBase()}/api/v1/chart/drawings`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) throw new Error("Unable to save chart drawing");
+  return response.json();
+}
+
+export async function deleteUserDrawing(drawingId: string): Promise<void> {
+  await fetch(`${getApiBase()}/api/v1/chart/drawings/${encodeURIComponent(drawingId)}`, {
+    method: "DELETE",
+  });
+}
+
+export async function getUserAlerts(symbol?: string): Promise<PriceAlert[]> {
+  let url = `${getApiBase()}/api/v1/alerts`;
+  if (symbol) url += `?symbol=${encodeURIComponent(symbol)}`;
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) return [];
+  return response.json();
+}
+
+export async function createUserAlert(payload: {
+  instrument_id: string;
+  symbol: string;
+  condition_type: string;
+  target_value: number;
+  note?: string;
+}): Promise<PriceAlert> {
+  const response = await fetch(`${getApiBase()}/api/v1/alerts`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) throw new Error("Unable to create price alert");
+  return response.json();
+}
+
+export async function deleteUserAlert(alertId: string): Promise<void> {
+  await fetch(`${getApiBase()}/api/v1/alerts/${encodeURIComponent(alertId)}`, {
+    method: "DELETE",
+  });
+}
+
+
 export type InstrumentMasterItem = {
   instrument_id: string;
   symbol: string;
