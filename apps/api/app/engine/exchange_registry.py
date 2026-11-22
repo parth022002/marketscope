@@ -6,8 +6,10 @@ Includes MIC codes, country, region, trading sessions, calendars, supported asse
 and licensing display classifications.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import Sequence
+from typing import Any, Sequence
 
 
 @dataclass(frozen=True)
