@@ -730,7 +730,7 @@ class HybridGlobalProvider:
     ) -> FinancialStatementsResponse:
         """Constructs calibrated standardized financial statements from master data."""
         is_quarterly = period_type.lower() == "quarterly"
-        periods = ["Q1 FY24", "Q2 FY24", "Q3 FY24", "Q4 FY24"] if is_quarterly else ["FY 2022", "FY 2023", "FY 2024"]
+        periods = ["Q1 FY24", "Q2 FY24", "Q3 FY24", "Q4 FY24"] if is_quarterly else ["FY22", "FY23", "FY24"]
         mcap = inst.market_cap
         pe = inst.pe_ratio or 25.0
         pat = round(mcap / pe, 1) if pe > 0 else round(mcap * 0.05, 1)

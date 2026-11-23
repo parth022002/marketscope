@@ -676,7 +676,7 @@ def get_financial_statements(
         else:
             annual_data = data.get("annual", {})
             stmt_items = annual_data.get(statement_type, annual_data.get("income_statement", []))
-            periods = data.get("periods", ["FY 2022", "FY 2023", "FY 2024"])
+            periods = data.get("periods", ["FY22", "FY23", "FY24"])
 
         return FinancialStatementsResponse(
             symbol=clean_sym,
