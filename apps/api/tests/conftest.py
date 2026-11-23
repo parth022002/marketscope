@@ -10,8 +10,13 @@ from app.main import app
 is_primary_reachable = False
 try:
     with engine.connect() as conn:
+        Base.metadata.create_all(bind=engine)
+        db = SessionLocal()
+        seed_database(db)
+        db.close()
         is_primary_reachable = True
-except Exception:
+except Exception as e:
+    print(f"[conftest] Primary database unreachable or failed ({e}), falling back to SQLite in-memory")
     is_primary_reachable = False
 
 if not is_primary_reachable:
@@ -35,14 +40,6 @@ if not is_primary_reachable:
             db.close()
 
     app.dependency_overrides[get_db] = override_get_db
-else:
-    try:
-        Base.metadata.create_all(bind=engine)
-        db = SessionLocal()
-        seed_database(db)
-        db.close()
-    except Exception as e:
-        print(f"[conftest] Database initialization: {e}")
 
 
 @pytest.fixture(scope="session", autouse=True)

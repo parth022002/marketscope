@@ -288,6 +288,8 @@ class MarketDataService:
 
         for (sym, exch, category), quote in zip(CANONICAL_SYMBOLS, quotes):
             if isinstance(quote, Exception) or not quote:
+                quote = await self.fallback_provider.get_quote(sym, exch)
+            if not quote:
                 continue
             items.append(
                 TickerItem(
@@ -334,6 +336,8 @@ class MarketDataService:
         top_companies: list[TopCompanyItem] = []
         for (sym, name, exch, sector, curr, is_global), q in zip(CANONICAL_EQUITIES, top_quotes):
             if isinstance(q, Exception) or not q:
+                q = await self.fallback_provider.get_quote(sym, exch)
+            if not q:
                 continue
             top_companies.append(
                 TopCompanyItem(
