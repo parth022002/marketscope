@@ -33,34 +33,64 @@ import {
   type TickerItem,
   type CanonicalNewsArticle,
 } from "@/lib/api";
+import { useMarketWebSocket } from "@/lib/useMarketWebSocket";
 
 export default function OverviewPage() {
   const [tickers, setTickers] = useState<TickerItem[]>([]);
   const [news, setNews] = useState<CanonicalNewsArticle[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Real-time WebSocket ticks
+  const { isConnected, ticks } = useMarketWebSocket();
+
   useEffect(() => {
     let isMounted = true;
-    Promise.all([
-      getMarketTicker(),
-      getNewsFeed({ limit: 4 }).catch(() => []),
-    ])
-      .then(([t, n]) => {
-        if (!isMounted) return;
-        setTickers(t || []);
-        setNews(n || []);
-      })
-      .finally(() => {
-        if (isMounted) setLoading(false);
-      });
+    const fetchOverviewData = () => {
+      Promise.all([
+        getMarketTicker(),
+        getNewsFeed({ limit: 4 }).catch(() => []),
+      ])
+        .then(([t, n]) => {
+          if (!isMounted) return;
+          if (t && t.length > 0) setTickers(t);
+          if (n && n.length > 0) setNews(n);
+        })
+        .finally(() => {
+          if (isMounted) setLoading(false);
+        });
+    };
+
+    fetchOverviewData();
+    const interval = setInterval(fetchOverviewData, 8000);
 
     return () => {
       isMounted = false;
+      clearInterval(interval);
     };
   }, []);
 
+  // Merge live WebSocket ticks into ticker state
+  const liveTickers = useMemo(() => {
+    if (Object.keys(ticks).length === 0) return tickers;
+    return tickers.map((t) => {
+      const live = ticks[t.symbol];
+      if (live) {
+        return {
+          ...t,
+          price: live.price,
+          change: live.change,
+          change_pct: live.change_pct,
+          data_status: live.data_status,
+          market_status: live.market_status,
+          timestamp: live.timestamp,
+        };
+      }
+      return t;
+    });
+  }, [tickers, ticks]);
+
   const benchmarkIndices = useMemo(() => {
-    return tickers.filter(
+    return liveTickers.filter(
       (t) =>
         t.category === "indian_index" ||
         t.category === "global_index" ||
@@ -69,11 +99,12 @@ export default function OverviewPage() {
         t.symbol.includes("500") ||
         t.symbol.includes("NASDAQ")
     ).slice(0, 8);
-  }, [tickers]);
+  }, [liveTickers]);
 
   const topEquities = useMemo(() => {
-    return tickers.filter((t) => t.category === "equity").slice(0, 8);
-  }, [tickers]);
+    return liveTickers.filter((t) => t.category === "equity").slice(0, 8);
+  }, [liveTickers]);
+
 
   return (
     <NavigationShell activePath="/overview">

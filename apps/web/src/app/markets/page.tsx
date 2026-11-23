@@ -45,6 +45,8 @@ import {
   type CurrenciesOverview,
   type UniversalInstrument,
 } from "@/lib/api";
+import { useMarketWebSocket } from "@/lib/useMarketWebSocket";
+
 
 type TabType =
   | "overview"
@@ -71,25 +73,62 @@ export default function MarketsPage() {
   const [currenciesData, setCurrenciesData] = useState<CurrenciesOverview | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Real-time WebSocket ticks
+  const { isConnected, ticks } = useMarketWebSocket();
+
+  // Continuous auto-refresh poll every 8 seconds
   useEffect(() => {
-    Promise.all([
-      getMarketTicker().catch(() => []),
-      getDerivativesPulse().catch(() => null),
-      getFixedIncomeOverview().catch(() => null),
-      getFundsOverview().catch(() => null),
-      getCommoditiesOverview().catch(() => null),
-      getCurrenciesOverview().catch(() => null),
-    ])
-      .then(([t, d, fi, f, c, cur]) => {
-        setTickers(t || []);
-        setDerivatives(d);
-        setFixedIncome(fi);
-        setFundsData(f);
-        setCommoditiesData(c);
-        setCurrenciesData(cur);
-      })
-      .finally(() => setLoading(false));
+    let isMounted = true;
+    const fetchMarketsData = () => {
+      Promise.all([
+        getMarketTicker().catch(() => []),
+        getDerivativesPulse().catch(() => null),
+        getFixedIncomeOverview().catch(() => null),
+        getFundsOverview().catch(() => null),
+        getCommoditiesOverview().catch(() => null),
+        getCurrenciesOverview().catch(() => null),
+      ])
+        .then(([t, d, fi, f, c, cur]) => {
+          if (!isMounted) return;
+          if (t && t.length > 0) setTickers(t);
+          if (d) setDerivatives(d);
+          if (fi) setFixedIncome(fi);
+          if (f) setFundsData(f);
+          if (c) setCommoditiesData(c);
+          if (cur) setCurrenciesData(cur);
+        })
+        .finally(() => {
+          if (isMounted) setLoading(false);
+        });
+    };
+
+    fetchMarketsData();
+    const interval = setInterval(fetchMarketsData, 8000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
+
+  // Merge live WebSocket ticks into ticker state
+  const liveTickers = useMemo(() => {
+    if (Object.keys(ticks).length === 0) return tickers;
+    return tickers.map((item) => {
+      const live = ticks[item.symbol];
+      if (live) {
+        return {
+          ...item,
+          price: live.price,
+          change: live.change,
+          change_pct: live.change_pct,
+          data_status: live.data_status,
+          market_status: live.market_status,
+          timestamp: live.timestamp,
+        };
+      }
+      return item;
+    });
+  }, [tickers, ticks]);
 
   // Search handler
   useEffect(() => {
@@ -121,13 +160,15 @@ export default function MarketsPage() {
     { id: "derivatives" as TabType, label: "Derivatives Pulse", icon: Activity },
   ];
 
-  // Filtered ticker slices
+  // Filtered ticker slices using real-time live data
+  const displayedTickers = liveTickers.length > 0 ? liveTickers : tickers;
+
   const indianTickers = useMemo(() => {
-    return tickers.filter((t) => t.exchange === "NSE" || t.exchange === "BSE");
-  }, [tickers]);
+    return displayedTickers.filter((t) => t.exchange === "NSE" || t.exchange === "BSE");
+  }, [displayedTickers]);
 
   const globalTickers = useMemo(() => {
-    return tickers.filter(
+    return displayedTickers.filter(
       (t) =>
         t.exchange !== "NSE" &&
         t.exchange !== "BSE" &&
@@ -135,7 +176,7 @@ export default function MarketsPage() {
         t.category !== "currency" &&
         t.category !== "commodity"
     );
-  }, [tickers]);
+  }, [displayedTickers]);
 
   return (
     <NavigationShell activePath="/markets">
@@ -261,7 +302,7 @@ export default function MarketsPage() {
                     />
                   ))
                 ) : (
-                  (tickers.length > 0 ? tickers : FALLBACK_TICKERS).slice(0, 8).map((item) => (
+                  (displayedTickers.length > 0 ? displayedTickers : FALLBACK_TICKERS).slice(0, 8).map((item) => (
                     <MarketOverviewCard
                       key={item.symbol}
                       symbol={item.symbol}

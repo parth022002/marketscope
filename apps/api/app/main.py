@@ -35,6 +35,13 @@ if sentry_dsn:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Ensure all tables exist in database
+    try:
+        from app.domain.models import Base
+        Base.metadata.create_all(bind=engine)
+    except Exception:
+        pass
+
     # Optional seed on startup if database is reachable
     try:
         db = SessionLocal()
@@ -42,7 +49,39 @@ async def lifespan(app: FastAPI):
         db.close()
     except Exception:
         pass
+
+    # Background live quote synchronization worker
+    sync_task = None
+    async def _live_sync_worker():
+        import asyncio
+        from app.engine.market_data_service import market_data_service
+        try:
+            await market_data_service.sync_live_quotes_to_db()
+        except Exception:
+            pass
+
+        while True:
+            try:
+                await asyncio.sleep(15.0)
+                await market_data_service.sync_live_quotes_to_db()
+            except asyncio.CancelledError:
+                break
+            except Exception:
+                await asyncio.sleep(5.0)
+
+    if "PYTEST_CURRENT_TEST" not in os.environ:
+        import asyncio
+        sync_task = asyncio.create_task(_live_sync_worker())
+
     yield
+
+    if sync_task:
+        sync_task.cancel()
+        try:
+            await sync_task
+        except asyncio.CancelledError:
+            pass
+
 
 
 app = FastAPI(

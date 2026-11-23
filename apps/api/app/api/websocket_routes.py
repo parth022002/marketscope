@@ -64,6 +64,41 @@ class MarketDataConnectionManager:
 manager = MarketDataConnectionManager()
 
 
+async def broadcast_live_synced_quotes(quotes):
+    try:
+        from app.domain.schemas import TickerItem
+        items = []
+        for q in quotes:
+            cat = "equity" if q.asset_class == "EQUITY" else ("commodity" if q.asset_class == "COMMODITY" else ("currency" if q.asset_class == "CURRENCY" else "indian_index"))
+            items.append(TickerItem(
+                symbol=q.symbol,
+                name=q.name,
+                category=cat,
+                exchange=q.exchange,
+                price=q.price,
+                change=q.change,
+                change_pct=q.change_pct,
+                currency=q.currency,
+                market_status=q.market_status,
+                data_status=q.data_status,
+                sparkline=q.sparkline,
+                timestamp=q.timestamp.isoformat(),
+                provider=q.source_provider,
+            ).model_dump())
+        if items:
+            await manager.broadcast({
+                "type": "ticker_update",
+                "count": len(items),
+                "items": items,
+            })
+    except Exception as e:
+        logger.debug(f"Broadcasting live quotes failed: {e}")
+
+
+market_data_service.set_ws_broadcast_callback(broadcast_live_synced_quotes)
+
+
+
 @ws_router.websocket("/ws/v1/market-data")
 @ws_router.websocket("/api/v1/ws/market-data")
 async def websocket_market_data_stream(websocket: WebSocket):

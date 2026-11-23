@@ -40,6 +40,8 @@ from app.providers.market_data.fallback_provider import FallbackDevProvider, FAL
 from app.engine.instrument_resolver import instrument_resolver
 from app.engine.price_calculation_service import PriceCalculationService
 from decimal import Decimal
+from app.core.database import SessionLocal
+from app.domain.models import MarketQuoteRecord
 
 logger = logging.getLogger(__name__)
 
@@ -139,6 +141,7 @@ class MarketDataService:
         self._l1_cache: dict[str, CachedQuote] = {}
         self._anomaly_log: list[dict] = []
         self._active_ws_connections: int = 0
+        self._ws_broadcast_callback = None
 
         # Optional Redis L2 Cache connection
         redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
@@ -150,11 +153,212 @@ class MarketDataService:
         except Exception:
             self._redis_client = None
 
+    def set_ws_broadcast_callback(self, callback):
+        self._ws_broadcast_callback = callback
+
     def register_ws_connection(self):
         self._active_ws_connections += 1
 
     def unregister_ws_connection(self):
         self._active_ws_connections = max(0, self._active_ws_connections - 1)
+
+    def persist_quote_to_db(self, quote: MarketQuote):
+        try:
+            db = SessionLocal()
+            try:
+                rec = db.query(MarketQuoteRecord).filter(MarketQuoteRecord.symbol == quote.symbol).first()
+                now = datetime.now(timezone.utc)
+                if not rec:
+                    rec = MarketQuoteRecord(
+                        symbol=quote.symbol,
+                        instrument_id=quote.instrument_id,
+                        name=quote.name,
+                        exchange=quote.exchange,
+                        asset_class=quote.asset_class,
+                        currency=quote.currency,
+                        price=quote.price,
+                        open=quote.open,
+                        high=quote.high,
+                        low=quote.low,
+                        previous_close=quote.previous_close,
+                        change=quote.change,
+                        change_pct=quote.change_pct,
+                        volume=quote.volume,
+                        market_status=quote.market_status,
+                        data_status=quote.data_status,
+                        source_provider=quote.source_provider,
+                        sparkline=quote.sparkline,
+                        timestamp=quote.timestamp,
+                        updated_at=now,
+                    )
+                    db.add(rec)
+                else:
+                    rec.price = quote.price
+                    rec.open = quote.open
+                    rec.high = quote.high
+                    rec.low = quote.low
+                    rec.previous_close = quote.previous_close
+                    rec.change = quote.change
+                    rec.change_pct = quote.change_pct
+                    rec.volume = quote.volume
+                    rec.market_status = quote.market_status
+                    rec.data_status = quote.data_status
+                    rec.source_provider = quote.source_provider
+                    rec.sparkline = quote.sparkline
+                    rec.timestamp = quote.timestamp
+                    rec.updated_at = now
+                db.commit()
+            finally:
+                db.close()
+        except Exception as e:
+            logger.debug(f"Failed to persist quote {quote.symbol} to DB: {e}")
+
+    def load_quote_from_db(self, symbol: str, exchange: str | None = None) -> MarketQuote | None:
+        try:
+            db = SessionLocal()
+            try:
+                rec = db.query(MarketQuoteRecord).filter(MarketQuoteRecord.symbol == symbol).first()
+                if rec:
+                    return MarketQuote(
+                        instrument_id=rec.instrument_id or f"inst_db_{rec.symbol}",
+                        symbol=rec.symbol,
+                        name=rec.name,
+                        exchange=rec.exchange,
+                        asset_class=rec.asset_class,
+                        currency=rec.currency,
+                        price=float(rec.price),
+                        open=float(rec.open) if rec.open is not None else None,
+                        high=float(rec.high) if rec.high is not None else None,
+                        low=float(rec.low) if rec.low is not None else None,
+                        previous_close=float(rec.previous_close),
+                        change=float(rec.change),
+                        change_pct=float(rec.change_pct),
+                        volume=int(rec.volume) if rec.volume is not None else None,
+                        market_status=rec.market_status,
+                        data_status=rec.data_status,
+                        source_provider=f"db_{rec.source_provider}",
+                        sparkline=rec.sparkline or [],
+                        timestamp=rec.timestamp,
+                        received_at=rec.updated_at,
+                    )
+            finally:
+                db.close()
+        except Exception as e:
+            logger.debug(f"Failed to load quote {symbol} from DB: {e}")
+        return None
+
+    def persist_batch_quotes_to_db(self, quotes: list[MarketQuote]):
+        if not quotes:
+            return
+        try:
+            db = SessionLocal()
+            try:
+                symbols = [q.symbol for q in quotes]
+                existing = {r.symbol: r for r in db.query(MarketQuoteRecord).filter(MarketQuoteRecord.symbol.in_(symbols)).all()}
+                now = datetime.now(timezone.utc)
+                for q in quotes:
+                    rec = existing.get(q.symbol)
+                    if not rec:
+                        rec = MarketQuoteRecord(
+                            symbol=q.symbol,
+                            instrument_id=q.instrument_id,
+                            name=q.name,
+                            exchange=q.exchange,
+                            asset_class=q.asset_class,
+                            currency=q.currency,
+                            price=q.price,
+                            open=q.open,
+                            high=q.high,
+                            low=q.low,
+                            previous_close=q.previous_close,
+                            change=q.change,
+                            change_pct=q.change_pct,
+                            volume=q.volume,
+                            market_status=q.market_status,
+                            data_status=q.data_status,
+                            source_provider=q.source_provider,
+                            sparkline=q.sparkline,
+                            timestamp=q.timestamp,
+                            updated_at=now,
+                        )
+                        db.add(rec)
+                    else:
+                        rec.price = q.price
+                        rec.open = q.open
+                        rec.high = q.high
+                        rec.low = q.low
+                        rec.previous_close = q.previous_close
+                        rec.change = q.change
+                        rec.change_pct = q.change_pct
+                        rec.volume = q.volume
+                        rec.market_status = q.market_status
+                        rec.data_status = q.data_status
+                        rec.source_provider = q.source_provider
+                        rec.sparkline = q.sparkline
+                        rec.timestamp = q.timestamp
+                        rec.updated_at = now
+                db.commit()
+            finally:
+                db.close()
+        except Exception as e:
+            logger.debug(f"Failed to persist batch quotes to DB: {e}")
+
+    async def sync_live_quotes_to_db(self) -> list[MarketQuote]:
+        """
+        Actively queries live exchange feeds for core global and Indian market instruments,
+        persists snapshots into PostgreSQL database, and updates in-memory and Redis caches.
+        """
+        symbols_to_sync = [
+            ("NIFTY 50", "NSE"),
+            ("SENSEX", "BSE"),
+            ("NIFTY BANK", "NSE"),
+            ("NIFTY IT", "NSE"),
+            ("RELIANCE", "NSE"),
+            ("TCS", "NSE"),
+            ("HDFCBANK", "NSE"),
+            ("INFY", "NSE"),
+            ("ICICIBANK", "NSE"),
+            ("BHARTIARTL", "NSE"),
+            ("TATAMOTORS", "NSE"),
+            ("LT", "NSE"),
+            ("NASDAQ 100", "NASDAQ"),
+            ("S&P 500", "NYSE"),
+            ("DOW JONES", "NYSE"),
+            ("AAPL", "NASDAQ"),
+            ("NVDA", "NASDAQ"),
+            ("MSFT", "NASDAQ"),
+            ("BRENT CRUDE", "ICE"),
+            ("GOLD MCX", "MCX"),
+            ("SILVER", "MCX"),
+            ("USD/INR", "FOREX"),
+            ("US 10Y YIELD", "BOND"),
+        ]
+
+        tasks = [self.live_provider.get_quote(sym, exch) for sym, exch in symbols_to_sync]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        valid_quotes: list[MarketQuote] = []
+        for (sym, exch), res in zip(symbols_to_sync, results):
+            if isinstance(res, MarketQuote):
+                session = resolve_session_state_for_exchange(exch)
+                validated = self._apply_validation_and_session(res, session)
+                valid_quotes.append(validated)
+                cache_key = f"{sym.upper()}:{exch.upper()}"
+                ttl = 5.0 if session.is_regular_trading else 300.0
+                self._l1_cache[cache_key] = CachedQuote(validated, ttl_seconds=ttl)
+
+        if valid_quotes:
+            loop = asyncio.get_running_loop()
+            await loop.run_in_executor(None, self.persist_batch_quotes_to_db, valid_quotes)
+            logger.info(f"Successfully synced and persisted {len(valid_quotes)} live quotes to database.")
+
+            if self._ws_broadcast_callback:
+                try:
+                    await self._ws_broadcast_callback(valid_quotes)
+                except Exception as e:
+                    logger.debug(f"WebSocket broadcast callback error: {e}")
+
+        return valid_quotes
 
     async def get_quote(self, symbol: str, exchange: str | None = None) -> MarketQuote:
         cache_key = f"{symbol.upper()}:{exchange.upper() if exchange else 'DEF'}"
@@ -182,6 +386,9 @@ class MarketDataService:
         # 3. Attempt Primary Live Exchange Provider (Real-Time Exchange Rates)
         try:
             quote = await self.live_provider.get_quote(symbol, exchange)
+            if quote:
+                loop = asyncio.get_running_loop()
+                loop.run_in_executor(None, self.persist_quote_to_db, quote)
         except Exception as e:
             logger.debug(f"LiveExchangeProvider get_quote failed for {symbol}: {e}")
 
@@ -189,6 +396,9 @@ class MarketDataService:
         if not quote and self.twelve_provider.api_key:
             try:
                 quote = await self.twelve_provider.get_quote(symbol, exchange)
+                if quote:
+                    loop = asyncio.get_running_loop()
+                    loop.run_in_executor(None, self.persist_quote_to_db, quote)
             except Exception as e:
                 logger.warning(f"TwelveData get_quote failed for {symbol}: {e}")
 
@@ -196,12 +406,24 @@ class MarketDataService:
         if not quote and self.fmp_provider.api_key:
             try:
                 quote = await self.fmp_provider.get_quote(symbol, exchange)
+                if quote:
+                    loop = asyncio.get_running_loop()
+                    loop.run_in_executor(None, self.persist_quote_to_db, quote)
             except Exception as e:
                 logger.warning(f"FMP get_quote failed for {symbol}: {e}")
 
-        # 6. Calibrated Deterministic Fallback if external providers unavailable
+        # 5b. Attempt to load latest recorded real quote from PostgreSQL database
+        if not quote:
+            try:
+                loop = asyncio.get_running_loop()
+                quote = await loop.run_in_executor(None, self.load_quote_from_db, symbol, exchange)
+            except Exception as e:
+                logger.debug(f"Database quote lookup failed for {symbol}: {e}")
+
+        # 6. Calibrated Deterministic Fallback if external providers and database unavailable
         if not quote:
             quote = await self.fallback_provider.get_quote(symbol, exchange)
+
 
         if not quote:
             # Fallback for unknown symbols

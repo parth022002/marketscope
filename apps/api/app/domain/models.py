@@ -320,3 +320,29 @@ class SavedScreen(Base):
     updated_at = Column(DateTime(timezone=True), nullable=False, default=utcnow)
 
     workspace = relationship("Workspace", back_populates="saved_screens")
+
+
+class MarketQuoteRecord(Base):
+    __tablename__ = "market_quotes"
+
+    symbol = Column(Text, primary_key=True, index=True)
+    instrument_id = Column(Text, nullable=True)
+    name = Column(Text, nullable=False)
+    exchange = Column(Text, nullable=False)
+    asset_class = Column(Text, nullable=False, default="EQUITY")
+    currency = Column(String(10), nullable=False, default="INR")
+    price = Column(Numeric(18, 4), nullable=False)
+    open = Column(Numeric(18, 4), nullable=True)
+    high = Column(Numeric(18, 4), nullable=True)
+    low = Column(Numeric(18, 4), nullable=True)
+    previous_close = Column(Numeric(18, 4), nullable=False)
+    change = Column(Numeric(18, 4), nullable=False, default=0.0)
+    change_pct = Column(Numeric(18, 4), nullable=False, default=0.0)
+    volume = Column(Numeric(20, 0), nullable=True)
+    market_status = Column(Text, nullable=False, default="CLOSED")
+    data_status = Column(Text, nullable=False, default="LIVE")
+    source_provider = Column(Text, nullable=False, default="live_exchange")
+    sparkline = Column(JSONB, nullable=False, default=list)
+    timestamp = Column(DateTime(timezone=True), nullable=False, default=utcnow)
+    updated_at = Column(DateTime(timezone=True), nullable=False, default=utcnow)
+

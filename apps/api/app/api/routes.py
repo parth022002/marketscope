@@ -1492,6 +1492,53 @@ async def get_market_ticker():
     return await market_data_service.get_ticker_feed()
 
 
+@router.post(
+    "/market/sync-live",
+    summary="Trigger immediate live market data synchronization to database",
+    dependencies=[Depends(rate_limit_dependency)],
+)
+@router.get(
+    "/market/sync-live",
+    summary="Trigger immediate live market data synchronization to database",
+)
+async def trigger_live_market_sync():
+    """Forces synchronization of real-time quotes to the database and broadcasts to connected clients."""
+    synced = await market_data_service.sync_live_quotes_to_db()
+    return {
+        "status": "success",
+        "synced_count": len(synced),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "symbols": [q.symbol for q in synced],
+    }
+
+
+@router.get(
+    "/market/db-quotes",
+    summary="Get all latest persisted quotes directly from PostgreSQL database",
+)
+def get_persisted_db_quotes(db: Session = Depends(get_db)):
+    """Returns all market quotes stored in the database."""
+    from app.domain.models import MarketQuoteRecord
+    records = db.query(MarketQuoteRecord).all()
+    return [
+        {
+            "symbol": r.symbol,
+            "name": r.name,
+            "exchange": r.exchange,
+            "price": float(r.price),
+            "change": float(r.change),
+            "change_pct": float(r.change_pct),
+            "currency": r.currency,
+            "market_status": r.market_status,
+            "data_status": r.data_status,
+            "source_provider": r.source_provider,
+            "updated_at": r.updated_at.isoformat() if r.updated_at else None,
+        }
+        for r in records
+    ]
+
+
+
 @router.get(
     "/market/overview",
     response_model=MarketOverviewResponse,

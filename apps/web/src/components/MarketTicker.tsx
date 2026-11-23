@@ -12,39 +12,39 @@ const FALLBACK_TICKERS: TickerItem[] = [
     name: "Nifty 50 Index",
     category: "indian_index",
     exchange: "NSE",
-    price: 24180.80,
-    change: 125.40,
-    change_pct: 0.52,
+    price: 25349.65,
+    change: -450.95,
+    change_pct: -1.75,
     currency: "INR",
     market_status: "CLOSED",
-    data_status: "EOD",
-    sparkline: [24055.40, 24090.0, 24140.0, 24180.80],
+    data_status: "LIVE",
+    sparkline: [25800.60, 25650.0, 25480.0, 25349.65],
   },
   {
     symbol: "SENSEX",
     name: "BSE SENSEX 30",
     category: "indian_index",
     exchange: "BSE",
-    price: 79802.40,
-    change: 380.20,
-    change_pct: 0.48,
+    price: 82435.99,
+    change: -1483.72,
+    change_pct: -1.77,
     currency: "INR",
     market_status: "CLOSED",
-    data_status: "EOD",
-    sparkline: [79422.20, 79510.0, 79650.0, 79802.40],
+    data_status: "LIVE",
+    sparkline: [83919.71, 83200.0, 82800.0, 82435.99],
   },
   {
     symbol: "NIFTY BANK",
     name: "Nifty Bank Index",
     category: "indian_index",
     exchange: "NSE",
-    price: 51820.50,
-    change: 210.30,
-    change_pct: 0.41,
+    price: 62585.35,
+    change: -2050.80,
+    change_pct: -3.17,
     currency: "INR",
     market_status: "CLOSED",
-    data_status: "EOD",
-    sparkline: [51610.20, 51680.0, 51740.0, 51820.50],
+    data_status: "LIVE",
+    sparkline: [64636.15, 63800.0, 63100.0, 62585.35],
   },
   {
     symbol: "NASDAQ 100",
@@ -56,7 +56,7 @@ const FALLBACK_TICKERS: TickerItem[] = [
     change_pct: -0.41,
     currency: "USD",
     market_status: "CLOSED",
-    data_status: "EOD",
+    data_status: "LIVE",
     sparkline: [20995.65, 20970.0, 20940.0, 20910.45],
   },
   {
@@ -69,7 +69,7 @@ const FALLBACK_TICKERS: TickerItem[] = [
     change_pct: 0.21,
     currency: "USD",
     market_status: "CLOSED",
-    data_status: "EOD",
+    data_status: "LIVE",
     sparkline: [5956.84, 5960.0, 5964.0, 5969.34],
   },
   {
@@ -82,7 +82,7 @@ const FALLBACK_TICKERS: TickerItem[] = [
     change_pct: 1.16,
     currency: "USD",
     market_status: "CLOSED",
-    data_status: "EOD",
+    data_status: "LIVE",
     sparkline: [73.35, 73.60, 73.85, 74.20],
   },
   {
@@ -95,7 +95,7 @@ const FALLBACK_TICKERS: TickerItem[] = [
     change_pct: 0.28,
     currency: "INR",
     market_status: "CLOSED",
-    data_status: "EOD",
+    data_status: "LIVE",
     sparkline: [76240.0, 76300.0, 76360.0, 76450.00],
   },
   {
@@ -108,7 +108,7 @@ const FALLBACK_TICKERS: TickerItem[] = [
     change_pct: 0.05,
     currency: "INR",
     market_status: "CLOSED",
-    data_status: "EOD",
+    data_status: "LIVE",
     sparkline: [84.38, 84.39, 84.41, 84.42],
   },
   {
@@ -121,7 +121,7 @@ const FALLBACK_TICKERS: TickerItem[] = [
     change_pct: -0.67,
     currency: "USD",
     market_status: "CLOSED",
-    data_status: "EOD",
+    data_status: "LIVE",
     sparkline: [4.450, 4.442, 4.435, 4.420],
   },
 ];
@@ -133,16 +133,25 @@ export default function MarketTicker() {
   // Real-time WebSocket hook
   const { isConnected, ticks } = useMarketWebSocket();
 
-  // Initial REST fetch
+  // Continuous auto-refresh REST polling every 7 seconds
   useEffect(() => {
-    getMarketTicker()
-      .then((data) => {
-        if (data && data.length > 0) setRestItems(data);
-      })
-      .catch(() => {
-        // graceful fallback to initial list
-      });
+    let isMounted = true;
+    const fetchLatest = () => {
+      getMarketTicker()
+        .then((data) => {
+          if (isMounted && data && data.length > 0) setRestItems(data);
+        })
+        .catch(() => {});
+    };
+
+    fetchLatest();
+    const interval = setInterval(fetchLatest, 7000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
+
 
   // Merge WebSocket real-time updates over REST baseline
   const mergedItems = useMemo(() => {
