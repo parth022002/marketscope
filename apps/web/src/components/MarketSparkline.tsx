@@ -1,5 +1,7 @@
 "use client";
 
+import { useId } from "react";
+
 interface MarketSparklineProps {
   data: number[];
   isPositive?: boolean;
@@ -50,7 +52,8 @@ export default function MarketSparkline({
   const areaPath = `${linePath} L ${lastPoint.x.toFixed(1)} ${height} L ${points[0].x.toFixed(1)} ${height} Z`;
 
   const strokeColor = isPositive ? "#10B981" : "#EF4444"; // Emerald vs Coral
-  const gradientId = `sparkline-grad-${Math.random().toString(36).slice(2, 9)}`;
+  const uniqueId = useId();
+  const gradientId = `sparkline-grad-${uniqueId.replace(/:/g, "")}`;
 
   return (
     <svg

@@ -22,6 +22,7 @@ import {
   Save,
 } from "lucide-react";
 import StockChart from "@/components/chart/StockChart";
+import NavigationShell from "@/components/NavigationShell";
 import {
   getChartLayouts,
   saveChartLayout,
@@ -80,7 +81,8 @@ export default function ChartsTerminalPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] bg-[#0A0E17] text-slate-100 overflow-hidden select-none">
+    <NavigationShell activePath="/charts">
+      <div className="flex flex-col h-[calc(100vh-10rem)] min-h-[640px] rounded-xl border border-slate-800 bg-[#0A0E17] text-slate-100 overflow-hidden select-none">
       {/* ── TOP TERMINAL BAR ────────────────────────────────────────── */}
       <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-800 bg-[#0F172A]/90 backdrop-blur z-20 gap-3">
         {/* Left: Active symbol & Quick Switcher */}
@@ -337,6 +339,7 @@ export default function ChartsTerminalPage() {
           </aside>
         )}
       </div>
-    </div>
+      </div>
+    </NavigationShell>
   );
 }

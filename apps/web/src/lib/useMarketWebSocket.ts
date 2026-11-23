@@ -11,7 +11,7 @@ export interface UseMarketWebSocketOptions {
 }
 
 export function useMarketWebSocket(options: UseMarketWebSocketOptions = {}) {
-  const { symbols = [], enabled = true } = options;
+  const { symbols, enabled = true } = options;
   const [status, setStatus] = useState<WebSocketStatus>("disconnected");
   const [ticks, setTicks] = useState<Record<string, TickerItem>>({});
   const [lastTickAt, setLastTickAt] = useState<Date | null>(null);
@@ -19,6 +19,16 @@ export function useMarketWebSocket(options: UseMarketWebSocketOptions = {}) {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const retryCountRef = useRef(0);
+  const symbolsRef = useRef<string[]>(symbols || []);
+  const isUnmountedRef = useRef(false);
+
+  // Keep symbolsRef updated without triggering reconnects
+  useEffect(() => {
+    symbolsRef.current = symbols || [];
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && symbols && symbols.length > 0) {
+      wsRef.current.send(JSON.stringify({ action: "subscribe", symbols }));
+    }
+  }, [symbols]);
 
   const getWsUrl = useCallback(() => {
     if (typeof window === "undefined") return "";
@@ -41,7 +51,18 @@ export function useMarketWebSocket(options: UseMarketWebSocketOptions = {}) {
   }, []);
 
   const connect = useCallback(() => {
-    if (typeof window === "undefined" || !enabled) return;
+    if (typeof window === "undefined" || !enabled || isUnmountedRef.current) return;
+
+    // Prevent duplicate simultaneous connection attempts
+    if (wsRef.current && (wsRef.current.readyState === WebSocket.CONNECTING || wsRef.current.readyState === WebSocket.OPEN)) {
+      return;
+    }
+
+    // Stop rapid reconnection loops if exceeded 5 attempts
+    if (retryCountRef.current > 5) {
+      setStatus("disconnected");
+      return;
+    }
 
     const url = getWsUrl();
     if (!url) return;
@@ -53,16 +74,21 @@ export function useMarketWebSocket(options: UseMarketWebSocketOptions = {}) {
       wsRef.current = socket;
 
       socket.onopen = () => {
+        if (isUnmountedRef.current) {
+          socket.close();
+          return;
+        }
         setStatus("connected");
         retryCountRef.current = 0;
 
-        // If symbols are requested, subscribe
-        if (symbols.length > 0) {
-          socket.send(JSON.stringify({ action: "subscribe", symbols }));
+        const currentSymbols = symbolsRef.current;
+        if (currentSymbols.length > 0) {
+          socket.send(JSON.stringify({ action: "subscribe", symbols: currentSymbols }));
         }
       };
 
       socket.onmessage = (event) => {
+        if (isUnmountedRef.current) return;
         try {
           const data = JSON.parse(event.data);
           if (data.type === "ticker_update" && Array.isArray(data.items)) {
@@ -88,38 +114,56 @@ export function useMarketWebSocket(options: UseMarketWebSocketOptions = {}) {
       };
 
       socket.onclose = () => {
-        setStatus("disconnected");
         wsRef.current = null;
+        if (isUnmountedRef.current) return;
+        setStatus("disconnected");
 
-        // Exponential backoff reconnect: 1s, 2s, 4s, up to 15s max
-        const delay = Math.min(1000 * Math.pow(1.5, retryCountRef.current), 15000);
-        retryCountRef.current += 1;
-        reconnectTimeoutRef.current = setTimeout(connect, delay);
+        // Exponential backoff reconnect: 3s, 5s, 8s, up to 30s max
+        if (retryCountRef.current < 5) {
+          const delay = Math.min(3000 * Math.pow(1.5, retryCountRef.current), 30000);
+          retryCountRef.current += 1;
+          if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+          reconnectTimeoutRef.current = setTimeout(() => {
+            if (!isUnmountedRef.current) connect();
+          }, delay);
+        }
       };
 
       socket.onerror = () => {
-        socket.close();
+        // Do not force-close on error; onclose fires automatically
       };
     } catch {
       setStatus("disconnected");
     }
-  }, [enabled, getWsUrl, symbols]);
+  }, [enabled, getWsUrl]);
 
   useEffect(() => {
+    isUnmountedRef.current = false;
     if (enabled) {
       connect();
     }
     return () => {
+      isUnmountedRef.current = true;
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
       }
       if (wsRef.current) {
-        wsRef.current.close();
+        const socket = wsRef.current;
+        wsRef.current = null;
+        socket.onopen = null;
+        socket.onmessage = null;
+        socket.onclose = null;
+        socket.onerror = null;
+        try {
+          socket.close();
+        } catch {}
       }
     };
   }, [enabled, connect]);
 
   const subscribe = useCallback((newSymbols: string[]) => {
+    symbolsRef.current = newSymbols;
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({ action: "subscribe", symbols: newSymbols }));
     }

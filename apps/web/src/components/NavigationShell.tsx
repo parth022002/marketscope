@@ -49,7 +49,7 @@ interface NavigationShellProps {
 
 // 8 Primary Navigation Destinations (Phase 4.1)
 const MAIN_NAV_ITEMS = [
-  { label: "Overview", href: "/", icon: LayoutDashboard },
+  { label: "Overview", href: "/overview", icon: LayoutDashboard },
   { label: "Markets", href: "/markets", icon: Globe },
   { label: "Discover", href: "/discover", icon: Compass, badge: "HUB" },
   { label: "Watchlists", href: "/watchlists", icon: Bookmark },
@@ -211,8 +211,9 @@ export default function NavigationShell({ children, activePath }: NavigationShel
   });
 
   const isRouteActive = (href: string) => {
+    if (href === "/overview" && (currentPath === "/overview" || currentPath === "/")) return true;
     if (href === "/" && currentPath === "/") return true;
-    if (href !== "/" && currentPath.startsWith(href)) return true;
+    if (href !== "/" && href !== "/overview" && currentPath.startsWith(href)) return true;
     return false;
   };
 
@@ -225,7 +226,7 @@ export default function NavigationShell({ children, activePath }: NavigationShel
       <aside
         aria-label="Sidebar Navigation"
         className={`hidden md:flex flex-col fixed top-0 left-0 bottom-0 z-30 transition-all duration-300 ease-in-out border-r border-slate-800/80 bg-[#070D18]/95 dark:bg-[#070D18]/95 backdrop-blur-xl ${
-          collapsed ? "w-18" : "w-64"
+          collapsed ? "w-20" : "w-64"
         } select-none`}
       >
         {/* Top: Brand Logo & Collapse Toggle */}
@@ -375,8 +376,8 @@ export default function NavigationShell({ children, activePath }: NavigationShel
 
       {/* ── MAIN CONTENT AREA ───────────────────────────────────────── */}
       <div
-        className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ease-in-out ${
-          collapsed ? "md:pl-18" : "md:pl-64"
+        className={`flex-1 flex flex-col min-h-screen relative z-10 transition-all duration-300 ease-in-out ${
+          collapsed ? "md:pl-20" : "md:pl-64"
         }`}
       >
         {/* ── TOP HEADER BAR ──────────────────────────────────────────── */}
