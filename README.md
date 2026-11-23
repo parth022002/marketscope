@@ -148,13 +148,19 @@ pnpm run build
 ## 📚 Documentation Reference Library
 
 - [Final Project Report](docs/FINAL_PROJECT_REPORT.md) — Complete 25-chapter institutional project report
-- [System Architecture](docs/ARCHITECTURE.md) — Comprehensive technical architecture reference
+- [Master Task Audit Matrix](docs/FINAL_PROJECT_TASK_AUDIT.md) — Comprehensive feature implementation & verification register
+- [Engineering Standards](docs/ENGINEERING_STANDARDS.md) — Full-stack architecture, coding, and quantitative standards
+- [System Architecture](docs/SYSTEM_ARCHITECTURE.md) — High-level architecture, component boundaries, and data flow
 - [API Reference](docs/API_REFERENCE.md) — Full REST & WebSocket specification
-- [Deployment Guide](docs/DEPLOYMENT_GUIDE.md) — Production deployment instructions for Vercel, Render & Docker
-- [Task Audit Matrix](docs/FINAL_PROJECT_TASK_AUDIT.md) — Completed vs pending feature verification register
-- [Data Providers & Licensing](docs/DATA_PROVIDER_AND_LICENSING_REGISTER.md) — Vendor licenses and regulatory disclosures
+- [Automated Test & QA Report](docs/TEST_REPORT.md) — 148 backend tests, 40 Next.js routes, and CycloneDX SBOM results
+- [Production Readiness Report](docs/PRODUCTION_READINESS_REPORT.md) — Enterprise readiness audit and executive sign-off
+- [Vercel Deployment Configuration](docs/VERCEL_DEPLOYMENT_CONFIGURATION.md) — Edge SSR deployment specification & register
+- [Render Deployment Configuration](docs/RENDER_DEPLOYMENT_CONFIGURATION.md) — Containerized FastAPI web service specification & register
+- [Cross-Platform Environment Variables](docs/ENVIRONMENT_VARIABLE_REGISTER.md) — Unified environment variable reference
+- [Data Providers & Licensing](docs/DATA_PROVIDER_AND_LICENSING_REGISTER.md) — Vendor licenses, attribution, and SEBI disclosures
 - [Security & Privacy](docs/SECURITY_AND_PRIVACY.md) — Security posture, DPDP Act 2023 & GDPR compliance
 - [Repository Cleanup Report](docs/REPOSITORY_CLEANUP_REPORT.md) — Governance purge and asset retention record
+- [Known Limitations & Roadmap](docs/KNOWN_LIMITATIONS_AND_ROADMAP.md) — Coverage boundaries and Horizon 2/3 roadmap
 
 ---
 

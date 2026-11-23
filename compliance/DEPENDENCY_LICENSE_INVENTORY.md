@@ -1,6 +1,6 @@
 # MarketScope.io — Complete Dependency License Inventory
 
-Generated on: 2026-11-22 10:04:24 UTC
+Generated on: 2026-11-23 14:49:30 UTC
 
 ## 1. Direct Core Dependencies
 

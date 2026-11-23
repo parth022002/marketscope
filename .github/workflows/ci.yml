@@ -60,7 +60,7 @@ jobs:
           pip install -r requirements.txt
           pip install pytest httpx
 
-      - name: Run Backend Test Suites (27 Tests)
+      - name: Run Backend Test Suite (148 Tests)
         env:
           APP_ENV: "testing"
           APP_DEBUG: "false"
