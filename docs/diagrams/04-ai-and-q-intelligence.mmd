@@ -1,0 +1,35 @@
+flowchart TD
+    subgraph UserRequest ["User Research Request"]
+        Query["User Queries Ticker Dossier or Asks Question"]
+        Symbol["Instrument Resolution (e.g. RELIANCE, AAPL)"]
+        Query --> Symbol
+    end
+
+    subgraph DataGrounding ["Deterministic Data Grounding"]
+        Symbol --> RelationalDB[("PostgreSQL Financial Facts & Metrics")]
+        Symbol --> LiveQuote["Live Quote & Technical Snapshot"]
+        Symbol --> NewsCorpus["Verified News & Corporate Announcements"]
+    end
+
+    subgraph QuantEngine ["Q-Intelligence Ensemble"]
+        RelationalDB --> ValueScore["Valuation & DCF Engine"]
+        RelationalDB --> QualityScore["Quality & Balance Sheet Health (Altman Z/Piotroski F)"]
+        LiveQuote --> MomentumScore["Momentum & Trend Regime"]
+        NewsCorpus --> SentimentScore["NLP Financial News Sentiment"]
+        
+        ValueScore --> Scorecard["Consolidated Q-Intelligence Score (0-100)"]
+        QualityScore --> Scorecard
+        MomentumScore --> Scorecard
+        SentimentScore --> Scorecard
+    end
+
+    subgraph AIOrchestrator ["Specialist Agentic Orchestration"]
+        Scorecard --> ContextPacker["Provenance Context Builder"]
+        RelationalDB --> ContextPacker
+        NewsCorpus --> ContextPacker
+        
+        ContextPacker --> PIIGuard["PII Defense & Prompt Injection Barrier"]
+        PIIGuard --> LLM["Configured AI Provider (Gemini / Claude / Groq)"]
+        LLM --> CitationEngine["Source Grounding & Evidence Verification"]
+        CitationEngine --> Output["Structured AI Research Dossier with Evidence Drawer"]
+    end

@@ -1,0 +1,77 @@
+erDiagram
+    WORKSPACES ||--o{ WORKSPACE_MEMBERSHIPS : contains
+    USERS ||--o{ WORKSPACE_MEMBERSHIPS : joins
+    WORKSPACES ||--o{ RESEARCH_NOTES : owns
+    WORKSPACES ||--o{ RESEARCH_SNAPSHOTS : captures
+    WORKSPACES ||--o{ WATCHLISTS : maintains
+    WORKSPACES ||--o{ SAVED_SCREENS : stores
+
+    ISSUERS ||--o{ INSTRUMENTS : issues
+    INSTRUMENTS ||--o{ RESEARCH_NOTES : targets
+    INSTRUMENTS ||--o{ FINANCIAL_FACTS : records
+    INSTRUMENTS ||--o{ METRIC_OBSERVATIONS : calculates
+    INSTRUMENTS ||--o{ EVIDENCE_ITEMS : supports
+    
+    WATCHLISTS ||--o{ WATCHLIST_ITEMS : contains
+    INSTRUMENTS ||--o{ WATCHLIST_ITEMS : references
+
+    DATA_PROVIDERS ||--o{ PROVIDER_ENTITLEMENTS : grants
+    DATA_PROVIDERS ||--o{ FINANCIAL_FACTS : provides
+    METRIC_DEFINITIONS ||--o{ METRIC_OBSERVATIONS : defines
+
+    MARKET_QUOTES {
+        string symbol PK
+        string instrument_id
+        string name
+        string exchange
+        string asset_class
+        string currency
+        numeric price
+        numeric open
+        numeric high
+        numeric low
+        numeric previous_close
+        numeric change
+        numeric change_pct
+        numeric volume
+        string market_status
+        string data_status
+        string source_provider
+        jsonb sparkline
+        timestamp timestamp
+        timestamp updated_at
+    }
+
+    INSTRUMENTS {
+        uuid id PK
+        uuid issuer_id FK
+        text symbol
+        text exchange_code
+        text instrument_type
+        text isin
+        string currency
+        text listing_status
+        timestamp created_at
+    }
+
+    ISSUERS {
+        uuid id PK
+        text canonical_name
+        string country_code
+        text sector
+        text industry
+        timestamp created_at
+    }
+
+    FINANCIAL_FACTS {
+        uuid id PK
+        uuid instrument_id FK
+        uuid provider_id FK
+        text fact_key
+        numeric value_numeric
+        text value_text
+        text unit
+        date period_end
+        text period_type
+        text quality_status
+    }

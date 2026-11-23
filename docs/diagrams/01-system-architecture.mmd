@@ -1,0 +1,45 @@
+flowchart TD
+    subgraph ClientLayer ["Client & Interface Layer"]
+        User["Institutional & Retail Analyst"] --> NextApp["Next.js 15 Client & Server Components (Vercel)"]
+        NextApp --> Shell["Navigation Shell & 3D Interactive Viewport"]
+        NextApp --> Ticker["Streaming WebSocket Ticker"]
+        NextApp --> Terminals["Markets, Charts, Screener & Dossier Terminals"]
+    end
+
+    subgraph GatewayLayer ["API & Gateway Layer (Render)"]
+        NextApp -- "HTTPS REST API (port 8000/10000)" --> FastAPI["FastAPI Modular Monolith"]
+        NextApp -- "WSS Bidirectional Stream" --> WS["WebSocket Streaming Gateway (/ws/v1/market-data)"]
+        FastAPI --> Security["Security Headers & Rate Limiting Middleware"]
+        FastAPI --> Auth["Identity & Workspace Resolver (Clerk / RBAC)"]
+    end
+
+    subgraph ServiceEngineLayer ["Core Financial Engines & Micro-Modules"]
+        FastAPI --> MDS["MarketDataService (L1 Memory / L2 Cache)"]
+        FastAPI --> Resolver["Universal Instrument Resolver (50+ Canonical Assets)"]
+        FastAPI --> Quant["Q-Intelligence & Financial Analytics Engine"]
+        FastAPI --> NewsEngine["Verified News Ingestion & NLP Deduplication Engine"]
+        FastAPI --> CalendarEngine["Global Exchange Session & Macro Calendar Engine"]
+        FastAPI --> AIAssistant["Multi-Agent Financial Analyst Orchestrator"]
+        FastAPI --> Derivatives["Black-Scholes & Derivatives Flow Engine"]
+    end
+
+    subgraph DataStorageLayer ["Persistence & High-Availability Layer"]
+        MDS --> NeonDB[("Neon PostgreSQL Serverless (market_quotes, issuers, facts)")]
+        MDS -.-> RedisCache[("Redis L2 Cache (Optional)")]
+        NeonDB --> Migrations["SQLAlchemy Relational ORM"]
+    end
+
+    subgraph ExternalProviderLayer ["Upstream Feeds & Data Sources"]
+        MDS --> LiveExch["LiveExchangeProvider (NSE/BSE/Yahoo fast_info)"]
+        MDS --> TwelveData["Twelve Data Commercial API (Global Equities & FX)"]
+        MDS --> FMP["Financial Modeling Prep (Fundamentals & Balance Sheets)"]
+        AIAssistant --> LLMs["Google Gemini 2.5 / OpenAI / Groq Inference APIs"]
+    end
+
+    classDef primary fill:#0284c7,stroke:#0369a1,stroke-width:2px,color:#fff;
+    classDef storage fill:#059669,stroke:#047857,stroke-width:2px,color:#fff;
+    classDef external fill:#d97706,stroke:#b45309,stroke-width:2px,color:#fff;
+
+    class NextApp,FastAPI,MDS primary;
+    class NeonDB,RedisCache storage;
+    class LiveExch,TwelveData,FMP,LLMs external;

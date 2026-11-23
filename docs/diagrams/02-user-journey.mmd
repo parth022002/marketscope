@@ -1,0 +1,21 @@
+flowchart LR
+    Start([User Arrives]) --> Home[Landing Page & Value Proposition]
+    Home --> Nav[Navigation Shell / Sidebar]
+    
+    Nav --> Overview[Overview Terminal\n- Benchmark Indices\n- Intraday Performance\n- Sector Heatmap\n- Breaking Catalyst Feed]
+    Nav --> Markets[Markets Hub\n- Indian Equities (NSE/BSE)\n- US & International Tech\n- Commodities & Energies\n- Currencies & Bond Yields]
+    Nav --> Discover[Discover Hub\n- Universal Ticker/ISIN Search\n- Sector Breakdown\n- High Momentum Screeners]
+    Nav --> Charts[Pro Charting Terminal\n- Candlesticks / Indicators\n- Drawing Tools\n- Layout Persistence]
+    Nav --> Intelligence[AI & Q-Intelligence\n- Multi-Agent Synthesis\n- Fundamental Scorecards\n- Evidence Verification]
+    Nav --> Research[Financial Dossier\n- Ind AS / US GAAP Financials\n- Valuation Multiples\n- Peer Benchmarking]
+    Nav --> Portfolio[Paper Trading & Watchlists\n- Simulated Execution\n- PnL & Exposure Metrics]
+    
+    Overview --> StockSelect[Select Specific Instrument]
+    Markets --> StockSelect
+    Discover --> StockSelect
+    StockSelect --> Research
+    Research --> Charts
+    Research --> Intelligence
+    Research --> AddWatchlist[Add to Research Watchlist]
+    Charts --> PlaceTrade[Simulate Paper Order]
+    PlaceTrade --> Portfolio

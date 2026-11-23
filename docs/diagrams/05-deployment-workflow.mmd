@@ -1,0 +1,26 @@
+flowchart TD
+    subgraph GitRepo ["GitHub Version Control (master)"]
+        Commit["Feature & Bug Fix Commit"] --> Push["git push origin master"]
+    end
+
+    subgraph CI_Pipeline ["GitHub Actions CI/CD Pipeline"]
+        Push --> Job1["Backend Pytest Suite (Python 3.12, 148 Tests)"]
+        Push --> Job2["Frontend Build & Typecheck (Next.js 15, 40 Routes)"]
+        Push --> Job3["Open-Source License & SBOM Audit"]
+    end
+
+    subgraph VercelDeploy ["Vercel Edge Cloud (Frontend)"]
+        Job2 -- "Auto-Deploy Trigger" --> VercelBuild["Vercel Production Build"]
+        VercelBuild --> VercelEdge["Global CDN Edge Network (marketscope.io)"]
+    end
+
+    subgraph RenderDeploy ["Render Cloud (Backend)"]
+        Job1 -- "Auto-Deploy Webhook" --> RenderBuild["Render Multi-Stage Docker Container Build"]
+        RenderBuild --> RenderRun["FastAPI Web Service (0.0.0.0:10000)"]
+    end
+
+    subgraph ExternalInfra ["Production Managed Infrastructure"]
+        RenderRun --> NeonServerless[("Neon PostgreSQL Serverless (AWS ap-southeast-1)")]
+        RenderRun -.-> RedisCloud[("Redis In-Memory Cache")]
+        VercelEdge -- "HTTPS / WSS" --> RenderRun
+    end

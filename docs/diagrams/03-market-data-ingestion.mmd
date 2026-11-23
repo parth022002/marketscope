@@ -1,0 +1,31 @@
+flowchart TD
+    subgraph DataSources ["External Market Feeds"]
+        YF["Direct Live Exchange Feeds (NSE, BSE, NASDAQ, NYSE)"]
+        TD["Twelve Data API"]
+        FMP["Financial Modeling Prep API"]
+    end
+
+    subgraph IngestionPipeline ["MarketScope Ingestion & Normalization"]
+        IngestLoop["Background Live Sync Worker (Every 15s)"]
+        YF --> IngestLoop
+        TD --> IngestLoop
+        FMP --> IngestLoop
+        
+        IngestLoop --> Resolver["InstrumentResolver & Precision Normalizer"]
+        Resolver --> Validator["Price Boundary & Anomaly Detection"]
+        Validator --> DecCalc["Exact Decimal Math Service (No Float Drift)"]
+    end
+
+    subgraph PersistencePipeline ["Storage & Broadcast Layer"]
+        DecCalc --> DBRecord["market_quotes Table (Neon PostgreSQL)"]
+        DecCalc --> L1["L1 In-Memory Fast Cache (5s/300s TTL)"]
+        DecCalc -.-> L2["L2 Redis Cache (JSON Serialization)"]
+        
+        DBRecord --> WSBroadcast["WebSocket Broadcast Gateway"]
+    end
+
+    subgraph ClientPresentation ["Real-Time Client Updates"]
+        WSBroadcast -- "WSS Sub-Second Frames" --> FrontTicker["MarketTicker Marquee"]
+        WSBroadcast -- "Live Ticks" --> FrontCards["MarketOverviewCard & Heatmaps"]
+        L1 -- "REST Polling Fallback (7-8s)" --> FrontRest["Overview & Markets Pages"]
+    end

@@ -1,242 +1,170 @@
-# MarketScope.io — Financial Research & Intelligence Platform
+# MarketScope.io — Institutional Financial Intelligence & Quantitative Research Platform
 
-[![Next.js 15](https://img.shields.io/badge/Next.js-15.2.8-black?logo=next.js)](https://nextjs.org/)
-[![React 19](https://img.shields.io/badge/React-19.0.0-blue?logo=react)](https://react.dev/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.115.0-009688?logo=fastapi)](https://fastapi.tiangolo.com/)
-[![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?logo=python)](https://python.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql)](https://postgresql.org/)
-[![Lightweight Charts](https://img.shields.io/badge/TradingView-Lightweight_Charts_v5-2962FF)](https://tradingview.github.io/lightweight-charts/)
-[![CI Tests](https://img.shields.io/badge/Tests-21%20Passed-brightgreen)](#automated-testing)
+[![CI/CD Pipeline](https://img.shields.io/badge/CI%2FCD-Passing-brightgreen.svg)](https://github.com/parth1511/marketscope/actions)
+[![Next.js 15](https://img.shields.io/badge/Next.js-15.0-black?logo=next.js)](https://nextjs.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi)](https://fastapi.tiangolo.com/)
+[![Python](https://img.shields.io/badge/Python-3.12%2B-blue?logo=python)](https://python.org)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon_Serverless-4169E1?logo=postgresql)](https://neon.tech)
+[![Tests Passing](https://img.shields.io/badge/Tests-148%2F148_Passing-success)](tests/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-> **MarketScope.io** is an institutional-grade financial research, technical charting, and market intelligence platform combining the charting sophistication of **TradingView**, the execution ergonomics of **Zerodha Kite**, the fundamental depth of **Tickertape**, and the quantitative market flow of **VerquoAI**.
->
-> Designed primarily for Indian financial markets (NSE, BSE, MCX) and expanded to major global exchanges (NASDAQ, NYSE, LSE).
+MarketScope.io is an AI-powered financial intelligence, quantitative factor modeling, and multi-asset research terminal engineered for institutional hedge funds, equity research analysts, quantitative developers, and active market participants.
 
----
-
-## 1. Product Capabilities
-
-### 📈 TradingView-Grade Interactive Charting
-- **Lightweight Charts v5.3.0 Engine**: Fluid 60 FPS Canvas rendering supporting Candlestick, Bar, Line, Area, and Volume series.
-- **Multi-Timeframe Resolutions**: 1m, 5m, 15m, 1D, and 1W aggregations.
-- **14 Technical Indicator Formulas**: Pure NumPy calculations and client-side canvas plots for SMA, EMA, WMA, HMA, RSI, MACD, Bollinger Bands, ATR, Supertrend, Stochastic RSI, CCI, Williams %R, Ichimoku Cloud, and Chaikin Money Flow.
-- **Interactive Multi-Chart Grid Terminal (`/charts`)**: Flexible layout switcher (`single`, `split_2h`, `split_2v`, `grid_4`) with cloud-persisted layout configurations.
-- **10 Drawing Annotation Tools**: Trend Lines, Horizontal Rays, Fibonacci Retracements, Rectangles, Price Ranges, and Text Notes.
-
-### ⚡ Zerodha Kite-Grade Fast Terminal & Options Chain
-- **Strike-Level Options Chain (`/derivatives`)**: Live Call and Put Open Interest (OI), Volume, IV, and Black-Scholes Greeks (Delta, Gamma, Theta, Vega).
-- **Options Sentiment Indicators**: Real-time Put-Call Ratio (PCR) and Max Pain strike computation.
-- **4-Quadrant Futures Build-up Radar**: Algorithmic classification into Long Build-up, Short Build-up, Short Covering, and Long Unwinding.
-
-### 📊 Tickertape-Grade Fundamental Research
-- **6-Pillar Health Scorecard**: Algorithmic scores across Valuation, Growth, Profitability, Financial Health, Red Flags, and Ownership Structure.
-- **Standardized Financial Statements**: 5-year interactive Income Statement, Balance Sheet, and Cash Flow Statement.
-- **Universal Multi-Factor Screener (`/screener`)**: Filter exchange-listed equities by Market Cap, P/E, P/B, Dividend Yield, RSI, and 52W High Breakouts with one-click CSV export.
-
-### 🧠 VerquoAI-Grade Market Flow & Quantitative Intelligence
-- **Market Flow Radar (`/market-intelligence`)**: Advance/Decline breadth ratio, sectoral strength heatmap, and Mansfield Relative Strength (RS) versus NIFTY 50 benchmark.
-- **Strategy Backtesting Engine (`/backtesting`)**: Causal, zero-lookahead backtest simulator with realistic slippage (0.05%) and exchange turnover fees (0.03%), calculating CAGR, Sharpe, Sortino, and Max Drawdown.
-- **Virtual Paper Trading Ledger (`/paper-trading`)**: Risk-free virtual account initialized with ₹10,00,000 INR cash, supporting simulated Market/Limit fills and real-time MTM portfolio valuation.
-
-### 🌐 Global Market Calendar & Live Status Intelligence (`/calendar`)
-- **Authoritative Real-Time Market Status**: Continuous operating state tracking across 8+ international bourses (NSE, BSE, MCX, RBI, NYSE, NASDAQ, LSE, TSE, HKEX) with 10 canonical session states (`PRE_MARKET`, `OPEN`, `BREAK`, `CLOSING_AUCTION`, `POST_MARKET`, `CLOSED`, `HOLIDAY`, `SPECIAL_SESSION`, etc.).
-- **Institutional Holiday & Closure Database**: Full 2026/2027 calendar distinguishing between trading closures, banking closures (RBI / NI Act Section 25), MCX dual-session operations, and Diwali Muhurat special sessions.
-- **High-Impact Economic & Corporate Catalysts**: Central bank interest rate decisions (RBI MPC, Fed FOMC, ECB), inflation (CPI/WPI), GDP, corporate earnings, and dividend corporate actions.
-- **Navigation Shell Status Pill**: Interactive navbar widget displaying real-time open/closed status with instant drop-down popover.
-
-### 🤖 Floating AI Support & Market Research Chatbot
-- **Omnipresent Conversational Research Companion**: Expandable floating widget available across all pages with context-aware routing (adapts dynamically on `/company/[symbol]`, `/charts`, `/calendar`, `/news`).
-- **Grounded Multi-Intent RAG**: Zero-hallucination query routing across `MARKET_STATUS`, `COMPANY_RESEARCH`, `PLATFORM_SUPPORT`, `MARKET_EDUCATION`, and `NEWS_ANALYSIS`.
-- **Traceable Source Citations**: Every empirical data point is anchored to primary regulatory filings or data providers with verifiable external URLs and timestamps.
-- **Strict Compliance Guardrails**: Prompt injection sanitization, non-advisory positioning, and refusal to provide guaranteed return forecasts.
-
-### 📰 Advanced Worldwide Financial News Intelligence Engine (`/news`)
-- **7 Canonical Topic Taxonomies**: Banking & Financials, Listed Companies, Sectoral Coverage, Macroeconomics & Central Banks, Global Markets, Commodities & Forex, and Regulatory/Geopolitics.
-- **Source Credibility Registry**: Formal 4-tier publisher hierarchy (Tier 1 Primary Official, Tier 2 Established Journalism, Tier 3 Industry Press).
-- **Automated Named Entity Recognition**: Automatic mapping of news headlines to listed exchange tickers and GICS sectors.
-- **8-Point AI Structured Article Dossiers**: Executive summary, key facts, why it matters, transmission channels, impact horizon, affected tickers, and risk factors with 100% source attribution.
+The platform bridges real-time exchange feeds, multi-decade balance sheet fundamentals, interactive technical indicators, proprietary quantitative scoring, and grounded AI copilot intelligence into a unified, ultra-responsive workspace.
 
 ---
 
-## 2. Strict Product Guardrails & Safety
-- **Strictly Non-Custodial**: MarketScope.io is an educational research and financial data intelligence platform. It does NOT take customer deposits, route live brokerage orders, or hold client funds. All trading happens in a risk-free virtual simulation ledger.
-- **Zero Price Fabrication**: Every displayed price, volume, and financial metric is tagged with its authoritative provenance badge (`LIVE`, `DELAYED_15M`, `CALIBRATED_EOD`, `VERIFIED_OFFICIAL`).
-- **Regulatory Transparency**: Compliant with SEBI and SEC educational research guidelines.
+## 📸 Platform Interface & Live Visuals
+
+| Overview Dashboard | Markets Hub |
+| :---: | :---: |
+| ![Overview Dashboard](docs/assets/screenshots/02-overview.png) | ![Markets Hub](docs/assets/screenshots/03-markets.png) |
+
+| Stock Research Dossier | Pro Charting Terminal |
+| :---: | :---: |
+| ![Stock Research Dossier](docs/assets/screenshots/06-company-research.png) | ![Pro Charting Terminal](docs/assets/screenshots/07-advanced-charts.png) |
+
+| Q-Intelligence Quantitative Ensemble | AI Financial Assistant |
+| :---: | :---: |
+| ![Q-Intelligence](docs/assets/screenshots/09-q-intelligence.png) | ![AI Assistant](docs/assets/screenshots/10-ai-research.png) |
 
 ---
 
-## 3. Technology Architecture
+## ⚡ Core Capabilities
+
+- **Institutional Market Ticker & Streaming Feeds:** Real-time benchmark quotes (NIFTY 50, SENSEX, NIFTY BANK, NASDAQ, S&P 500) synchronized via WebSocket broadcaster and backed by persistent storage in Neon PostgreSQL.
+- **Stock Research Dossier:** 10-year audited financial statement models (Income Statement, Balance Sheet, Cash Flow), segment disclosures, peer multiples, and DuPont return decomposition.
+- **Pro Charting Terminal:** Interactive OHLCV candlesticks with multi-interval aggregation (1m to 1d), technical indicators (SMA, EMA, RSI, MACD, Bollinger Bands, ATR, Supertrend), user drawings, and layout persistence.
+- **Q-Intelligence Scoring Engine:** Proprietary multi-factor scoring model synthesizing Fundamental Quality (35%), Growth Momentum (25%), Technical Trend (20%), and Sentiment (20%) into a normalized 0–100 percentile score.
+- **AI Research Assistant:** Autonomous research copilot grounded in live company filings and financial metrics with strict citation attribution and PII privacy filters.
+- **Virtual Paper Trading:** Simulated execution engine supporting Market and Limit order lifecycles, real-time P&L tracking, cash balance management, and transaction histories.
+- **Institutional Screener:** Multi-variable filter scanning thousands of global and Indian equities across valuation multiples, growth rates, and profitability thresholds.
+- **Verified Financial News:** Curated real-time feed with automated factual verification markers, entity sentiment classification, and macroeconomic impact tags.
+
+---
+
+## 🏛️ System Architecture
 
 ```mermaid
 graph TD
-    User([End User Terminal / Web Browser])
-    
-    subgraph Frontend [Next.js 15 Web Application]
-        AppRouter[28 App Router Pages]
-        LWCharts[Lightweight Charts v5.3.0]
-        ClerkClient[Clerk Next.js Auth]
-    end
-    
-    subgraph Backend [FastAPI Modular Monolith]
-        Router[API Router /api/v1]
-        ChartEngine[Chart & Indicator Engine]
-        ScreenerEngine[Universal Screener Engine]
-        DerivEngine[Derivatives & Greeks Engine]
-        FlowEngine[Market Flow & Breadth Engine]
-        BacktestEngine[Backtest & Paper Trading Engine]
-        NewsEngine[Verified News Engine]
-    end
-    
-    subgraph Storage [Persistent Storage & Feeds]
-        Postgres[(Neon PostgreSQL 16)]
-        Redis[(Redis Cache)]
-        Providers[TwelveData / FMP / AlphaVantage / Official Feeds]
-    end
+    Client["Client Browser (Desktop / Tablet)"]
+    Vercel["Frontend: Vercel Edge Network (Next.js 15 App Router)"]
+    Render["Backend: Render Cloud (FastAPI Container)"]
+    Neon["Database: Neon Serverless PostgreSQL"]
+    Redis["Cache: In-Memory / Upstash Redis"]
+    DataFeeds["Market Providers (TwelveData, FMP, yfinance)"]
+    AIProviders["LLM Providers (Google Gemini, OpenRouter)"]
 
-    User <--> Frontend
-    Frontend <--> Backend
-    Backend <--> Postgres
-    Backend <--> Redis
-    Backend <--> Providers
+    Client -->|HTTPS / WSS| Vercel
+    Vercel -->|REST API / WSS| Render
+    Render -->|SQLAlchemy Async / psycopg| Neon
+    Render -->|Key-Value Caching| Redis
+    Render -->|Live Ingestion & Sync| DataFeeds
+    Render -->|Context Grounding| AIProviders
 ```
 
 ---
 
-## 4. Repository Structure
+## ⚙️ Environment Configuration Registers
 
-```
-MarketScope.io Code/
-├── apps/
-│   ├── api/                      # FastAPI Modular Monolith (Backend)
-│   │   ├── app/
-│   │   │   ├── api/              # Route controllers (REST & WebSockets)
-│   │   │   ├── core/             # Config, DB connection pooling, seeds
-│   │   │   ├── engine/           # Pure analytical calculation engines
-│   │   │   ├── models/           # SQLAlchemy ORM models
-│   │   │   └── main.py           # FastAPI entrypoint & /health probe
-│   │   ├── tests/                # Automated integration test suite (21 tests)
-│   │   ├── Dockerfile            # Multi-stage production container
-│   │   ├── Procfile              # Render deployment declaration
-│   │   └── requirements.txt      # Python dependencies
-│   └── web/                      # Next.js 15 Web Application (Frontend)
-│       ├── src/
-│       │   ├── app/              # Next.js App Router (28 routes)
-│       │   ├── components/       # UI components & charting terminal
-│       │   └── lib/              # API client, types, utilities
-│       ├── package.json          # Node dependencies
-│       └── Dockerfile            # Production web container
-├── docs/                         # Consolidated Documentation Library
-│   ├── README.md                 # Documentation Index & Navigation Map
-│   ├── project/                  # Project inventory, roadmap, completion reports
-│   ├── requirements/             # Functional & security requirements
-│   ├── architecture/             # System, frontend, backend, database ADRs
-│   ├── modules/                  # Detailed module specifications (12 modules)
-│   ├── data/                     # Providers, rights, freshness standards
-│   ├── security/                 # Security policy, privacy, threat model
-│   ├── testing/                  # Testing strategy, test cases, results
-│   └── operations/               # Local setup, environment, deployment guide
-├── docker-compose.yml            # Local multi-service orchestration
-├── render.yaml                   # Automated Render Blueprint definition
-├── Procfile                      # Root Render process declaration
-└── start.sh                      # Production startup script
-```
+For comprehensive environment variable registers, security specifications, and setup instructions, refer to:
+- [docs/VERCEL_ENVIRONMENT_VARIABLE_REGISTER.md](docs/VERCEL_ENVIRONMENT_VARIABLE_REGISTER.md)
+- [docs/RENDER_ENVIRONMENT_VARIABLE_REGISTER.md](docs/RENDER_ENVIRONMENT_VARIABLE_REGISTER.md)
+- [docs/ENVIRONMENT_VARIABLE_REGISTER.md](docs/ENVIRONMENT_VARIABLE_REGISTER.md)
+
+### Vercel (Frontend) Key Variables
+
+| Variable | Purpose | Required | Example |
+| :--- | :--- | :---: | :--- |
+| `NEXT_PUBLIC_API_BASE_URL` | Public API endpoint of backend | **Yes** | `https://marketscope-api.onrender.com` |
+| `NEXT_PUBLIC_APP_URL` | Canonical frontend domain | **Yes** | `https://marketscope.io` |
+| `NEXT_PUBLIC_APP_NAME` | Display platform name | No | `MarketScope.io` |
+| `NEXT_PUBLIC_AI_ENABLED` | Enable AI assistant features | No | `true` |
+
+### Render (Backend) Key Variables
+
+| Variable | Purpose | Required | Example |
+| :--- | :--- | :---: | :--- |
+| `PORT` | Container binding port | **Yes** | `10000` (injected by Render) |
+| `APP_ENV` | Environment stage | **Yes** | `production` |
+| `SECRET_KEY` | JWT signing secret | **Yes** | `[Minimum 32-character high-entropy key]` |
+| `DATABASE_URL` | Neon PostgreSQL connection | **Yes** | `postgresql+psycopg://user:pass@host/db?sslmode=require` |
+| `CORS_ORIGINS` | Permitted client origins | **Yes** | `https://marketscope.io,https://marketscope-web.vercel.app` |
+| `TWELVEDATA_API_KEY` | TwelveData market feed | **Yes** | `[Your API Key]` |
+| `FMP_API_KEY` | Financial Modeling Prep | **Yes** | `[Your API Key]` |
 
 ---
 
-## 5. Quickstart & Local Setup
+## 🚀 Quickstart & Local Setup
 
-### Prerequisites
-- **Node.js**: v20+ or v22 LTS
-- **Python**: v3.12+
-- **PostgreSQL**: Local PostgreSQL or a free [Neon Serverless](https://neon.tech) database.
+### Option 1: Docker Compose (Recommended)
 
-### 1. Clone & Configure
+Clone the repository and launch the full stack locally:
 ```bash
-git clone https://github.com/parth022002/MarketScope.io.git
-cd "MarketScope.io Code"
-
-# Copy environment template
-cp .env.example .env
+git clone https://github.com/parth1511/marketscope.git
+cd marketscope
+docker-compose up --build
 ```
+- Frontend: `http://localhost:3000`
+- Backend API: `http://localhost:8000`
+- Interactive OpenAPI Docs: `http://localhost:8000/docs`
 
-### 2. Start Backend API (FastAPI)
+### Option 2: Manual Local Scaffolding
+
+#### 1. Backend Setup
 ```bash
 cd apps/api
 python -m venv .venv
-
-# Activate virtual environment (Windows PowerShell)
-.venv\Scripts\Activate.ps1
-# Activate virtual environment (Linux/macOS)
-source .venv/bin/activate
-
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
-API Documentation (Interactive Swagger): `http://localhost:8000/docs`
 
-### 3. Start Frontend Web (Next.js 15)
-In a separate terminal:
+#### 2. Frontend Setup
 ```bash
 cd apps/web
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 ```
-Web Application: `http://localhost:3000`
 
 ---
 
-## 6. Automated Testing & Verification
+## 🧪 Testing & Validation
 
-### Run Backend Test Suite (Pytest)
-```bash
-apps/api/.venv/Scripts/python.exe -m pytest apps/api/tests/ -v
-```
-Output:
-```
-======================= 106 passed, 1 warning in 5.56s ========================
-```
+MarketScope.io is backed by an automated test suite verifying business logic, financial formulas, database models, and API endpoints:
 
-### Run Frontend Static Typecheck & Build
 ```bash
+# Run backend pytest suite (148 tests)
+cd apps/api
+pytest tests -v
+
+# Run frontend typecheck & production build
 cd apps/web
-npm run typecheck
-npm run build
-```
-Output:
-```
-✓ Compiled successfully
-✓ 28 / 28 routes compiled with zero errors
+pnpm run build
 ```
 
 ---
 
-## 7. Render Cloud Deployment
+## 📚 Documentation Reference Library
 
-MarketScope.io is configured for turnkey automated deployment on **Render**:
-- **Dynamic Port Binding**: Automatically binds to `0.0.0.0:${PORT:-8000}`.
-- **Connection Resiliency**: Configured with 5-second connection timeouts and pool pre-pinging to prevent serverless database hangs.
-- **Zero-Dependency Health Probes**: `/health`, `/health/live`, and `/health/ready` endpoints.
-- **CORS Protection**: Auto-matches `https://*.onrender.com` staging and production web apps.
-
-For complete deployment runbooks, see:
-- **[Render Deployment Guide](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/deployment/RENDER_DEPLOYMENT_GUIDE.md)**
-- **[Render Environment Variables](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/deployment/RENDER_ENVIRONMENT_VARIABLES.md)**
-- **[Deployment Troubleshooting](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/deployment/BACKEND_DEPLOYMENT_TROUBLESHOOTING.md)**
+- [Final Project Report](docs/FINAL_PROJECT_REPORT.md) — Complete 25-chapter institutional project report
+- [System Architecture](docs/ARCHITECTURE.md) — Comprehensive technical architecture reference
+- [API Reference](docs/API_REFERENCE.md) — Full REST & WebSocket specification
+- [Deployment Guide](docs/DEPLOYMENT_GUIDE.md) — Production deployment instructions for Vercel, Render & Docker
+- [Task Audit Matrix](docs/FINAL_PROJECT_TASK_AUDIT.md) — Completed vs pending feature verification register
+- [Data Providers & Licensing](docs/DATA_PROVIDER_AND_LICENSING_REGISTER.md) — Vendor licenses and regulatory disclosures
+- [Security & Privacy](docs/SECURITY_AND_PRIVACY.md) — Security posture, DPDP Act 2023 & GDPR compliance
+- [Repository Cleanup Report](docs/REPOSITORY_CLEANUP_REPORT.md) — Governance purge and asset retention record
 
 ---
 
-## 8. Documentation Index
-Explore the complete documentation in `docs/`:
-- **[Documentation Index](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/README.md)**
-- **[System Architecture](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/architecture/SYSTEM_ARCHITECTURE.md)**
-- **[Canonical Market Data](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/modules/MARKET_DATA.md)**
-- **[Interactive Charting Specification](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/modules/CHARTING.md)**
-- **[Final Completion Report](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/project/FINAL_PROJECT_COMPLETION_REPORT.md)**
-- **[Production Readiness Certification](file:///c:/Users/parth/OneDrive/Desktop/MarketScope.io/MarketScope.io%20Code/docs/operations/FINAL_PRODUCTION_READINESS.md)**
+## ⚖️ Regulatory & Investment Disclaimers
+
+> **SEBI Non-Advisory Notice:** MarketScope.io is an educational, analytical, and quantitative research technology platform. It is not registered as an Investment Adviser or Research Analyst with the Securities and Exchange Board of India (SEBI) or the U.S. Securities and Exchange Commission (SEC). Nothing published on this platform constitutes personalized financial, investment, legal, or tax advice. Market participants must perform independent due diligence and consult certified financial planners before executing live transactions.
 
 ---
 
-## 9. License & Attribution
-- **Developer Attribution**: Configurable via `Footer.tsx` (`Developed by Parth Ahuja`).
-- **Data Attribution**: TwelveData, Financial Modeling Prep (FMP), NSE, BSE, SEC EDGAR.
-- **License**: MIT License. Research and Educational Use.
+## 📄 License & Intellectual Property
+
+MarketScope.io is open-sourced under the [MIT License](LICENSE).  
+Copyright © 2026 MarketScope.io Contributors. All rights reserved.
