@@ -303,7 +303,7 @@ export default function AnimatedBackground() {
       <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 w-full h-full opacity-70 dark:opacity-85"
+        className="absolute inset-0 w-full h-full opacity-20 dark:opacity-25 transition-opacity duration-700 pointer-events-none"
       />
     </div>
   );

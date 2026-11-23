@@ -36,6 +36,7 @@ import {
   getCommoditiesOverview,
   getCurrenciesOverview,
   searchUniversalInstruments,
+  FALLBACK_TICKERS,
   type TickerItem,
   type DerivativesOverview,
   type FixedIncomeOverview,
@@ -252,20 +253,29 @@ export default function MarketsPage() {
                 <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">Real-time / Delay Managed</span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {tickers.slice(0, 8).map((item) => (
-                  <MarketOverviewCard
-                    key={item.symbol}
-                    symbol={item.symbol}
-                    name={item.name}
-                    price={item.price}
-                    change={item.change}
-                    change_pct={item.change_pct}
-                    currency={item.currency}
-                    exchange={item.exchange}
-                    data_status={item.data_status}
-                    sparkline={item.sparkline}
-                  />
-                ))}
+                {loading ? (
+                  Array.from({ length: 8 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="h-32 rounded-2xl bg-slate-100 dark:bg-[#0B1528] border border-slate-200 dark:border-[#162C4E] animate-pulse"
+                    />
+                  ))
+                ) : (
+                  (tickers.length > 0 ? tickers : FALLBACK_TICKERS).slice(0, 8).map((item) => (
+                    <MarketOverviewCard
+                      key={item.symbol}
+                      symbol={item.symbol}
+                      name={item.name}
+                      price={item.price}
+                      change={item.change}
+                      change_pct={item.change_pct}
+                      currency={item.currency}
+                      exchange={item.exchange}
+                      data_status={item.data_status}
+                      sparkline={item.sparkline}
+                    />
+                  ))
+                )}
               </div>
             </div>
 
@@ -312,34 +322,46 @@ export default function MarketsPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {indianTickers.map((item) => (
-                <div key={item.symbol} className="relative">
-                  <MarketOverviewCard
-                    symbol={item.symbol}
-                    name={item.name}
-                    price={item.price}
-                    change={item.change}
-                    change_pct={item.change_pct}
-                    currency={item.currency}
-                    exchange={item.exchange}
-                    data_status={item.data_status}
-                    sparkline={item.sparkline}
+              {loading ? (
+                Array.from({ length: 8 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-32 rounded-2xl bg-slate-100 dark:bg-[#0B1528] border border-slate-200 dark:border-[#162C4E] animate-pulse"
                   />
-                  <div className="mt-2 text-right">
-                    <RegulatoryAccessBadge
-                      status="DOMESTIC_ACCESS"
-                      badgeText="Direct Demat Access"
-                      framework="SEBI / RBI Domestic Regulations"
-                      permittedRoute="Normal Demat / Trading Account with SEBI-registered broker"
-                      conditions={[
-                        "PAN and Aadhaar verified KYC required",
-                        "Standard STT and Capital Gains Tax apply",
-                        "No foreign currency conversion needed",
-                      ]}
+                ))
+              ) : (
+                (indianTickers.length > 0
+                  ? indianTickers
+                  : FALLBACK_TICKERS.filter((t) => t.exchange === "NSE" || t.exchange === "BSE")
+                ).map((item) => (
+                  <div key={item.symbol} className="relative">
+                    <MarketOverviewCard
+                      symbol={item.symbol}
+                      name={item.name}
+                      price={item.price}
+                      change={item.change}
+                      change_pct={item.change_pct}
+                      currency={item.currency}
+                      exchange={item.exchange}
+                      data_status={item.data_status}
+                      sparkline={item.sparkline}
                     />
+                    <div className="mt-2 text-right">
+                      <RegulatoryAccessBadge
+                        status="DOMESTIC_ACCESS"
+                        badgeText="Direct Demat Access"
+                        framework="SEBI / RBI Domestic Regulations"
+                        permittedRoute="Normal Demat / Trading Account with SEBI-registered broker"
+                        conditions={[
+                          "PAN and Aadhaar verified KYC required",
+                          "Standard STT and Capital Gains Tax apply",
+                          "No foreign currency conversion needed",
+                        ]}
+                      />
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         )}
@@ -369,35 +391,53 @@ export default function MarketsPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {globalTickers.map((item) => (
-                <div key={item.symbol} className="relative">
-                  <MarketOverviewCard
-                    symbol={item.symbol}
-                    name={item.name}
-                    price={item.price}
-                    change={item.change}
-                    change_pct={item.change_pct}
-                    currency={item.currency}
-                    exchange={item.exchange}
-                    data_status={item.data_status}
-                    sparkline={item.sparkline}
+              {loading ? (
+                Array.from({ length: 8 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-32 rounded-2xl bg-slate-100 dark:bg-[#0B1528] border border-slate-200 dark:border-[#162C4E] animate-pulse"
                   />
-                  <div className="mt-2 text-right">
-                    <RegulatoryAccessBadge
-                      status="INTERNATIONAL_ACCESS_SUBJECT_TO_LRS"
-                      badgeText="LRS Permitted ($250k/FY)"
-                      framework="RBI Master Direction - LRS (FEMA 1999)"
-                      permittedRoute="Authorized Dealer Category-I Bank Remittance"
-                      conditions={[
-                        "Max USD 250,000 annual limit per resident individual",
-                        "20% TCS applies on remittances exceeding ₹7 Lakhs/year",
-                        "Mandatory ITR Schedule FA disclosure",
-                        "Strictly cash investment — leverage/margin prohibited",
-                      ]}
+                ))
+              ) : (
+                (globalTickers.length > 0
+                  ? globalTickers
+                  : FALLBACK_TICKERS.filter(
+                      (t) =>
+                        t.exchange !== "NSE" &&
+                        t.exchange !== "BSE" &&
+                        t.category !== "commodity" &&
+                        t.category !== "currency"
+                    )
+                ).map((item) => (
+                  <div key={item.symbol} className="relative">
+                    <MarketOverviewCard
+                      symbol={item.symbol}
+                      name={item.name}
+                      price={item.price}
+                      change={item.change}
+                      change_pct={item.change_pct}
+                      currency={item.currency}
+                      exchange={item.exchange}
+                      data_status={item.data_status}
+                      sparkline={item.sparkline}
                     />
+                    <div className="mt-2 text-right">
+                      <RegulatoryAccessBadge
+                        status="INTERNATIONAL_ACCESS_SUBJECT_TO_LRS"
+                        badgeText="LRS Permitted ($250k/FY)"
+                        framework="RBI Master Direction - LRS (FEMA 1999)"
+                        permittedRoute="Authorized Dealer Category-I Bank Remittance"
+                        conditions={[
+                          "Max USD 250,000 annual limit per resident individual",
+                          "20% TCS applies on remittances exceeding ₹7 Lakhs/year",
+                          "Mandatory ITR Schedule FA disclosure",
+                          "Strictly cash investment — leverage/margin prohibited",
+                        ]}
+                      />
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         )}

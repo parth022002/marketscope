@@ -283,8 +283,12 @@ class MarketDataService:
 
     async def get_ticker_feed(self) -> list[TickerItem]:
         items: list[TickerItem] = []
-        for sym, exch, category in CANONICAL_SYMBOLS:
-            quote = await self.get_quote(sym, exch)
+        tasks = [self.get_quote(sym, exch) for sym, exch, _ in CANONICAL_SYMBOLS]
+        quotes = await asyncio.gather(*tasks, return_exceptions=True)
+
+        for (sym, exch, category), quote in zip(CANONICAL_SYMBOLS, quotes):
+            if isinstance(quote, Exception) or not quote:
+                continue
             items.append(
                 TickerItem(
                     symbol=quote.symbol,
@@ -323,10 +327,14 @@ class MarketDataService:
             "MSFT": 3620000.0,
         }
 
-        # Build top companies
+        # Build top companies concurrently
+        top_tasks = [self.get_quote(sym, exch) for sym, _, exch, _, _, _ in CANONICAL_EQUITIES]
+        top_quotes = await asyncio.gather(*top_tasks, return_exceptions=True)
+
         top_companies: list[TopCompanyItem] = []
-        for sym, name, exch, sector, curr, is_global in CANONICAL_EQUITIES:
-            q = await self.get_quote(sym, exch)
+        for (sym, name, exch, sector, curr, is_global), q in zip(CANONICAL_EQUITIES, top_quotes):
+            if isinstance(q, Exception) or not q:
+                continue
             top_companies.append(
                 TopCompanyItem(
                     symbol=q.symbol,

@@ -95,6 +95,8 @@ class LiveExchangeProvider(BaseMarketDataProvider):
 
     def __init__(self):
         self._cache: dict[str, dict] = {}
+        self._circuit_open_until: float = 0.0
+        self._consecutive_errors: int = 0
 
     def _get_ticker_symbol(self, symbol: str, exchange: str | None = None) -> str:
         sym_clean = symbol.upper().strip()
@@ -109,6 +111,9 @@ class LiveExchangeProvider(BaseMarketDataProvider):
         return sym_clean
 
     def _fetch_quote_sync(self, ysym: str, raw_symbol: str, exchange: str | None) -> MarketQuote | None:
+        import time
+        if time.time() < self._circuit_open_until:
+            return None
         try:
             mapping = instrument_resolver.resolve(raw_symbol, exchange)
             actual_ysym = mapping.yfinance_ticker if mapping else ysym
@@ -179,7 +184,7 @@ class LiveExchangeProvider(BaseMarketDataProvider):
             rounded_price = round(float(last_price), precision)
             rounded_prev_close = round(float(prev_close), precision)
 
-            return MarketQuote(
+            res = MarketQuote(
                 instrument_id=mapping.canonical_id if mapping else f"inst_live_{raw_symbol.replace(' ', '_').replace('/', '_')}",
                 symbol=raw_symbol,
                 name=mapping.symbol if mapping else raw_symbol,
@@ -201,7 +206,13 @@ class LiveExchangeProvider(BaseMarketDataProvider):
                 received_at=now,
                 sparkline=[rounded_prev_close, rounded_price],
             )
+            self._consecutive_errors = 0
+            return res
         except Exception as e:
+            import time
+            self._consecutive_errors += 1
+            if self._consecutive_errors >= 3:
+                self._circuit_open_until = time.time() + 90.0
             logger.debug(f"Live exchange quote failed for {ysym}: {e}")
             return None
 
