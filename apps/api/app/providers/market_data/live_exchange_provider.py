@@ -80,7 +80,7 @@ EXCHANGE_TICKER_MAP = {
     "INFY": "INFY.NS",
     "ICICIBANK": "ICICIBANK.NS",
     "BHARTIARTL": "BHARTIARTL.NS",
-    "TATAMOTORS": "TATAMOTORS.BO",
+    "TATAMOTORS": "TMPV.NS",
     "LT": "LT.NS",
 
     # US Equities
@@ -115,8 +115,14 @@ class LiveExchangeProvider(BaseMarketDataProvider):
         if time.time() < self._circuit_open_until:
             return None
         try:
+            sym_clean = raw_symbol.upper().strip()
+            if sym_clean in EXCHANGE_TICKER_MAP:
+                actual_ysym = EXCHANGE_TICKER_MAP[sym_clean]
+            else:
+                mapping = instrument_resolver.resolve(raw_symbol, exchange)
+                actual_ysym = mapping.yfinance_ticker if mapping else ysym
             mapping = instrument_resolver.resolve(raw_symbol, exchange)
-            actual_ysym = mapping.yfinance_ticker if mapping else ysym
+
 
             t = yf.Ticker(actual_ysym)
             fi = t.fast_info
