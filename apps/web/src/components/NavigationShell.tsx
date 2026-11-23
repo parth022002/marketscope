@@ -376,7 +376,7 @@ export default function NavigationShell({ children, activePath }: NavigationShel
 
       {/* ── MAIN CONTENT AREA ───────────────────────────────────────── */}
       <div
-        className={`flex-1 flex flex-col min-h-screen relative z-10 transition-all duration-300 ease-in-out ${
+        className={`flex-1 flex flex-col min-h-screen min-w-0 w-full max-w-full relative z-10 transition-all duration-300 ease-in-out ${
           collapsed ? "md:pl-20" : "md:pl-64"
         }`}
       >
@@ -448,12 +448,12 @@ export default function NavigationShell({ children, activePath }: NavigationShel
         </header>
 
         {/* Global Market Ticker Banner */}
-        <div className="border-b border-slate-800/60 bg-[#060B14]/80 backdrop-blur z-10">
+        <div className="border-b border-slate-800/60 bg-[#060B14]/80 backdrop-blur z-10 w-full min-w-0 overflow-hidden">
           <MarketTicker />
         </div>
 
         {/* Page Content Viewport */}
-        <main className="flex-1 relative z-10 w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <main className="flex-1 relative z-10 w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 min-w-0">
           {children}
         </main>
 

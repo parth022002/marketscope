@@ -29,46 +29,51 @@ export default function MarketOverviewCard({
   data_status,
   sparkline,
 }: MarketOverviewCardProps) {
-  const isPositive = change_pct >= 0;
+  const safePrice = typeof price === "number" && !isNaN(price) ? price : 0;
+  const safeChange = typeof change === "number" && !isNaN(change) ? change : 0;
+  const safeChangePct = typeof change_pct === "number" && !isNaN(change_pct) ? change_pct : 0;
+
+  const isPositive = safeChangePct >= 0;
   const isYield = asset_class === "YIELD" || symbol.includes("YIELD") || exchange === "BOND" || exchange === "RBI";
   const isIndex = asset_class === "INDEX" || exchange === "NSE" || exchange === "BSE" || exchange === "CBOE" || symbol.includes("NIFTY") || symbol.includes("SENSEX") || symbol.includes("500") || symbol.includes("100");
 
   const formatPrice = (val: number, cur: string) => {
+    const num = typeof val === "number" && !isNaN(val) ? val : 0;
     if (isYield) {
-      return `${val.toFixed(3)}%`;
+      return `${num.toFixed(3)}%`;
     }
     switch (cur) {
       case "INR":
-        return `₹${val.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        return `₹${num.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       case "USD":
-        return `$${val.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        return `$${num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       case "EUR":
-        return `€${val.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        return `€${num.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       case "GBP":
-        return `£${val.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        return `£${num.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       case "JPY":
-        return `¥${val.toLocaleString("ja-JP", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+        return `¥${num.toLocaleString("ja-JP", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
       default:
-        return `${val.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        return `${num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
   };
 
   const formatChangeText = () => {
     const sign = isPositive ? "+" : "";
     if (isYield) {
-      const bps = (change * 100).toFixed(1);
+      const bps = (safeChange * 100).toFixed(1);
       return `${sign}${bps} bps`;
     }
     if (isIndex && !symbol.includes("USD") && !symbol.includes("EUR")) {
-      return `${sign}${change.toFixed(2)} pts`;
+      return `${sign}${safeChange.toFixed(2)} pts`;
     }
     const curSymbol = currency === "INR" ? "₹" : currency === "USD" ? "$" : currency === "EUR" ? "€" : currency === "GBP" ? "£" : "";
-    return `${sign}${curSymbol}${Math.abs(change).toFixed(2)}`;
+    return `${sign}${curSymbol}${Math.abs(safeChange).toFixed(2)}`;
   };
 
   const defaultSparkline = sparkline && sparkline.length > 1
     ? sparkline
-    : [price, price];
+    : [safePrice, safePrice];
 
   return (
     <Link

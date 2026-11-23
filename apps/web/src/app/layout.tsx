@@ -33,13 +33,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/logo-icon.png" type="image/png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
-      <body className="antialiased selection:bg-blue-600 selection:text-white">
+      <body className="antialiased selection:bg-blue-600 selection:text-white" suppressHydrationWarning>
         <ClerkProvider>
           <ThemeProvider>
             {children}

@@ -215,7 +215,9 @@ export default function OverviewPage() {
                     <span className="font-semibold text-sky-600 dark:text-sky-400 font-mono">
                       {item.publisher || "Regulatory Wire"}
                     </span>
-                    <span>{new Date(item.published_at).toLocaleDateString()}</span>
+                    <span>
+                      {item.published_at ? new Date(item.published_at).toLocaleDateString() : "Recent"}
+                    </span>
                   </div>
                   <h3 className="font-bold text-sm text-slate-900 dark:text-white line-clamp-2">
                     {item.title}

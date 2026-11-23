@@ -236,7 +236,7 @@ export default function MarketTicker() {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div className="flex items-center">
+      <div className="flex items-center w-full min-w-0 overflow-hidden">
         {/* Stream Status Indicator */}
         <div className="hidden md:flex items-center gap-1.5 px-3 py-2 bg-[#07152B] border-r border-[#132B4F] shrink-0 font-mono text-[10px] text-slate-300 font-semibold tracking-wider">
           {isConnected ? (
@@ -257,7 +257,7 @@ export default function MarketTicker() {
         </div>
 
         {/* Marquee Container */}
-        <div className="overflow-x-auto md:overflow-hidden whitespace-nowrap py-1.5 scrollbar-none flex-1">
+        <div className="overflow-hidden whitespace-nowrap py-1.5 scrollbar-none flex-1 min-w-0">
           <div
             className={`inline-flex items-center gap-6 px-4 animate-marquee ${
               isPaused ? "[animation-play-state:paused]" : ""

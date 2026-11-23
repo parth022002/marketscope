@@ -51,6 +51,10 @@ export function useMarketWebSocket(options: UseMarketWebSocketOptions = {}) {
       }
     }
 
+    if (host.includes("onrender.com") || window.location.protocol === "https:") {
+      protocol = "wss:";
+    }
+
     return `${protocol}//${host}/ws/v1/market-data`;
   }, []);
 
