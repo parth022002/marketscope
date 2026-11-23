@@ -1,6 +1,21 @@
-export const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+export const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE_URL ??
+  (process.env.NODE_ENV === "production" ? "https://marketscope-api.onrender.com" : "http://localhost:8000");
+
 export const SERVER_API_BASE = process.env.API_INTERNAL_BASE_URL ?? API_BASE;
-export const getApiBase = () => (typeof window === "undefined" ? SERVER_API_BASE : API_BASE);
+
+export const getApiBase = () => {
+  if (typeof window === "undefined") {
+    return process.env.API_INTERNAL_BASE_URL || API_BASE;
+  }
+  if (process.env.NEXT_PUBLIC_API_BASE_URL) {
+    return process.env.NEXT_PUBLIC_API_BASE_URL;
+  }
+  if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+    return "http://localhost:8000";
+  }
+  return "https://marketscope-api.onrender.com";
+};
 
 export async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 7000): Promise<Response> {
   const controller = new AbortController();

@@ -44,7 +44,11 @@ export function useMarketWebSocket(options: UseMarketWebSocketOptions = {}) {
     }
 
     if (!host) {
-      host = window.location.hostname === "localhost" ? "localhost:8000" : window.location.host;
+      if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+        host = "localhost:8000";
+      } else {
+        host = "marketscope-api.onrender.com";
+      }
     }
 
     return `${protocol}//${host}/ws/v1/market-data`;
